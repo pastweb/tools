@@ -18,7 +18,7 @@ Below you will find descriptions of each function along with examples of how to 
   - [createStorage](#createStorage)
   - [createViewRouter](#createviewrouter)
     -[routeDive](#routedive)
-- [Date & Time](#date-&-time)
+- [Date and Time](#date-and-time)
   - [isDateYoungerOf](#isdateyoungerof)
   - [isHoursTimeYoungerThen](#ishourstimeyoungerthen) _(Deprecated)_
 - [Element functions](#element-functions)
@@ -700,6 +700,8 @@ Example of Nested Route Traversal
 Given a route structure with multiple levels of nesting, routeDive will traverse through each level until it either reaches the specified depth or the deepest available route. This allows developers to dynamically access deeply nested routes without manually iterating through each level.
 
 ---
+
+## Date and Time
 
 ### `isDateYoungerOf`
 
