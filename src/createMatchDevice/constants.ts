@@ -1,0 +1,1 @@
+export const UA_MOBILE_DEFAULT_RE = /iP(hone|ad|od)|blackberry|Android|(W|w)indows (P|p)hone/g;

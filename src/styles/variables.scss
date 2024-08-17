@@ -1,0 +1,93 @@
+// Colors
+$background-color: #fff !default;
+$color_text: hsl(0, 0%, 29%) !default;
+$color_text_strong: hsl(0, 0%, 21%) !default;
+
+// Control
+$background-color_control: #fafafa !default;
+
+// Radious
+$border-radius_rounded: 2em !default;
+$border-radius_xx-large: 20px !default;
+$border-radius_x-large: 16px !default;
+$border-radius_large: 12px !default;
+$border-radius_medium: 8px !default;
+$border-radius: 0.5em !default;
+$border-radius_small: 6px !default;
+$border-radius_x-small: 4px !default;
+
+// Fonts
+$font-weight_lighter: 100 !default;
+$font-weight_light: 200 !default;
+$font-weight_semilight: 300 !default;
+$font-weight: 400 !default;
+$font-weight_medium: 500 !default;
+$font-weight_semibold: 600 !default;
+$font-weight_bold: 700 !default;
+
+$font-size_x-small: 0.5rem !default;
+$font-size_small: 0.7rem !default;
+$font-size: 1rem !default;
+$font-size_medium: 1.3rem !default;
+$font-size_large: 1.5rem !default;
+$font-size_x-large: 2rem !default;
+
+$line-height_x-small: 10px !default;
+$line-height_small: 18px !default;
+$line-height: 20px !default;
+$line-height_medium: 24px !default;
+$line-height_large: 26px !default;
+$line-height_x-large: 28px !default;
+
+// Elements
+$body_background-color: hsl(0, 0%, 100%) !default;
+$body_font-size: 16px !default;
+$body_min-width: 300px !default;
+$body_text-rendering: optimizeLegibility !default;
+$body_font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif !default;
+$body_overflow-x: hidden !default;
+$body_overflow-y: scroll !default;
+
+$body_color: $color_text !default;
+$body_font-size: 1em !default;
+$body_font-weight: $font-weight !default;
+$body_line-height: 1.5 !default;
+
+$code_background-color: $background-color !default;
+$code_color: hsl(348, 86%, 46%) !default;
+$code_font-family: monospace !default;
+$code_padding: 0.25em 0.5em 0.25em !default;
+$code_font_weight: normal !default;
+$code_font-size: 0.875em !default;
+
+$link_color: hsl(229, 53%,  53%) !default;
+$link_color_hover: hsl(0, 0%, 21%) !default;
+
+$small_font-size: 0.875em !default;
+
+$hr_background-color: $background-color !default;
+$hr_height: 2px !default;
+$hr_margin: 1.5rem 0 !default;
+
+$strong_color: $color_text_strong !default;
+$strong_font-weight: $font-weight_bold !default;
+
+$pre_color: $color_text !default;
+$pre_background-color: $background-color !default;
+$pre_font-size: 0.875em !default;
+$pre_padding: 1.25rem 1.5rem !default;
+$pre_font-size_code: 1em !default;
+
+// Responsiveness
+// The container horizontal gap, which acts as the offset for breakpoints
+$gap: 32px !default;
+// 960, 1152, and 1344 have been chosen because they are divisible by both 12 and 16
+$tablet: 769px !default;
+// 960px container + 4rem
+$desktop: 960px + (2 * $gap) !default;
+// 1152px container + 4rem
+$widescreen: 1152px + (2 * $gap) !default;
+$widescreen-enabled: true !default;
+// 1344px container + 4rem
+$fullhd: 1344px + (2 * $gap) !default;
+$fullhd-enabled: true !default;

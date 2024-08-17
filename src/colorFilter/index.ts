@@ -1,0 +1,1 @@
+export { colorFilter } from './colorFilter';

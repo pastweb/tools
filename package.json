@@ -1,0 +1,338 @@
+{
+  "name": "@pastweb/tools",
+  "version": "1.12.6",
+  "description": "Set of tools for web application development",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pastweb/tools.git"
+  },
+  "keywords": [],
+  "author": "Domenico Pasto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pastweb/tools/issues"
+  },
+  "homepage": "https://github.com/pastweb/tools#readme",
+  "files": [
+    "/dist",
+    "README.md",
+    "/colorFilter"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/types/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "rimraf dist && tsc --emitDeclarationOnly --skipLibCheck && bun ../maia/packages/maia-cli/src/cli/cli.ts build",
+    "test": "jest",
+    "test-coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.4.0",
+    "axios": "^1.7.3",
+    "axios-mock-adapter": "^1.22.0",
+    "core-js": "^3.38.0",
+    "fake-indexeddb": "^6.0.0",
+    "i18next": "^23.12.2",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jest-localstorage-mock": "^2.4.26",
+    "rimraf": "^6.0.1",
+    "sass": "^1.74.1",
+    "ts-jest": "^29.2.4",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.3"
+  },
+  "peerDependencies": {
+    "axios": "^1.5.0",
+    "clsx": "^2.0.0",
+    "history": "^5.3.0",
+    "i18next": "^23.4.6",
+    "path-to-regexp": "^6.2.1",
+    "sass": "*"
+  },
+  "peerDependenciesMeta": {
+    "sass": {
+      "optional": true
+    }
+  },
+  "exports": {
+    "./all.scss": {
+      "import": "./dist/modules/all.scss",
+      "require": "./dist/modules/all.scss"
+    },
+    "./assign": {
+      "import": "./dist/modules/assign/assign.mjs",
+      "require": "./dist/modules/assign/assign.cjs",
+      "types": "./dist/types/assign/assign.d.ts"
+    },
+    "./camelize": {
+      "import": "./dist/modules/camelize/camelize.mjs",
+      "require": "./dist/modules/camelize/camelize.cjs",
+      "types": "./dist/types/camelize/camelize.d.ts"
+    },
+    "./cl": {
+      "import": "./dist/modules/cl/cl.mjs",
+      "require": "./dist/modules/cl/cl.cjs",
+      "types": "./dist/types/cl/cl.d.ts"
+    },
+    "./cl/constants": {
+      "import": "./dist/modules/cl/constants.mjs",
+      "require": "./dist/modules/cl/constants.cjs",
+      "types": "./dist/types/cl/constants.d.ts"
+    },
+    "./createApiAgent": {
+      "import": "./dist/modules/createApiAgent/createApiAgent.mjs",
+      "require": "./dist/modules/createApiAgent/createApiAgent.cjs",
+      "types": "./dist/types/createApiAgent/createApiAgent.d.ts"
+    },
+    "./createAsyncStore": {
+      "import": "./dist/modules/createAsyncStore/createAsyncStore.mjs",
+      "require": "./dist/modules/createAsyncStore/createAsyncStore.cjs",
+      "types": "./dist/types/createAsyncStore/createAsyncStore.d.ts"
+    },
+    "./createAsyncStore/normalizeAsyncQueue": {
+      "import": "./dist/modules/createAsyncStore/normalizeAsyncQueue.mjs",
+      "require": "./dist/modules/createAsyncStore/normalizeAsyncQueue.cjs",
+      "types": "./dist/types/createAsyncStore/normalizeAsyncQueue.d.ts"
+    },
+    "./createEntry/constants": {
+      "import": "./dist/modules/createEntry/constants.mjs",
+      "require": "./dist/modules/createEntry/constants.cjs",
+      "types": "./dist/types/createEntry/constants.d.ts"
+    },
+    "./createEntry": {
+      "import": "./dist/modules/createEntry/createEntry.mjs",
+      "require": "./dist/modules/createEntry/createEntry.cjs",
+      "types": "./dist/types/createEntry/createEntry.d.ts"
+    },
+    "./createEventEmitter": {
+      "import": "./dist/modules/createEventEmitter/createEventEmitter.mjs",
+      "require": "./dist/modules/createEventEmitter/createEventEmitter.cjs",
+      "types": "./dist/types/createEventEmitter/createEventEmitter.d.ts"
+    },
+    "./createIdCache/constants": {
+      "import": "./dist/modules/createIdCache/constants.mjs",
+      "require": "./dist/modules/createIdCache/constants.cjs",
+      "types": "./dist/types/createIdCache/constants.d.ts"
+    },
+    "./createIdCache": {
+      "import": "./dist/modules/createIdCache/createIdCache.mjs",
+      "require": "./dist/modules/createIdCache/createIdCache.cjs",
+      "types": "./dist/types/createIdCache/createIdCache.d.ts"
+    },
+    "./createLangStore": {
+      "import": "./dist/modules/createLangStore/createLangStore.mjs",
+      "require": "./dist/modules/createLangStore/createLangStore.cjs",
+      "types": "./dist/types/createLangStore/createLangStore.d.ts"
+    },
+    "./createMatchDevice/constants": {
+      "import": "./dist/modules/createMatchDevice/constants.mjs",
+      "require": "./dist/modules/createMatchDevice/constants.cjs",
+      "types": "./dist/types/createMatchDevice/constants.d.ts"
+    },
+    "./createMatchDevice": {
+      "import": "./dist/modules/createMatchDevice/createMatchDevice.mjs",
+      "require": "./dist/modules/createMatchDevice/createMatchDevice.cjs",
+      "types": "./dist/types/createMatchDevice/createMatchDevice.d.ts"
+    },
+    "./createState": {
+      "import": "./dist/modules/createState/createState.mjs",
+      "require": "./dist/modules/createState/createState.cjs",
+      "types": "./dist/types/createState/createState.d.ts"
+    },
+    "./createStorage": {
+      "import": "./dist/modules/createStorage/createStorage.mjs",
+      "require": "./dist/modules/createStorage/createStorage.cjs",
+      "types": "./dist/types/createStorage/createStorage.d.ts"
+    },
+    "./createViewRouter/constants": {
+      "import": "./dist/modules/createViewRouter/constants.mjs",
+      "require": "./dist/modules/createViewRouter/constants.cjs",
+      "types": "./dist/types/createViewRouter/constants.d.ts"
+    },
+    "./createViewRouter": {
+      "import": "./dist/modules/createViewRouter/createViewRouter.mjs",
+      "require": "./dist/modules/createViewRouter/createViewRouter.cjs",
+      "types": "./dist/types/createViewRouter/createViewRouter.d.ts"
+    },
+    "./createViewRouter/util/filterRoutes": {
+      "import": "./dist/modules/createViewRouter/util/filterRoutes.mjs",
+      "require": "./dist/modules/createViewRouter/util/filterRoutes.cjs",
+      "types": "./dist/types/createViewRouter/util/filterRoutes.d.ts"
+    },
+    "./createViewRouter/util/routeDive": {
+      "import": "./dist/modules/createViewRouter/util/routeDive.mjs",
+      "require": "./dist/modules/createViewRouter/util/routeDive.cjs",
+      "types": "./dist/types/createViewRouter/util/routeDive.d.ts"
+    },
+    "./debounce": {
+      "import": "./dist/modules/debounce/debounce.mjs",
+      "require": "./dist/modules/debounce/debounce.cjs",
+      "types": "./dist/types/debounce/debounce.d.ts"
+    },
+    "./deepMerge": {
+      "import": "./dist/modules/deepMerge/deepMerge.mjs",
+      "require": "./dist/modules/deepMerge/deepMerge.cjs",
+      "types": "./dist/types/deepMerge/deepMerge.d.ts"
+    },
+    "./effect": {
+      "import": "./dist/modules/effect/effect.mjs",
+      "require": "./dist/modules/effect/effect.cjs",
+      "types": "./dist/types/effect/effect.d.ts"
+    },
+    "./getFullElementSize/constants": {
+      "import": "./dist/modules/getFullElementSize/constants.mjs",
+      "require": "./dist/modules/getFullElementSize/constants.cjs",
+      "types": "./dist/types/getFullElementSize/constants.d.ts"
+    },
+    "./getFullElementSize": {
+      "import": "./dist/modules/getFullElementSize/getFullElementSize.mjs",
+      "require": "./dist/modules/getFullElementSize/getFullElementSize.cjs",
+      "types": "./dist/types/getFullElementSize/getFullElementSize.d.ts"
+    },
+    "./getType": {
+      "import": "./dist/modules/getType/getType.mjs",
+      "require": "./dist/modules/getType/getType.cjs",
+      "types": "./dist/types/getType/getType.d.ts"
+    },
+    "./hashID": {
+      "import": "./dist/modules/hashID/hashID.mjs",
+      "require": "./dist/modules/hashID/hashID.cjs",
+      "types": "./dist/types/hashID/hashID.d.ts"
+    },
+    ".": {
+      "import": "./dist/modules/index.mjs",
+      "require": "./dist/modules/index.cjs",
+      "types": "./dist/types/./index.d.ts"
+    },
+    "./isDateYoungerOf": {
+      "import": "./dist/modules/isDateYoungerOf/isDateYoungerOf.mjs",
+      "require": "./dist/modules/isDateYoungerOf/isDateYoungerOf.cjs",
+      "types": "./dist/types/isDateYoungerOf/isDateYoungerOf.d.ts"
+    },
+    "./isHoursTimeYoungerThen": {
+      "import": "./dist/modules/isHoursTimeYoungerThen/isHoursTimeYoungerThen.mjs",
+      "require": "./dist/modules/isHoursTimeYoungerThen/isHoursTimeYoungerThen.cjs",
+      "types": "./dist/types/isHoursTimeYoungerThen/isHoursTimeYoungerThen.d.ts"
+    },
+    "./isObject": {
+      "import": "./dist/modules/isObject/isObject.mjs",
+      "require": "./dist/modules/isObject/isObject.cjs",
+      "types": "./dist/types/isObject/isObject.d.ts"
+    },
+    "./isSSR": {
+      "import": "./dist/modules/isSSR/index.mjs",
+      "require": "./dist/modules/isSSR/index.cjs",
+      "types": "./dist/types/isSSR/index.d.ts"
+    },
+    "./isType": {
+      "import": "./dist/modules/isType/isType.mjs",
+      "require": "./dist/modules/isType/isType.cjs",
+      "types": "./dist/types/isType/isType.d.ts"
+    },
+    "./kebabize": {
+      "import": "./dist/modules/kebabize/kebabize.mjs",
+      "require": "./dist/modules/kebabize/kebabize.cjs",
+      "types": "./dist/types/kebabize/kebabize.d.ts"
+    },
+    "./memo": {
+      "import": "./dist/modules/memo/memo.mjs",
+      "require": "./dist/modules/memo/memo.cjs",
+      "types": "./dist/types/memo/memo.d.ts"
+    },
+    "./noop": {
+      "import": "./dist/modules/noop/index.mjs",
+      "require": "./dist/modules/noop/index.cjs",
+      "types": "./dist/types/noop/index.d.ts"
+    },
+    "./portals/anchorsSetup": {
+      "import": "./dist/modules/portals/anchorsSetup/anchorsSetup.mjs",
+      "require": "./dist/modules/portals/anchorsSetup/anchorsSetup.cjs",
+      "types": "./dist/types/portals/anchorsSetup/anchorsSetup.d.ts"
+    },
+    "./portals/anchorsSetup/generateAnchors": {
+      "import": "./dist/modules/portals/anchorsSetup/generateAnchors.mjs",
+      "require": "./dist/modules/portals/anchorsSetup/generateAnchors.cjs",
+      "types": "./dist/types/portals/anchorsSetup/generateAnchors.d.ts"
+    },
+    "./portals/constants": {
+      "import": "./dist/modules/portals/constants.mjs",
+      "require": "./dist/modules/portals/constants.cjs",
+      "types": "./dist/types/portals/constants.d.ts"
+    },
+    "./portals/createPortal": {
+      "import": "./dist/modules/portals/createPortal.mjs",
+      "require": "./dist/modules/portals/createPortal.cjs",
+      "types": "./dist/types/portals/createPortal.d.ts"
+    },
+    "./proxy": {
+      "import": "./dist/modules/proxy/proxy.mjs",
+      "require": "./dist/modules/proxy/proxy.cjs",
+      "types": "./dist/types/proxy/proxy.d.ts"
+    },
+    "./remove": {
+      "import": "./dist/modules/remove/remove.mjs",
+      "require": "./dist/modules/remove/remove.cjs",
+      "types": "./dist/types/remove/remove.d.ts"
+    },
+    "./select": {
+      "import": "./dist/modules/select/select.mjs",
+      "require": "./dist/modules/select/select.cjs",
+      "types": "./dist/types/select/select.d.ts"
+    },
+    "./styles/all.scss": {
+      "import": "./dist/modules/styles/all.scss",
+      "require": "./dist/modules/styles/all.scss"
+    },
+    "./styles/document.scss": {
+      "import": "./dist/modules/styles/document.scss",
+      "require": "./dist/modules/styles/document.scss"
+    },
+    "./styles/functions.scss": {
+      "import": "./dist/modules/styles/functions.scss",
+      "require": "./dist/modules/styles/functions.scss"
+    },
+    "./styles/generic.scss": {
+      "import": "./dist/modules/styles/generic.scss",
+      "require": "./dist/modules/styles/generic.scss"
+    },
+    "./styles/minireset.scss": {
+      "import": "./dist/modules/styles/minireset.scss",
+      "require": "./dist/modules/styles/minireset.scss"
+    },
+    "./styles/mixins.scss": {
+      "import": "./dist/modules/styles/mixins.scss",
+      "require": "./dist/modules/styles/mixins.scss"
+    },
+    "./styles/utils.scss": {
+      "import": "./dist/modules/styles/utils.scss",
+      "require": "./dist/modules/styles/utils.scss"
+    },
+    "./styles/variables.scss": {
+      "import": "./dist/modules/styles/variables.scss",
+      "require": "./dist/modules/styles/variables.scss"
+    },
+    "./throttle": {
+      "import": "./dist/modules/throttle/throttle.mjs",
+      "require": "./dist/modules/throttle/throttle.cjs",
+      "types": "./dist/types/throttle/throttle.d.ts"
+    },
+    "./update": {
+      "import": "./dist/modules/update/update.mjs",
+      "require": "./dist/modules/update/update.cjs",
+      "types": "./dist/types/update/update.d.ts"
+    },
+    "./withDefaults": {
+      "import": "./dist/modules/withDefaults/withDefaults.mjs",
+      "require": "./dist/modules/withDefaults/withDefaults.cjs",
+      "types": "./dist/types/withDefaults/withDefaults.d.ts"
+    },
+    "./colorFilter": {
+      "import": "./colorFilter/index.mjs",
+      "require": "./colorFilter/index.cjs",
+      "types": "./dist/types/colorFilter/colorFilter.d.ts"
+    }
+  }
+}

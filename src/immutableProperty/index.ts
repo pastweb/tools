@@ -1,0 +1,1 @@
+export { immutableProperty } from './immutableProperty';

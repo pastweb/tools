@@ -1,0 +1,14 @@
+/dist
+/colorFilter
+.idea
+.vscode
+node_modules
+coverage
+.DS_Store
+
+pnpm-lock.yaml
+yarn.lock
+.yarnrc
+yarn-error.log
+
+version.ts
