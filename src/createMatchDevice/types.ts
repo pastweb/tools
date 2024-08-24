@@ -11,11 +11,11 @@ export type DevicesConfig = {
 };
 
 export type MatchDevicesResult = {
-  [isDeviceName: string]: boolean;
+  [deviceName: string]: boolean;
 };
 
 export interface MatchDevice {
   getDevices: () => MatchDevicesResult;
   onChange: (fn?: (devices: MatchDevicesResult) => void) => void;
-  onMatch: (isDeviceName: string, fn: (result: boolean, isDeviceName: string) => void) => void;
+  onMatch: (deviceName: string, fn: (result: boolean, deviceName: string) => void) => void;
 }

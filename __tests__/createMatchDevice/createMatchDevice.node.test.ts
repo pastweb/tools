@@ -8,18 +8,18 @@ describe('createMatchDevice - server side.', () => {
   });
 
   it('when the useAgent is not defined it should return false.', () => {
-    const { isMobile } = createMatchDevice({ mobile: {} }).getDevices();
-    expect(isMobile).toBe(false);
+    const { mobile } = createMatchDevice({ mobile: {} }).getDevices();
+    expect(mobile).toBe(false);
   });
 
   it('when the useAgent and uaRegExp are defined it should return true.', () => {
-    const { isMobile } = createMatchDevice({
+    const { mobile } = createMatchDevice({
       mobile: {
         uaTest: UA_MOBILE_DEFAULT_RE,
         userAgent: 'iPhone',
       },
     }).getDevices();
 
-    expect(isMobile).toBe(true);
+    expect(mobile).toBe(true);
   });
 });

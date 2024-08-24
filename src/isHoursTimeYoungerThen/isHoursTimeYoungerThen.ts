@@ -17,6 +17,7 @@
  * ```
  */
 export function isHoursTimeYoungerThen(hoursTime: number, then: number): boolean {
+  console.warn('[WARNING]: "isHoursTimeYoungerThen" is deprecated use "isDateYoungerOf" instead - https://github.com/pastweb/tools?tab=readme-ov-file#isdateyoungerof');
   const now = new Date();
   const diff = Math.abs(now.getTime() - new Date(hoursTime).getTime());
   const seconds = parseFloat((diff / 1000).toFixed(0));

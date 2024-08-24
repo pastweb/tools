@@ -1,8 +1,7 @@
 import { createEventEmitter } from '../createEventEmitter';
 import { isSSR } from '../isSSR';
 import { noop } from '../noop';
-import { getDeviceName } from './util';
-import { MatchDevice, DeviceConfig, DevicesConfig, MatchDevicesResult, UATest } from './types';
+import { MatchDevice, DeviceConfig, DevicesConfig, MatchDevicesResult } from './types';
 
 /**
  * Creates a match device utility that detects device types based on user agent and media queries.
@@ -16,64 +15,40 @@ export function createMatchDevice(config: DevicesConfig = {}): MatchDevice {
   const mqlList: Set<MediaQueryList> = new Set<MediaQueryList>();
   let onChangeCallback: (devices: MatchDevicesResult) => void = noop;
 
-  Object.entries(config).forEach(
-    ([deviceName, deviceConfig]: [string, DeviceConfig]) => {
-      const isDeviceName = getDeviceName(deviceName);
+  Object.entries(config).forEach(([deviceName, deviceConfig]: [string, DeviceConfig]) => {
+    const forceFalse = isSSR && !deviceConfig.userAgent ? true : false;
 
-      const forceFalse = isSSR && !deviceConfig.userAgent ? true : false;
-
-      if (forceFalse) {
-        devices[isDeviceName] = false;
-      } else {
-        const { uaTest, mediaQuery } = deviceConfig;
-        const userAgent = deviceConfig.userAgent || window && window.navigator.userAgent;
-
-        const mql: MediaQueryList | null = !isSSR && mediaQuery ? window.matchMedia(mediaQuery) : null;
-
-        if (mql && mediaQuery) {
-          mqlList.add(mql);
-          mql.addEventListener('change', ({ matches }): void => {
-            devices[isDeviceName] = checkMatch(userAgent, uaTest, matches);
-            onDeviceChange();
-            emitter.emit(deviceName, devices[isDeviceName], isDeviceName);
-          });
-        }
-        
-        devices[isDeviceName] = checkMatch(userAgent, uaTest, !!mql?.matches);
-      }
+    if (forceFalse) {
+      devices[deviceName] = false;
+      return;
     }
-  );
 
-  /**
-   * Checks if the user agent and media query match the criteria for a specific device.
-   *
-   * @param {string} userAgent - The user agent string.
-   * @param {UATest | undefined} uaTest - A function or regex to test the user agent.
-   * @param {boolean} matches - Whether the media query matches.
-   * @returns {boolean} - True if the device matches the criteria, false otherwise.
-   */
-  function checkMatch (
-    userAgent: string,
-    uaTest: UATest | undefined,
-    matches: boolean,
-  ): boolean {
-    const uaResult = !uaTest ? false :
-      typeof uaTest === 'function' ?
-        uaTest(userAgent) :
-        (uaTest as RegExp).test(userAgent);
-  
-    if (matches) {
-      if (uaTest) {
-        return uaResult && matches;
-      }
-  
-      return matches;
-    }
-  
-    if (uaTest) return uaResult;
+    const { uaTest, mediaQuery } = deviceConfig;
+    const userAgent = deviceConfig.userAgent || window && window.navigator.userAgent;
+    let  result = !uaTest ? false : typeof uaTest === 'function' ? uaTest(userAgent) : (uaTest as RegExp).test(userAgent);
     
-    return false;
-  }
+    const mql: MediaQueryList | null = !isSSR && mediaQuery ? window.matchMedia(mediaQuery) : null;
+
+    if (mql && mediaQuery) {
+      mqlList.add(mql);
+      mql.addEventListener('change', ({ matches }): void => {
+        result = uaTest ? result && matches : matches;
+        devices[deviceName] = result;
+        onDeviceChange();
+        emitter.emit(deviceName, devices[deviceName], deviceName);
+      });
+    }
+    
+    if (mql && mql.matches) {
+      if (uaTest) {
+        result = result && mql.matches;
+      }
+  
+      result =  mql.matches;
+    }
+
+    devices[deviceName] = result;
+  });
 
   /**
    * Callback function for device change events.
@@ -103,11 +78,11 @@ export function createMatchDevice(config: DevicesConfig = {}): MatchDevice {
   /**
    * Sets a listener for a specific device match event.
    *
-   * @param {string} isDeviceName - The name of the device to listen for.
+   * @param {string} deviceName - The name of the device to listen for.
    * @param {function} fn - The callback function to be called when the device match event occurs.
    */
-  function onMatch (isDeviceName: string, fn: (result: boolean, isDeviceName: string) => void): void {
-    emitter.on(isDeviceName, fn);
+  function onMatch (deviceName: string, fn: (result: boolean, deviceName: string) => void): void {
+    emitter.on(deviceName, fn);
   }
 
   return { getDevices, onChange, onMatch };

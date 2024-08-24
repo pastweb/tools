@@ -1,4 +1,4 @@
-# tools
+# @pastweb/tools
 
 Contains a collection of utility functions to help with various common tasks in JavaScript and TypeScript application development.
 Below you will find descriptions of each function along with examples of how to use them.
@@ -17,13 +17,14 @@ Below you will find descriptions of each function along with examples of how to 
   - [createMatchDevice](#creatematchdevice)
   - [createStorage](#createStorage)
   - [createViewRouter](#createviewrouter)
+    -[filterRoutes](#filterroutes)
     -[routeDive](#routedive)
 - [Date and Time](#date-and-time)
   - [isDateYoungerOf](#isdateyoungerof)
   - [isHoursTimeYoungerThen](#ishourstimeyoungerthen) _(Deprecated)_
 - [Element functions](#element-functions)
   - [cl](#cl)
-  - [createEntry](#createEntry)
+  - [createEntry](#createentry)
   - [createPortal](#createportal)
     - [anchorsSetup](#anchorssetup)
     - [generateAnchors](#generateanchors)
@@ -419,9 +420,9 @@ Methods
   * `fn: (devices: MatchDevicesResult) => void`
     * The callback function to be called on device state change.
 
-* `onMatch(isDeviceName: string, fn: (result: boolean, isDeviceName: string) => void): void`
+* `onMatch(isDeviceName: string, fn: (result: boolean, deviceName: string) => void): void`
   * Sets a listener for a specific device match event. The callback is triggered whenever the specified device's match state changes.
-  * `isDeviceName`: `string`
+  * `deviceName`: `string`
     * The name of the device to listen for.
   * `fn`: `(result: boolean, isDeviceName: string) => void`
     * The callback function to be called when the device match event occurs.
@@ -446,8 +447,8 @@ matchDevice.onChange((devices) => {
   console.log('Device states updated:', devices);
 });
 
-matchDevice.onMatch('mobile', (isMobile) => {
-  console.log('Mobile device match changed:', isMobile);
+matchDevice.onMatch('mobile', (deviceName) => {
+  console.log('Mobile device match changed:', deviceName);
 });
 
 const currentDevices = matchDevice.getDevices();
@@ -645,6 +646,44 @@ If the `debug` option is enabled, the router logs detailed information about its
 
 ---
 
+### `filterRoutes`
+
+The `filterRoutes` function filters a list of routes based on specified criteria. It allows you to filter out routes that do not meet the conditions defined in the provided filter descriptor.
+
+> #### Syntax
+```typescript
+function filterRoutes(routes: Route[] = [], filter: FilterDescriptor = {}): Route[];
+```
+
+Parameters
+* `routes`: `Route[] (default: [])`
+  * An array of route objects to be filtered. Each Route object represents a route in the application and may contain properties such as path, component, redirect, children, and others.
+* `filter`: `FilterDescriptor`
+  * An object describing the filter criteria. The keys in this object represent the properties of the Route objects to filter on, and the values are the criteria that those properties must match. The value can be a specific value to match or a function that returns a boolean indicating whether the route matches the criteria.
+
+Returns
+* `Route[]`:
+  * An array of Route objects that match the filter criteria. If a route has children, the function will recursively filter them based on the same criteria. If no routes match, an empty array is returned.
+
+**Example:**
+```typescript
+import { filterRoutes } from './path/to/filterRoutes';
+import { Route } from '../types';
+
+const routes: Route[] = [
+  { path: '/home', component: HomeComponent },
+  { path: '/about', component: AboutComponent, hideInPaths: true },
+  { path: '/user/:id', component: UserComponent },
+];
+
+const filter = { component: HomeComponent };
+
+const filteredRoutes = filterRoutes(routes, filter);
+console.log(filteredRoutes); 
+// Outputs: [{ path: '/home', component: HomeComponent }]
+```
+---
+
 ### `routeDive`
 
 The `routeDive` function is designed to traverse a nested route structure and return the route found at a specified depth.
@@ -816,10 +855,7 @@ Methods
   
 > #### Syntax
 ```typescript
-cl.setClasses(
-  classes: CSSModuleClasses | CSSModuleClasses[], 
-  mode: 'merge' | 'replace' = 'merge'
-): (...args: ClassValue[]) => string;
+cl.setClasses(classes: CSSModuleClasses | CSSModuleClasses[], mode: 'merge' | 'replace' = 'merge'): (...args: ClassValue[]) => string;
 ```
 
 Parameters
@@ -839,6 +875,8 @@ Throws
 * `Error`
 Throws an error if a provided class object is not a valid object.
 
+The `setClasses` method returns a function which it works as the `cl` function, but returns the scoped classes presents in the CSS Module if present or the `class string` itself if not.
+
 **Example:**
 ```typescript
 import { cl } from '@pastweb/tools';
@@ -848,18 +886,48 @@ const cssModules = {
   'btn-primary': 'btn-primary_hash',
 };
 
-const mergeClasses = cl.setClasses(cssModules, 'merge');
-const classNames = mergeClasses('btn', 'btn-primary');
-// Output: 'btn_hash btn-primary_hash'
+const cls = cl.setClasses(cssModules);
+const classNames = cls('btn', 'btn-primary', 'some-other-class');
+// Output: 'btn_hash btn-primary_hash some-other-class'
+```
 
-const replaceClasses = cl.setClasses(cssModules, 'replace');
-const replacedClassNames = replaceClasses('btn', 'btn-primary');
-// Output: 'btn-primary_hash'
+It is possible combine the classes of multiple CSS Modules:
+
+**Example:**
+```typescript
+import { cl } from '@pastweb/tools';
+
+const cssModules1 = {
+  'btn': 'btn_hash1',
+  'btn-primary': 'btn-primary_hash1',
+};
+
+const cssModules2 = {
+  'btn-primary': 'btn-primary_hash2',
+};
+
+const clsMerge = cl.setClasses([ cssModules1, cssModules2 ], 'merge' /** you can omit the second parameter as it is 'merge' by default */);
+const classNames = clsMerge('btn', 'btn-primary');
+// Output: 'btn_hash1 btn-primary_hash1 btn-primary_hash2'
+
+const clsReplace = cl.setClasses([ cssModules1, cssModules2 ], 'replace');
+const replacedClassNames = clsReplace('btn', 'btn-primary');
+// Output: 'btn_hash1 btn-primary_hash2'
 ```
 ---
 ### `createEntry`
-
 Creates an entry object with event emitter capabilities and various utility methods to be extended for a specific frontend framework.
+
+An Entry is the shorthend for Entrypoint, to be intended (in this case) as Javascript entrypoint and the DOM mount element where the Javascript Framework should apply its effect.
+The `createEntry` function gives an high level interface to other frameworks for implement the `mount`, `unmount` and `update` methods with some additional support for the `SSR`.
+For the `SSR` process, because the `Entries` could be nested, as example for a framework migration process, and considering different frameworks could have a `sync` or `async` function
+for the Server Side Rendering, the `Entry` object has other 2 methos to solve this problem.
+
+* `memoSSR(htmlPromiseFunction: () => Promise<string>): void;`
+  * This method must be used inside the `mount` method and memorise the `HTML` string produced from the `SSR` framework function, returning a unique `ssrId`.
+* `getComposedSSR(): Promise<string>`
+  * Is an `async` function wich compose the final `HTML` string replacing the `sseId` with the previous memorised `HTML` for each `Entry` Object.
+
 
 > #### Syntax
 ```typescript
@@ -2041,7 +2109,7 @@ exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
 
 ## Styles
 
-here the styles documentation
+working progress stay tuned...
 
 ### License
 
