@@ -30,7 +30,7 @@ export { createLangStore } from './createLangStore';
 export type { LangStore, LangOptions, Translations, LazyTranslations } from './createLangStore';
 
 export { createMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
-export type { MatchDevice, MatchDevicesResult, DevicesConfig } from './createMatchDevice';
+export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig } from './createMatchDevice';
 
 export { createState } from './createState';
 export type { InitiaStateFunction } from './createState';

@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -205,7 +205,7 @@
     ".": {
       "import": "./dist/modules/index.mjs",
       "require": "./dist/modules/index.cjs",
-      "types": "./dist/types/./index.d.ts"
+      "types": "./dist/types/index.d.ts"
     },
     "./isDateYoungerOf": {
       "import": "./dist/modules/isDateYoungerOf/isDateYoungerOf.mjs",
@@ -225,7 +225,7 @@
     "./isSSR": {
       "import": "./dist/modules/isSSR/index.mjs",
       "require": "./dist/modules/isSSR/index.cjs",
-      "types": "./dist/types/isSSR/index.d.ts"
+      "types": "./dist/types/index.d.ts"
     },
     "./isType": {
       "import": "./dist/modules/isType/isType.mjs",
@@ -245,7 +245,7 @@
     "./noop": {
       "import": "./dist/modules/noop/index.mjs",
       "require": "./dist/modules/noop/index.cjs",
-      "types": "./dist/types/noop/index.d.ts"
+      "types": "./dist/types/index.d.ts"
     },
     "./portals/anchorsSetup": {
       "import": "./dist/modules/portals/anchorsSetup/anchorsSetup.mjs",
