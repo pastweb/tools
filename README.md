@@ -3,6 +3,9 @@
 Contains a collection of utility functions to help with various common tasks in JavaScript and TypeScript application development.
 Below you will find descriptions of each function along with examples of how to use them.
 
+* Production ready
+* Treeshake optimised
+
 ## Summary
 
 - [Async functions](#async-functions)
@@ -1574,7 +1577,7 @@ Returns
 
 **Example:**
 ```typescript
-import { getType } from './path/to/your/module';
+import { getType } from '@pastweb/tools';
 
 console.log(getType(123)); // "Number"
 console.log(getType('Hello')); // "String"
@@ -1660,7 +1663,7 @@ Returns
 
 **Example:**
 ```typescript
-import { isType } from './path/to/your/module';
+import { isType } from '@pastweb/tools';
 
 console.log(isType('String', 'Hello')); // true
 console.log(isType('Number', 123)); // true
@@ -2055,7 +2058,7 @@ Returns
 
 **Example:**
 ```typescript
-import { kebabize } from './path/to/your/module';
+import { kebabize } from '@pastweb/tools';
 
 // Converts a camelCase string to kebab-case
 const camelCaseString = kebabize('myVariableName');
@@ -2128,7 +2131,7 @@ Returns
 
 **Example:**
 ```typescript
-import { memo } from './path/to/your/module';
+import { memo } from '@pastweb/tools';
 
 function complexCalculation(a: number, b: number): number {
   console.log('Computing...');
@@ -2188,7 +2191,7 @@ Returns
 
 **Example:**
 ```typescript
-import { noop } from './path/to/your/module';
+import { noop } from '@pastweb/tools';
 
 function exampleFunction(callback = noop) {
   // Some operation
