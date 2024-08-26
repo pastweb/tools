@@ -1,0 +1,209 @@
+// this is a porting in scss of this file:
+// https://github.com/jgthms/bulma/blob/master/sass/base/generic.sass
+// Code copyright 2023 Jeremy Thomas. Code released under the MIT license.
+@import './minireset.scss';
+
+:root {
+  // Colors
+  --background-color-current: #{ $background-color };
+  --color_text-current: #{ $color_text };
+  --color_text_strong-current: #{ $color_text_strong };
+
+  // Control
+  --background-color_control-current: #{ $background-color_control };
+
+  // Radious
+  --border-radius_rounded-curr: #{ $border-radius_rounded };
+  --border-radius_xx-large-curr: #{ $border-radius_xx-large };
+  --border-radius_x-large-curr: #{ $border-radius_x-large };
+  --border-radius_large-curr: #{ $border-radius_large };
+  --border-radius_medium-curr: #{ $border-radius_medium };
+  --border-radius-curr: #{ $border-radius };
+  --border-radius_small-curr: #{ $border-radius_small };
+  --border-radius_x-small-curr: #{ $border-radius_x-small };
+
+  // Fonts
+  --font-weight_lighter-curr: #{ $font-weight_lighter };
+  --font-weight_light--curr: #{ $font-weight_light };
+  --font-weight_semilight-curr: #{ $font-weight_semilight };
+  --font-weight-curr: #{ $font-weight };
+  --font-weight_medium-curr: #{ $font-weight_medium };
+  --font-weight_semibold-curr: #{ $font-weight_semibold };
+  --font-weight_bold-curr: #{ $font-weight_bold };
+
+  --font-size_x-small-curr: #{ $font-size_x-small };
+  --font-size_small-curr: #{ $font-size_small };
+  --font-size-curr: #{ $font-size };
+  --font-size_medium-curr: #{ $font-size_medium };
+  --font-size_large-curr: #{ $font-size_large };
+  --font-size_x-large-curr: #{ $font-size_x-large };
+
+  --line-height_x-small-curr: #{ $line-height_x-small };
+  --line-height_small-curr: #{ $line-height_small };
+  --line-height-curr: #{ $line-height };
+  --line-height_medium-curr: #{ $line-height_medium };
+  --line-height_large-curr: #{ $line-height_large };
+  --line-height_x-large-curr: #{ $line-height_x-large };
+
+  // Elements
+  --body_background-color-curr: #{ $body_background-color };
+  --body_font-size-curr: #{ $body_font-size };
+  --body_min-width-curr: #{ $body_min-width };
+  --body_text-rendering-curr: #{ $body_text-rendering };
+  --body_font-family-curr: #{ $body_font-family };
+  --body_overflow-x-curr: #{ $body_overflow-x };
+  --body_overflow-y-curr: #{ $body_overflow-y };
+
+  --body_color-curr: #{ $body_color };
+  --body_font-size-curr: #{ $body_font-size };
+  --body_font-weight-curr: #{ $body_font-weight };
+  --body_line-height-curr: #{ $body_line-height };
+
+  --code_background-color-curr: #{ $code_background-color };
+  --code_color-curr: #{ $code_color };
+  --code_font-family-curr: #{ $code_font-family };
+  --code_padding-curr: #{ $code_padding };
+  --code_font_weight-curr: #{ $code_font_weight };
+  --code_font-size-curr: #{ $code_font-size };
+
+  --link_color-curr: #{ $link_color };
+  --link_color_hover-curr: #{ $link_color_hover };
+
+  --small_font-size-curr: #{ $small_font-size };
+
+  --hr_background-color-curr: #{ $hr_background-color };
+  --hr_height-curr: #{ $hr_height };
+  --hr_margin-curr: #{ $hr_margin };
+
+  --strong_color-curr: #{ $strong_color };
+  --strong_font-weight-curr: #{ $strong_font-weight };
+
+  --pre_color-curr: #{ $pre_color };
+  --pre_background-color-curr: #{ $pre_background-color };
+  --pre_font-size-curr: #{ $pre_font-size };
+  --pre_padding-curr: #{ $pre_padding };
+  --pre_font-size_code-curr: #{ $pre_font-size_code };
+}
+
+html {
+  background-color: var(--body_background-color-curr);
+  font-size: var(--body_font-size-curr);
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  min-width: var(--body_min-width-curr);
+  overflow-x: var(--body_overflow-x-curr);
+  overflow-y: var(--body_overflow-y-curr);
+  text-rendering: var(--body_text-rendering-curr);
+  text-size-adjust: 100%;
+}
+
+article,
+aside,
+figure,
+footer,
+header,
+hgroup,
+section { display: block; }
+
+body,
+button,
+input,
+optgroup,
+select,
+textarea { font-family: var(--body_font-family-curr); }
+
+code,
+pre {
+  -moz-osx-font-smoothing: auto;
+  -webkit-font-smoothing: auto;
+  font-family: var(--code_font-family-curr);
+}
+
+body {
+  color: var(--body_color-curr);
+  font-size: var(--body_font-size-curr);
+  font-weight: var(--body_font-weight-curr);
+  line-height: var(--body_line-height-curr);
+}
+
+// Inline
+a {
+  color: var(--link_color-curr);
+  cursor: pointer;
+  text-decoration: none;
+  
+  strong { color: currentColor; }
+    
+  &:hover { color: var(--link_color_hover-curr); }
+}
+
+code {
+  background-color: var(--code_background-color-curr);
+  color: var(--code_color-curr);
+  font-size: var(--code_font-size-curr);
+  font-weight: var(--code_font_weight-curr);
+  padding: var(--code_padding-curr);
+}
+
+hr {
+  background-color: var(--hr_background-color-curr);
+  border: none;
+  display: block;
+  height: var(--hr_height-curr);
+  margin: var(--hr_margin-curr);
+}
+
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  vertical-align: baseline;
+}
+
+small {
+  font-size: var(--small_font-size-curr);
+}
+
+span {
+  font-style: inherit;
+  font-weight: inherit;
+}
+
+strong {
+  color: var(--strong_color-curr);
+  font-weight: var(--strong_font-weight-curr);
+}
+
+// Block
+fieldset { border: none; }
+
+pre {
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--pre_background-color-curr);
+  color: var(--pre_color-curr);
+  font-size: var(--pre_font-size-curr);
+  overflow-x: auto;
+  padding: var(--pre_padding-curr);
+  white-space: pre;
+  word-wrap: normal;
+
+  code {
+    background-color: transparent;
+    color: currentColor;
+    font-size: var(--pre_font-size_code-curr);
+    padding: 0;
+  }
+}
+
+table {
+  td,
+  th {
+    vertical-align: top;
+    &:not([align]) { text-align: inherit; }
+  }
+    
+  th { color: var(--color_text_strong-current); }
+}

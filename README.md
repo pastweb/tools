@@ -52,6 +52,9 @@ Below you will find descriptions of each function along with examples of how to 
   - [noop](#noop)
   - [isSSR](#isssr)
 - [Styles](#styles)
+  -[setup](#setup)
+  -[colorFilter](#colorfilter)
+  -[icon mixin](#icon-mixin)
 
 ---
 ## Async functions
@@ -993,6 +996,9 @@ entry.emit('someEvent');
 ---
 ### `createPortal`
 Creates a Portal object that manages the lifecycle of portal entries, including opening, updating, and closing portal instances.
+Portal is a common term used to identify a mechanism usually implemented in a Front End framework for render and handle components in a not nested
+DOM element a good example is a rendering of a modal window you can see an example implementation for [react](https://react.dev/reference/react-dom/createPortal), [vue](https://vuejs.org/guide/built-ins/teleport) or [angualr](https://material.angular.io/cdk/portal/overview).
+This function abstract the mechanism in order to have a consistant api cross Frameworks useing the [Entry](#createentry) object.
 
 > #### Syntax
 ```typescript
@@ -2109,7 +2115,113 @@ exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
 
 ## Styles
 
-working progress stay tuned...
+This library provide a micro, general styling system written and prodived in `scss` so to use it you need to install and configure [sass](https://www.npmjs.com/package/sass) for your build chain tool.
+As example you can check [here](https://vitejs.dev/config/shared-options.html#css-preprocessoroptions) from Vite or [here](https://webpack.js.org/loaders/sass-loader/) from webpack.
+The micro-style is composed from `variables`, `mixins` and `document` files, in order to use it you need to import them as you need.
+The best way to setup your progect is to create a main `scss` file and let it auto import from `sass`.
+
+### `setup`
+The code below is the general way to setup a project:
+
+```scss
+// ./src/styles/all.scss
+@import "@pastweb/tools/styles/utils.scss";
+```
+```js
+// sass config
+import { colorFilter } from '@pastweb/tools/colorFilter';
+...
+{
+  additionalData: `@import "./src/styles/all.scss";`,
+  functions: { 'colorFilter($color)': colorFilter },
+}
+...
+```
+
+The `@pastweb/tools/styles/utils.scss` file contains three files:
+
+* [@pastweb/tools/styles/variables.scss](https://github.com/pastweb/tools/blob/master/src/styles/variables.scss) _(mandatory)_
+  * contains the sass variables you can customise in your `./src/styles/all.scss` file for your project.
+* [@pastweb/tools/styles/functions.scss](https://github.com/pastweb/tools/blob/master/src/styles/functions.scss)
+  * contains sass functions used in the following `mixins` file.
+* [@pastweb/tools/styles/mixins.scss](https://github.com/pastweb/tools/blob/master/src/styles/mixins.scss)
+  * contains icon and media query mixins.
+
+You can decide if load all of then or just some as you need.
+In your main `js`/`ts` file you need to import the `document` file.
+Your can choose between two versions:
+
+* [@pastweb/tools/styles/document.scss](https://github.com/pastweb/tools/blob/master/src/styles/document.scss)
+  * contains the [minireset](https://github.com/jgthms/bulma/blob/master/sass/base/generic.sass) and use the `sass` variables importen/declared in your `./src/styles/all.scss` file.
+* [@pastweb/tools/styles/document.variables.scss](https://github.com/pastweb/tools/blob/master/src/styles/document.variables.scss)
+  * It is the same as the previous one, but exports and use the `sass` variables as `css variables`.
+
+The `document.variables.scss` exports the `sass` variables as `css variables` using the same variable name but with che suffix `-curr` (shorthend as current).
+This is because in case you want to implement a divfferent `color scheme` for your project as in the example below:
+
+```scss
+// ./src/styles/all.scss
+@import "@pastweb/tools/styles/utils.scss";
+
+$background-color_dark: blask;
+$color_text_dark: white;
+```
+```scss
+// ./src/main.scss
+@import "@pastweb/tools/styles/document.variables.scss";
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color-current: #{ $background-color_dark };
+    --color_text-current: #{ $color_text_dark };
+  }
+}
+```
+
+In this case don't forget to add the `<meta name="color-scheme" content="light dark">` inside the `<head />` tag of your html document.
+
+### `colorFilter`
+
+As you can see in the `sass` setup, the `colorFilter` function is set to extends the `sass` functionality in order to be able to use this function inside your `sass`/`scss` code.
+The `colorFilter` function is a typescript porting of [this](https://codepen.io/sosuke/pen/Pjoqqp) public code and allow to set the color of an `svg` file if imported in your code inside a `<img />` tag.
+This function is used in the [icon](https://github.com/pastweb/tools/blob/master/src/styles/mixins.scss#L4) `mixin` inside the `mixins.scss` file so you need setup the `colorFilter` as in the example above if you want to use it.
+
+### `icon mixin`
+
+This mixin generalise the css code in order to hadle different aspects of an icon styling.
+
+> #### Syntax
+```scss
+@mixin icon($color, $size: null, $stroke: '')
+```
+
+Parameters
+* `$color`: `sass` or `css` color variable
+  * assign the color to the `svg` using the `color` css attribute and the `filter: colorFilter($color)` inside the `img` tag.
+* `$size`: `px`, `rem`, `em`
+  * if set, assing the size using the `font-size` css attribute for `svg` and `width` for `img`, if `null` no any size will be assigned.
+* `$stroke`: `sass` or `css` color variable
+  * assing the color to the `svg` stroke attribute, if not set the `$color` will be assigned, if `null` no any value will be assigned to the `stroke` attribute.
+
+**Example:**
+```scss
+i {
+  @include icon($grey, 1.5rem, 'null');
+}
+```
+
+If you are using the `css` varibles, as `sass` cannot get values from a css variable to be passed to the `colorFiler` function you need to assign the filtered color value
+to a different `css` variable with suffix `_filter` as in the example below:
+
+```scss
+$grey: grey;
+--grey: #{ $grey };
+--grey_filter: #{ colorFilter($grey) };
+
+i {
+  @include icon(--grey, 1.5rem, 'null');
+}
+```
 
 ### License
 

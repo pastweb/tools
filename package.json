@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -45,15 +45,18 @@
     "typescript": "^4.4.3"
   },
   "peerDependencies": {
-    "axios": "^1.5.0",
-    "clsx": "^2.0.0",
-    "history": "^5.3.0",
-    "i18next": "^23.4.6",
-    "path-to-regexp": "^6.2.1",
+    "axios": "*",
+    "clsx": "*",
+    "history": "*",
+    "i18next": "*",
+    "path-to-regexp": "*",
     "sass": "*"
   },
   "peerDependenciesMeta": {
     "sass": {
+      "optional": true
+    },
+    "i18next": {
       "optional": true
     }
   },
@@ -290,13 +293,13 @@
       "import": "./dist/modules/styles/document.scss",
       "require": "./dist/modules/styles/document.scss"
     },
+    "./styles/document.variables": {
+      "import": "./dist/modules/styles/document.variables.scss",
+      "require": "./dist/modules/styles/document.variables.scss"
+    },
     "./styles/functions.scss": {
       "import": "./dist/modules/styles/functions.scss",
       "require": "./dist/modules/styles/functions.scss"
-    },
-    "./styles/generic.scss": {
-      "import": "./dist/modules/styles/generic.scss",
-      "require": "./dist/modules/styles/generic.scss"
     },
     "./styles/minireset.scss": {
       "import": "./dist/modules/styles/minireset.scss",

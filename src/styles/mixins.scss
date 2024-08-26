@@ -11,7 +11,7 @@
 
   img {
     @if $size { width: getValueOrCSSVar($size); }
-    @if type-of($color) == color { filter: filter($color); }
+    @if type-of($color) == color { filter: colorFilter($color); }
     @else { filter: var(#{ $color }_filter); }
   }
 }
