@@ -40,7 +40,7 @@ export interface LangOptions {
           ThirdPartyModule)[];
 };
 
-export interface LangStore extends AsyncStore<AsyncStoreOptions & LangOptions> {
+export interface LangAsyncStore extends AsyncStore<AsyncStoreOptions & LangOptions> {
   i18n: typeof i18n;
   current: Promise<string>;
   supported: string[] | Promise<string[]>;

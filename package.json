@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.13.2",
+  "version": "1.13.4",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -125,10 +125,10 @@
       "require": "./dist/modules/createIdCache/createIdCache.cjs",
       "types": "./dist/types/createIdCache/createIdCache.d.ts"
     },
-    "./createLangStore": {
-      "import": "./dist/modules/createLangStore/createLangStore.mjs",
-      "require": "./dist/modules/createLangStore/createLangStore.cjs",
-      "types": "./dist/types/createLangStore/createLangStore.d.ts"
+    "./createLangAsyncStore": {
+      "import": "./dist/modules/createLangAsyncStore/createLangAsyncStore.mjs",
+      "require": "./dist/modules/createLangAsyncStore/createLangAsyncStore.cjs",
+      "types": "./dist/types/createLangAsyncStore/createLangAsyncStore.d.ts"
     },
     "./createMatchDevice/constants": {
       "import": "./dist/modules/createMatchDevice/constants.mjs",

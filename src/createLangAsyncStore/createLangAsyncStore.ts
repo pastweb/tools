@@ -2,7 +2,7 @@ import { createAsyncStore } from '../createAsyncStore';
 import i18n, { Callback, TFunction } from 'i18next';
 import { languageDetector, translationImport } from './plugins';
 import { noop } from '../noop';
-import { LangStore, LangOptions } from './types';
+import { LangAsyncStore, LangOptions } from './types';
 
 /**
  * Creates a language async store with i18next integration for managing translations.
@@ -19,8 +19,8 @@ import { LangStore, LangOptions } from './types';
  * });
  * langStore.changeLanguage('fr');
  */
-export function createLangStore(options: LangOptions): LangStore {
-  const store = createAsyncStore<LangStore>({ ...options, storeName: 'LangStore' });
+export function createLangAsyncStore(options: LangOptions): LangAsyncStore {
+  const store = createAsyncStore<LangAsyncStore>({ ...options, storeName: 'LangStore' });
 
   store.i18n = i18n.createInstance();
   store.init = noop;

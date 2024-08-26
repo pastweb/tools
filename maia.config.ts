@@ -11,7 +11,7 @@ export default [
         exports: {
           exclude: [
             /createMatchDevice\/util$/,
-            /createLangStore\/.*$/,
+            /createLangAsyncStore\/.*$/,
             /createViewRouter\/util\/(constants|getLocation|normalizeOptions|normalizePath|normalizeRoute|normalizeRouteParamValue)$/,
             /hashID\/.*/,
             /portals\/(anchorsSetup\/toolsConstructor$|util.*)/,

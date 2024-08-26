@@ -10,13 +10,14 @@ Below you will find descriptions of each function along with examples of how to 
   - [createAsyncStore](#createasyncstore)
     - [normalizeAsyncQueue](#normalizeasyncqueue)
   - [createEventEmitter](#createeventemitter)
-  - [createLangStore](#createlangstore)
+  - [createLangAsyncStore](#createlangasyncstore)
   - [debounce](#debounce)
   - [throttle](#throttle)
 - [Browser functions](#browser-functions)
   - [createMatchDevice](#creatematchdevice)
   - [createStorage](#createStorage)
   - [createViewRouter](#createviewrouter)
+    -[Route Object](#route-object)
     -[filterRoutes](#filterroutes)
     -[routeDive](#routedive)
 - [Date and Time](#date-and-time)
@@ -136,6 +137,7 @@ apiAgent.download('/api/download', 'file.txt');
 ### `createAsyncStore`
 
 Creates an asynchronous store with the given options.
+Useful to be extended for async initialisation of application state manager like [redux](https://redux.js.org/) or [pinia](https://pinia.vuejs.org/) if needs to get initialisation data from async resources as [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 
 > #### Syntax
 ```typescript
@@ -269,10 +271,11 @@ emitter.emit('event', 'Hello, World!');
 listener.removeListener();
 ```
 ---
-### `createLangStore`
+### `createLangAsyncStore`
 
 Creates a language asynchronous store with `i18next` integration for managing translations.
-The createLangStore function provides a flexible way to manage multiple languages in your application using `i18next`. It supports:
+The `createLangAsyncStore` function provides a flexible way to manage multiple languages in your application using `i18next` with async initialisation, in case ,as example you need to initialise the store getting or setting data to an async resource [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
+It supports:
 
 * Initialization with an initial language.
 * Dynamic support for multiple languages.
@@ -282,14 +285,14 @@ The store is asynchronous and ensures that the language settings and resources a
 
 > #### Syntax
 ```typescript
-function createLangStore(options: LangOptions): LangStore;
+function createLangAsyncStore(options: LangOptions): LangAsyncStore;
 ```
 Parameters
 * `options`: `LangOptions`
   * Configuration options for the language store. This includes initial language settings, supported languages, translation resources, and additional `i18next` options.
 
 Returns
-* `LangStore`
+* `LangAsyncStore`
   * The created language store, which integrates i18next and provides methods for managing translations and changing the language.
 
 Methods and Properties
@@ -315,10 +318,13 @@ Methods and Properties
     * A promise that resolves with the `i18next` translation function after the language is changed.
 
 **Example:**
+```bash
+$ npm i -S i18next
+```
 ```typescript
-import { createLangStore } from '@pastweb/tools';
+import { createLangAsyncStore } from '@pastweb/tools';
 
-const langStore = createLangStore({
+const langStore = createLangAsyncStore({
   initLang: 'en',
   supported: ['en', 'fr', 'es'],
   translations: { en: { translation: { key: 'value' } } },
@@ -460,7 +466,8 @@ console.log('Current matched devices:', currentDevices);
 ---
 ### `createStorage`
 
-Creates a versatile storage utility that supports both IndexedDB and localStorage. This utility allows for custom storage handling, default settings, and hooks for various operations.
+Creates a versatile storage utility that supports both IndexedDB and localStorage.
+This utility allows for custom storage handling, default settings, and hooks for various operations.
 
 > #### Syntax
 ```typescript
@@ -552,6 +559,9 @@ const storage = createStorage({
 
 The `createViewRouter` function is a core utility for managing routing in a single-page application (SPA).
 It provides the ability to define routes, navigate between them, and react to route changes within the application.
+The `ViewRouter` use [path-to-regexp](https://github.com/pillarjs/path-to-regexp) and [history](https://github.com/browserstate/history.js) libraries covering the most common
+functionalities implemented in other router UI Frameworks like [react-router](https://reactrouter.com/en/main) or [vue-router](https://router.vuejs.org/).
+The goal of this implementation is to obtain a consistant set of API and terminology cross framework.
 
 > #### Syntax
 ```typescript
@@ -576,9 +586,9 @@ Parameters
   * `RouterView`: `Component` _(mandatory)_
     * The component to render for matched routes.
   * `beforeRouteParse`: `(route: Route) => Route` _(optional)_
-    * A function to execute before parsing a route.
+    * A function to execute before parsing a route, if you want to modify a `Route`.
   * `beforeRouteSelect`: `(route: SelectedRoute) => SelectedRoute` _(optional)_
-    * A function to execute before selecting a route.
+    * A function to execute before selecting a route, as example for the route authentication/authirization.
   * `sensitive`: boolean _(optional)_
     * If true, route matching will be case-sensitive.
 
@@ -595,7 +605,7 @@ const router = createViewRouter({
     { path: '/', component: HomePage },
     { path: '/about', component: AboutPage },
   ],
-  preloader: () => console.log('Loading...'),
+  preloader: MyProloaderComponent,
   RouterView: MyRouterViewComponent,
 });
 ```
@@ -646,6 +656,83 @@ Edge Cases
 
 Debugging
 If the `debug` option is enabled, the router logs detailed information about its internal state, such as the current paths, parsed routes, and the selected route. This can be helpful for debugging route configuration issues.
+
+---
+### `Route Object`
+
+The `Route Object` contains the information to define a route for `ViewRouter`.
+
+> #### Syntax
+```typescript
+interface Route {
+  path: string;
+  redirect?: string;
+  view?: View;
+  views?: Record<string, View>;
+  children?: Route[];
+  [optionName: string]: any;
+};
+```
+
+Props
+
+* `path`: `string`
+  * the path string description for the route match, you can check the match syntax [here](https://github.com/pillarjs/path-to-regexp?tab=readme-ov-file#match).
+* `redirect`: `string` _(optional)_
+  * the URL to be redirected if the route match the `path` rule.
+* `view`: `View = any | (() => Promise<{ default: any, [prop: string]: any }>)` _(optional)_
+  * the `View` component or a function returning the `View` component module exported as `default`.
+* `views`: `Record<string, View>` _(optional)_
+  * An Object of named views to be handled from a `RouterView` component.
+* `children`: `Route[]` _(optional)_
+  * An array of nested `Routes`.
+
+The `Route` object can be extended with any other custom property which will be present in the `SelectedRoute` structure as described below:
+
+**Example:**
+```typescript
+const routes: Route[] = [
+  {
+    path: '/home',
+    view: HomeComponent,
+    icon: 'homeIcon',
+  },
+  {
+    path: '/category/:name',
+    view: CategoryComponent,
+    icon: 'categoryIcon',
+    children: [
+      {
+        path: '/product/:id',
+        view: ProductComponent,
+      }
+    ],
+  },
+  {
+    path: '/',
+    redirect: '/home',
+  },
+];
+```
+
+When the browser URL will match one of the `Routes`, the `SelectedRoute` will be available in the `router.currentRoute` property having this structure:
+
+```typescript
+interface SelectedRoute {
+  parent: SelectedRoute | boolean;
+  regex: RegExp;
+  path: string;
+  params: RouteParams;
+  searchParams: URLSearchParams;
+  setSearchParams: (params: URLSearchParams) => void;
+  hash: string;
+  setHash: (hash?: string) => void;
+  views: Record<string, View>;
+  options: RouteOptions;
+  child: SelectedRoute | boolean;
+}
+```
+In the example above the `icon` property will be present in the options parameters, (`router.currentRoute.options.icon`).
 
 ---
 
