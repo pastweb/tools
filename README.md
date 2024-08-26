@@ -17,9 +17,9 @@ Below you will find descriptions of each function along with examples of how to 
   - [createMatchDevice](#creatematchdevice)
   - [createStorage](#createStorage)
   - [createViewRouter](#createviewrouter)
-    -[Route Object](#route-object)
-    -[filterRoutes](#filterroutes)
-    -[routeDive](#routedive)
+    - [Route Object](#route-object)
+    - [filterRoutes](#filterroutes)
+    - [routeDive](#routedive)
 - [Date and Time](#date-and-time)
   - [isDateYoungerOf](#isdateyoungerof)
   - [isHoursTimeYoungerThen](#ishourstimeyoungerthen) _(Deprecated)_
@@ -53,9 +53,9 @@ Below you will find descriptions of each function along with examples of how to 
   - [noop](#noop)
   - [isSSR](#isssr)
 - [Styles](#styles)
-  -[setup](#setup)
-  -[colorFilter](#colorfilter)
-  -[icon mixin](#icon-mixin)
+  - [setup](#setup)
+  - [colorFilter](#colorfilter)
+  - [icon mixin](#icon-mixin)
 
 ---
 ## Async functions
