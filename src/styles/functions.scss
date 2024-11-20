@@ -1,7 +1,0 @@
-@function getValueOrCSSVar($value) {
-  @if type-of($value) == 'string' {
-    @if str-slice($value, 0, 2) == '--' { $value: var(#{ $value }) }
-  }
-
-  @return $value;
-}

@@ -58,7 +58,8 @@ Below you will find descriptions of each function along with examples of how to 
 - [Styles](#styles)
   - [setup](#setup)
   - [colorFilter](#colorfilter)
-  - [icon mixin](#icon-mixin)
+  - [Responsiveness mixins](#responsiveness-mixins)
+  - [flex-layout](#flex-layout)
 
 ---
 ## Async functions
@@ -2205,9 +2206,9 @@ exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
 
 ## Styles
 
-This library provide a micro, general styling system written and prodived in `scss` so to use it you need to install and configure [sass](https://www.npmjs.com/package/sass) for your build chain tool.
-As example you can check [here](https://vitejs.dev/config/shared-options.html#css-preprocessoroptions) from Vite or [here](https://webpack.js.org/loaders/sass-loader/) from webpack.
-The micro-style is composed from `variables`, `mixins` and `document` files, in order to use it you need to import them as you need.
+This library provide a micro, general styling system written and prodived in `scss`. To be able to use it you need to install and configure [sass](https://www.npmjs.com/package/sass) for your build chain tool.
+You can check [here](https://vitejs.dev/config/shared-options.html#css-preprocessoroptions) for Vite or [here](https://webpack.js.org/loaders/sass-loader/) for webpack.
+The micro-style is composed from `variables`, `mixins`, `document` and `layout` files, in order to use it you need to import them as you need.
 The best way to setup your progect is to create a main `scss` file and let it auto import from `sass`.
 
 ### `setup`
@@ -2219,11 +2220,9 @@ The code below is the general way to setup a project:
 ```
 ```js
 // sass config
-import { colorFilter } from '@pastweb/tools/colorFilter';
 ...
 {
   additionalData: `@import "./src/styles/all.scss";`,
-  functions: { 'colorFilter($color)': colorFilter },
 }
 ...
 ```
@@ -2232,8 +2231,6 @@ The `@pastweb/tools/styles/utils.scss` file contains three files:
 
 * [@pastweb/tools/styles/variables.scss](https://github.com/pastweb/tools/blob/master/src/styles/variables.scss) _(mandatory)_
   * contains the sass variables you can customise in your `./src/styles/all.scss` file for your project.
-* [@pastweb/tools/styles/functions.scss](https://github.com/pastweb/tools/blob/master/src/styles/functions.scss)
-  * contains sass functions used in the following `mixins` file.
 * [@pastweb/tools/styles/mixins.scss](https://github.com/pastweb/tools/blob/master/src/styles/mixins.scss)
   * contains icon and media query mixins.
 
@@ -2246,14 +2243,14 @@ Your can choose between two versions:
 * [@pastweb/tools/styles/document.variables.scss](https://github.com/pastweb/tools/blob/master/src/styles/document.variables.scss)
   * It is the same as the previous one, but exports and use the `sass` variables as `css variables`.
 
-The `document.variables.scss` exports the `sass` variables as `css variables` using the same variable name but with che suffix `-curr` (shorthend as current).
-This is because in case you want to implement a divfferent `color scheme` for your project as in the example below:
+The `document.variables.scss` exports the `sass` variables as `css variables` using the same variable name convention.
+This is in case you want to implement a different `color scheme` for your project as in the example below:
 
 ```scss
 // ./src/styles/all.scss
 @import "@pastweb/tools/styles/utils.scss";
 
-$background-color_dark: blask;
+$background-color_dark: black;
 $color_text_dark: white;
 ```
 ```scss
@@ -2262,8 +2259,8 @@ $color_text_dark: white;
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background-color-current: #{ $background-color_dark };
-    --color_text-current: #{ $color_text_dark };
+    --background-color: #{ $background-color_dark };
+    --color_text: #{ $color_text_dark };
   }
 }
 ```
@@ -2272,46 +2269,119 @@ In this case don't forget to add the `<meta name="color-scheme" content="light d
 
 ### `colorFilter`
 
-As you can see in the `sass` setup, the `colorFilter` function is set to extends the `sass` functionality in order to be able to use this function inside your `sass`/`scss` code.
-The `colorFilter` function is a typescript porting of [this](https://codepen.io/sosuke/pen/Pjoqqp) public code and allow to set the color of an `svg` file if imported in your code inside a `<img />` tag.
-This function is used in the [icon](https://github.com/pastweb/tools/blob/master/src/styles/mixins.scss#L4) `mixin` inside the `mixins.scss` file so you need setup the `colorFilter` as in the example above if you want to use it.
-
-### `icon mixin`
-
-This mixin generalise the css code in order to hadle different aspects of an icon styling.
-
-> #### Syntax
-```scss
-@mixin icon($color, $size: null, $stroke: '')
+> #### Setup
+```js
+// sass config
+import { colorFilter } from '@pastweb/tools/colorFilter';
+...
+{
+  additionalData: `@import "./src/styles/all.scss";`,
+  functions: { 'colorFilter($color)': colorFilter },
+}
+...
 ```
-
-Parameters
-* `$color`: `sass` or `css` color variable
-  * assign the color to the `svg` using the `color` css attribute and the `filter: colorFilter($color)` inside the `img` tag.
-* `$size`: `px`, `rem`, `em`
-  * if set, assing the size using the `font-size` css attribute for `svg` and `width` for `img`, if `null` no any size will be assigned.
-* `$stroke`: `sass` or `css` color variable
-  * assing the color to the `svg` stroke attribute, if not set the `$color` will be assigned, if `null` no any value will be assigned to the `stroke` attribute.
+As you can see in the above setup, the `colorFilter` function is set to extends the `sass` functionality in order to be able to use this function inside your `sass`/`scss` code.
+The `colorFilter` function is a typescript porting of [this](https://codepen.io/sosuke/pen/Pjoqqp) public code and allow to set the color of an `svg` file if imported in your code inside a `<img />` tag.
 
 **Example:**
 ```scss
 i {
-  @include icon($grey, 1.5rem, 'null');
+  img {
+    filter: colorFilter($color);
+  }
 }
 ```
 
-If you are using the `css` varibles, as `sass` cannot get values from a css variable to be passed to the `colorFiler` function you need to assign the filtered color value
-to a different `css` variable with suffix `_filter` as in the example below:
+### `Responsiveness mixins`
+
+There are few mixins tools available for handle the responsivness of your application you can use as in the examples below:
 
 ```scss
-$grey: grey;
---grey: #{ $grey };
---grey_filter: #{ colorFilter($grey) };
+@include mobile {
+  background-color: green;
+}
 
-i {
-  @include icon(--grey, 1.5rem, 'null');
+@include from(640px) {
+  background-color: red;
 }
 ```
+you can check the full list of mixins [here](https://github.com/pastweb/tools/blob/master/src/styles/mixins.scss).
+
+### `flex-layout`
+
+The file [flex-layout.scss](https://github.com/pastweb/tools/blob/master/src/styles/flex-layout.scss) defines few simple `flexbox` based utilities to help designing a layout. It is totally optional to be used and is available even under `module` extension if want to be used with CSS Modules (`flex-layout.module.scss`).
+These utilities are not made with the idea to be used in a component library, but for marco components aimed for component positioning layout-wise.
+Below the utility list:
+
+#### `Flex direction`
+| Class	| Property: Value |
+|---|---|
+| row, flex	| flex-direction: row; |
+| reverse | flex-direction: row-reverse; |
+| column | flex-direction: column; |
+| reverse	| flex-direction: column-reverse; |
+
+
+#### `Flex wrap`
+| Class	| Property: Value |
+|---|---|
+| wrap	| flex-wrap: wrap; |
+| wrap-reverse | flex-wrap: wrap-reverse; |
+| no-wrap | flex-wrap: nowrap; white-space: nowrap; |
+
+#### `Flex justify`
+| Class	| Property: Value |
+|---|---|
+| justify-center | justify-content: center; |
+| justify-start | justify-content: flex-start; |
+| justify-end | justify-content: flex-end; |
+| justify-left | justify-content: left; |
+| justify-right | justify-content: right; |
+| justify-around | justify-content: space-around; |
+| justify-between | justify-content: space-between; |
+| justify-everly | justify-content: space-evenly; |
+|justify-stretch | justify-content: stretch; |
+
+#### `Flex align`
+| Class	| Property: Value |
+|---|---|
+| align-center | align-items: center; |
+| align-stretch | align-items: stretch; |
+| align-start | align-items: flex-start; |
+| align-end | align-items: flex-end; |
+| align-baseline | align-items: baseline; |
+
+#### `Flex centered`
+| Class	| Property: Value |
+|---|---|
+| centered | display: flex; justify-content: center; align-items: center; |
+
+#### `Full size`
+| Class	| Property: Value |
+|---|---|
+| full-width | width: 100%; |
+| full-height | height: 100%; |
+
+#### `Flex grow`
+| Class	| Property: Value |
+|---|---|
+| grow-0	| flex-grow: 0; |
+| grow-1 | flex-grow: 1; |
+| grow-2 | flex-grow: 2; |
+| grow-3 | flex-grow: 3; |
+| grow-4 | flex-grow: 4; |
+| grow-5 | flex-grow: 5; |
+
+
+#### `Flex shrink`
+| Class	| Property: Value |
+|---|---|
+| shrink-0 | flex-shrink: 0; |
+| shrink-1 | flex-shrink: 1; |
+| shrink-2 | flex-shrink: 2; |
+| shrink-3 | flex-shrink: 3; |
+| shrink-4 | flex-shrink: 4; |
+| shrink-5 | flex-shrink: 5; |
 
 ### License
 

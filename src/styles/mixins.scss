@@ -1,21 +1,3 @@
-@import './functions.scss';
-
-// Icon
-@mixin icon($color, $size: null, $stroke: '') {
-  color: getValueOrCSSVar($color);
-
-  @if $stroke == '' { stroke: getValueOrCSSVar($color); }
-  @if $stroke != null { stroke: getValueOrCSSVar($stroke); }
-
-  @if $size { font-size: getValueOrCSSVar($size); }
-
-  img {
-    @if $size { width: getValueOrCSSVar($size); }
-    @if type-of($color) == color { filter: colorFilter($color); }
-    @else { filter: var(#{ $color }_filter); }
-  }
-}
-
 // Responsiveness
 @mixin from($device) {
   @media screen and (min-width: $device) {
