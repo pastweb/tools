@@ -603,6 +603,7 @@ Returns
 **Example:**
 ```typescript
 import { createViewRouter } from '@pastweb/tools';
+import { RouterView } from '@pastweb/x';
 
 const router = createViewRouter({
   routes: [
@@ -610,9 +611,11 @@ const router = createViewRouter({
     { path: '/about', component: AboutPage },
   ],
   preloader: MyProloaderComponent,
-  RouterView: MyRouterViewComponent,
+  RouterView,
 });
 ```
+
+Note : `pastweb/x` is intended to be a specific framework package (react, preact, vue, svelte ...).
 
 Core Features
 * `Route Parsing and Matching`:
@@ -761,8 +764,7 @@ Returns
 
 **Example:**
 ```typescript
-import { filterRoutes } from './path/to/filterRoutes';
-import { Route } from '../types';
+import { filterRoutes, type Route } from '@pastweb/tools';
 
 const routes: Route[] = [
   { path: '/home', component: HomeComponent },
@@ -800,8 +802,7 @@ Returns
 
 **Example:**
 ```typescript
-import { routeDive } from './path/to/routeDive';
-import { SelectedRoute } from '../types';
+import { routeDive, type SelectedRoute } from '@pastweb/tools';
 
 const currentRoute: SelectedRoute = {
   path: '/parent',

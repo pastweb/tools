@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -259,6 +259,11 @@
       "import": "./dist/modules/portals/anchorsSetup/generateAnchors.mjs",
       "require": "./dist/modules/portals/anchorsSetup/generateAnchors.cjs",
       "types": "./dist/types/portals/anchorsSetup/generateAnchors.d.ts"
+    },
+    "./portals/anchorsSetup/handlerConstructor": {
+      "import": "./dist/modules/portals/anchorsSetup/handlerConstructor.mjs",
+      "require": "./dist/modules/portals/anchorsSetup/handlerConstructor.cjs",
+      "types": "./dist/types/portals/anchorsSetup/handlerConstructor.d.ts"
     },
     "./portals/constants": {
       "import": "./dist/modules/portals/constants.mjs",

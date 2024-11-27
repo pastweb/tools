@@ -5,7 +5,7 @@ export type Portals = {
   [portalId: string]: { [entryId: string]: Entry<any> };
 };
 
-export type PortalTools = {
+export type PortalHandler = {
   id: string | false;
   open: () => string | false;
   update: (props: Record<string, any>) => boolean;
@@ -14,12 +14,12 @@ export type PortalTools = {
   onRemove: (fn: () => void) => void;
 };
 
-export type ToolsConstructor = (
+export type HandlerConstructor = (
   portal: Portal,
   component: any,
   props?: Record<string, any> | (() => Record<string, any>),
   defaults?: Record<string, any>,
-) => PortalTools;
+) => PortalHandler;
 
 export type Portal = {
   $$portal: true;
@@ -33,7 +33,7 @@ export type Portal = {
   setOnRemove: (fn: (entryId: string) => void) => void;
 };
 
-export declare function portalFunction(component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>,): PortalTools
+export declare function portalFunction(component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>,): PortalHandler
 export declare namespace portalFunction {
   const open: (component: any, props?: Record<string, any> | (() => Record<string, any>) | undefined, defaults?: Record<string, any> | undefined) => string | false;
   const update: (entryId: string, props: Record<string, any>) => boolean;

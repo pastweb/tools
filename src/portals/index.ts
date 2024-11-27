@@ -6,9 +6,9 @@ export type {
   Portals,
   PortalAnchors,
   PortalAnchorsIds,
-  ToolsConstructor,
+  HandlerConstructor,
   PortalFunction,
-  PortalTools,
+  PortalHandler,
   PortalsDescriptor,
   EntryDescriptor,
 } from './types';

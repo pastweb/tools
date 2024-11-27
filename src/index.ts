@@ -103,8 +103,8 @@ export type {
   PortalAnchors,
   PortalAnchorsIds,
   PortalFunction,
-  ToolsConstructor,
-  PortalTools,
+  HandlerConstructor,
+  PortalHandler,
   PortalsDescriptor,
   EntryDescriptor,
 } from './portals';

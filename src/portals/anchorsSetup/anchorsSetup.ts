@@ -1,7 +1,7 @@
 import { IdCache } from '../../createIdCache';
 import { isObject } from '../../isObject';
 import { createPortal } from './../createPortal';
-import { toolsConstructor } from './toolsConstructor';
+import { handlerConstructor } from './handlerConstructor';
 import { ELEMENTS_SCOPE } from '../constants';
 import { PortalAnchorsIds, Portals, EntryDescriptor, PortalsDescriptor } from '../types';
 
@@ -25,7 +25,7 @@ function setPortals(ids: Record<string, any>, descriptor: Record<string, any>, p
         portal.setIdCache(idCache);
         portal.setPortalsCache(portalsCache);
 
-        return toolsConstructor(portal, component, props, defaults);
+        return handlerConstructor(portal, component, props, defaults);
       }
 
       const portal = createPortal(descriptor[key] || getEntry);
