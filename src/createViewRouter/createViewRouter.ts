@@ -1,4 +1,4 @@
-import { match, MatchFunction, pathToRegexp } from 'path-to-regexp';
+import { match, pathToRegexp } from 'path-to-regexp';
 import { createEventEmitter, RemoveListener } from '../createEventEmitter';
 import {
   normalizeOptions,
@@ -46,7 +46,7 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
   let _base = base;
   setBase(base);
   let _paths = routes.map(route => normalizePath(_base, route));
-  let _parsedRoutes = _paths.map(route => parseRoute(route, true));
+  let _parsedRoutes = _paths.map(route => parseRoute(route));
 
   let _currentRoute: SelectedRoute = EMPTY_ROUTE;
 
@@ -108,18 +108,17 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * Parses a route into a parsed route.
    * 
    * @param route - The route to parse.
-   * @param start - Whether to start parsing from the beginning.
    * @returns The parsed route.
    */
-  function parseRoute(route: Route, start = false): ParsedRoute {
+  function parseRoute(route: Route): ParsedRoute {
     const normalized = normalizeRoute(RouterView, route);
     const before = beforeRouteParse ? beforeRouteParse(normalized) : normalized;
     const { path, redirect, views = {}, children = [], ...rest } = before;
 
-    const regex: RegExp = pathToRegexp(path, [], { start, end: !children.length, sensitive });
+    const { regexp } = pathToRegexp(path, { end: !children.length, sensitive });
     const options = { ...redirect ? { redirect } : {}, ...rest };
     
-    return { path, regex, views, options, children: children.map(route => parseRoute(route)) };
+    return { path, regexp, views, options, children: children.map(route => parseRoute(route)) };
   }
 
   /**
@@ -216,17 +215,17 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
     parent: SelectedRoute | false = false,
     params: Record<string, any>
   ): SelectedRoute | boolean {
-    const { path, regex, views, options, children } = route;
+    const { path, regexp, views, options, children } = route;
     const { redirect } = options;
 
-    if (regex.test(pathname)) {
-      const matchFn: MatchFunction = match(path, { decode: decodeURIComponent });
+    if (regexp.test(pathname)) {
+      const matchFn = match(path, { decode: decodeURIComponent });
       const matchResult = matchFn(pathname);
 
       if (matchResult) {
         const matchParams = Object.entries(matchResult.params).reduce((acc, [name, value]) => ({
           ...acc,
-          [name]: normalizeRouteParamValue(value),
+          [name]: normalizeRouteParamValue(value as string),
         }), {});
 
         params = { ...params, ...matchParams };
@@ -236,7 +235,7 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
 
       let selected: SelectedRoute = {
         parent,
-        regex,
+        regexp,
         path,
         params,
         searchParams,
@@ -273,7 +272,7 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
   function addRoute(route: Route): void {
     const normalized = normalizePath(_base, route);
     _paths.push(normalized);
-    _parsedRoutes.push(parseRoute(normalized, true));
+    _parsedRoutes.push(parseRoute(normalized));
     _emitter.emit('routeAdded', _paths);
   }
 
@@ -381,9 +380,8 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
     // apply hash
     path = `${path}${search}${hash ? `#${hash}` : ''}`;
 
-    const start = /^\//.test(path);
-    const isActiveRE: RegExp = pathToRegexp(path, [], { start, end: false, sensitive });
-    const isExactActiveRE: RegExp = pathToRegexp(path, [], { start, end: true, sensitive });
+    const { regexp: isActiveRE } = pathToRegexp(path, { end: false, sensitive });
+    const { regexp: isExactActiveRE } = pathToRegexp(path, { end: true, sensitive });
     
     const { pathname } = _location;
 

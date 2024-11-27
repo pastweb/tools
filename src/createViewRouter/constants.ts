@@ -1,6 +1,6 @@
 export const EMPTY_ROUTE = {
   parent: false,
-  regex: new RegExp(''),
+  regexp: new RegExp(''),
   path: '',
   params: {},
   searchParams: new URLSearchParams(),

@@ -65,7 +65,7 @@ export interface RouteOptions {
 
 export interface ParsedRoute {
   path: string;
-  regex: RegExp;
+  regexp: RegExp;
   views: Record<string, View>;
   options: RouteOptions;
   children: ParsedRoute[];
@@ -73,7 +73,7 @@ export interface ParsedRoute {
 
 export interface SelectedRoute {
   parent: SelectedRoute | boolean;
-  regex: RegExp;
+  regexp: RegExp;
   path: string;
   params: RouteParams;
   searchParams: URLSearchParams;
