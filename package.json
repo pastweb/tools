@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.14.1",
+  "version": "1.14.2",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -298,11 +298,11 @@
       "import": "./dist/modules/styles/document.scss",
       "require": "./dist/modules/styles/document.scss"
     },
-    "./styles/document.variables": {
+    "./styles/document.variables.scss": {
       "import": "./dist/modules/styles/document.variables.scss",
       "require": "./dist/modules/styles/document.variables.scss"
     },
-    "./styles/flex-layout.module": {
+    "./styles/flex-layout.module.scss": {
       "import": "./dist/modules/styles/flex-layout.module.scss",
       "require": "./dist/modules/styles/flex-layout.module.scss"
     },
