@@ -108,17 +108,21 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * Parses a route into a parsed route.
    * 
    * @param route - The route to parse.
+   * @param start - A flag indicating whether the route is the start route.
    * @returns The parsed route.
    */
-  function parseRoute(route: Route): ParsedRoute {
+  function parseRoute(route: Route, start: boolean = true): ParsedRoute {
     const normalized = normalizeRoute(RouterView, route);
     const before = beforeRouteParse ? beforeRouteParse(normalized) : normalized;
     const { path, redirect, views = {}, children = [], ...rest } = before;
 
-    const { regexp } = pathToRegexp(path, { end: !children.length, sensitive });
+    let { regexp } = pathToRegexp(path, { end: !children.length, sensitive });
+
+    if (!start) regexp = new RegExp(regexp.source.substring(1));
+
     const options = { ...redirect ? { redirect } : {}, ...rest };
     
-    return { path, regexp, views, options, children: children.map(route => parseRoute(route)) };
+    return { path, regexp, views, options, children: children.map(route => parseRoute(route, false)) };
   }
 
   /**
