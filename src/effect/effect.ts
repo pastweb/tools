@@ -34,7 +34,7 @@ export function effect<T extends object = {}>(
   const cbMap = new Map<string | symbol, { curr: any, old: any }>();
   
   const effectCallback = (cb: EffectCallback<T>, newValues: Partial<T>, oldValues: Partial<T>) => (async () => {
-    await cb({ newValues, oldValues });
+    await cb(newValues, oldValues);
     cbMap.clear();
   })();
 

@@ -1518,6 +1518,7 @@ console.log(merged);
 The `effect` function creates a reactive effect on specified properties of a target object.
 Whenever one of these properties changes, a provided callback function is executed, receiving details about the change.
 This mechanism supports performance optimization by batching and debouncing changes.
+it is possible add properties filter as addition paramenters.
 
 > #### Syntax
 ```typescript
@@ -1532,7 +1533,7 @@ Parameters
 * `target`: `T`
   * The target object to observe. The function will monitor changes to specified properties of this object.
 * `callback`: `EffectCallback<T>`
-  * The callback function to execute when a specified property changes. It receives an object containing the newValues, oldValues, and the properties (prop) that changed.
+  * The callback function to execute when a specified property changes. It receives a `next` object parameter containing the new values and the properties (prop) that changed, and a `prev` object paramenter containing the old Values and the properties (prop) that changed.
 * `...filter`: `(Extract<keyof T, string> | number | symbol)[]`
   * An optional list of property names, symbols, or numbers to observe. If not provided, all properties of the target object will be observed.
 
@@ -1546,7 +1547,7 @@ import { effect } from '@pastweb/tools';
 
 const obj = { a: 1, b: 2 };
 
-effect(obj, ({ newValues, oldValues }) => {
+effect(obj, (newValues, oldValues) => {
   console.log(`Changes detected:`, newValues, oldValues);
 }, 'a');
 

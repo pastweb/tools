@@ -72,7 +72,7 @@ export type { DebouceCallback } from './debounce';
 export { deepMerge } from './deepMerge';
 
 export { effect } from './effect';
-export type { EffectInfo, EffectCallback } from './effect';
+export type { EffectCallback } from './effect';
 
 export { getFullElementSize } from './getFullElementSize';
 export type { FullElementSize } from './getFullElementSize';

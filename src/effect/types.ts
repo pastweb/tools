@@ -1,6 +1,1 @@
-export type EffectInfo<T> = {
-  newValues: Partial<T>;
-  oldValues: Partial<T>;
-};
-
-export type EffectCallback<T> = (info: EffectInfo<T>) => void | Promise<void>;
+export type EffectCallback<T> = (next: Partial<T>, prev: Partial<T>) => void | Promise<void>;

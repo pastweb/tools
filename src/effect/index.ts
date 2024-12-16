@@ -1,2 +1,2 @@
 export { effect } from './effect';
-export type { EffectInfo, EffectCallback } from './types';
+export type { EffectCallback } from './types';
