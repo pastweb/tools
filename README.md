@@ -1547,8 +1547,8 @@ import { effect } from '@pastweb/tools';
 
 const obj = { a: 1, b: 2 };
 
-effect(obj, (newValues, oldValues) => {
-  console.log(`Changes detected:`, newValues, oldValues);
+effect(obj, (next, prev) => {
+  console.log(`Changes detected:`, next, prev);
 }, 'a');
 
 obj.a = 3; // Logs: Changes detected: { a: 3 } { a: 1 }
