@@ -24,7 +24,10 @@ import { EffectCallback } from './types';
  * obj.b = 4; // No log since 'b' is not observed
  * ```
  */
-export function effect<T extends object = {}>(target: T, callback: EffectCallback<T>, ...filter: (Extract<keyof T, string> | number | symbol)[]): void {
+export function effect<T extends object = {}>(
+  target: T,
+  callback: EffectCallback<T>,
+  ...filter: (Extract<keyof T, string> | number | symbol)[]): void {
   const weakCb = new WeakRef<EffectCallback<T>>(callback);
   const _filter: (string | symbol)[] = filter.map((prop: string | number | symbol) => typeof prop === 'symbol' ? prop :  `${prop}`);
 
@@ -41,25 +44,39 @@ export function effect<T extends object = {}>(target: T, callback: EffectCallbac
   Object.entries(Object.getOwnPropertyDescriptors(target as Record<string | symbol, any>)).forEach(([property, descriptor]) => {
     if (_filter.length && !_filter.includes(property)) return;
 
+    const originalGet = descriptor.get;
     const originalSet = descriptor.set;
 
     Object.defineProperty(target, property, {
+      get: () => originalGet ? originalGet() : descriptor.value,
       set(value: any) {
         const cb = weakCb.deref();
-        if (cb) {
-          prev[property] = descriptor.value;
-          next[property] = value;
-          dcb();
+
+        if (!cb) {
+          if (originalSet) {
+            originalSet(value);
+            descriptor.set = originalSet;
+          } else {
+            delete descriptor.set;
+            descriptor.value = value;
+          }
+
+          if (originalGet) descriptor.get = originalGet;
+          else delete descriptor.get;
+          return;
         }
+
+        if (descriptor.value === value) return;
 
         if (originalSet) {
           originalSet(value);
-          if (!cb) descriptor.set = originalSet;
+        } else {
+          descriptor.value = value;
         }
 
-        descriptor.value = value;
-
-        return;
+        prev[property] = descriptor.value;
+        next[property] = value;
+        dcb();
       }
     });
   });
