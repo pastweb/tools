@@ -35,7 +35,9 @@ export function effect<T extends object = {}>(
   let prev: Record<string, any> = {};
 
 
-  const dcb = debounce(() => {
+  const dcb = debounce((nextValue, prevValue) => {
+    next = { ...target, ...nextValue };
+    prev = { ...target, ...prevValue };
     callback(next as Partial<T>, prev as Partial<T>);
     next = {};
     prev = {};
@@ -68,15 +70,10 @@ export function effect<T extends object = {}>(
 
         if (descriptor.value === value) return;
 
-        if (originalSet) {
-          originalSet(value);
-        } else {
-          descriptor.value = value;
-        }
+        dcb({ [property]: value }, { [property]: descriptor.value });
 
-        prev[property] = descriptor.value;
-        next[property] = value;
-        dcb();
+        if (originalSet) originalSet(value);
+        else descriptor.value = value;
       }
     });
   });
