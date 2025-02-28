@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -290,7 +290,15 @@
       "import": "./dist/modules/styles/css-variables.scss",
       "require": "./dist/modules/styles/css-variables.scss"
     },
+    "./styles/css-variables": {
+      "import": "./dist/modules/styles/css-variables.scss",
+      "require": "./dist/modules/styles/css-variables.scss"
+    },
     "./styles/document.scss": {
+      "import": "./dist/modules/styles/document.scss",
+      "require": "./dist/modules/styles/document.scss"
+    },
+    "./styles/document": {
       "import": "./dist/modules/styles/document.scss",
       "require": "./dist/modules/styles/document.scss"
     },
@@ -298,7 +306,15 @@
       "import": "./dist/modules/styles/flex-layout.module.scss",
       "require": "./dist/modules/styles/flex-layout.module.scss"
     },
+    "./styles/flex-layout.module": {
+      "import": "./dist/modules/styles/flex-layout.module.scss",
+      "require": "./dist/modules/styles/flex-layout.module.scss"
+    },
     "./styles/flex-layout.scss": {
+      "import": "./dist/modules/styles/flex-layout.scss",
+      "require": "./dist/modules/styles/flex-layout.scss"
+    },
+    "./styles/flex-layout": {
       "import": "./dist/modules/styles/flex-layout.scss",
       "require": "./dist/modules/styles/flex-layout.scss"
     },
@@ -306,11 +322,23 @@
       "import": "./dist/modules/styles/minireset.scss",
       "require": "./dist/modules/styles/minireset.scss"
     },
+    "./styles/minireset": {
+      "import": "./dist/modules/styles/minireset.scss",
+      "require": "./dist/modules/styles/minireset.scss"
+    },
     "./styles/mixins.scss": {
       "import": "./dist/modules/styles/mixins.scss",
       "require": "./dist/modules/styles/mixins.scss"
     },
+    "./styles/mixins": {
+      "import": "./dist/modules/styles/mixins.scss",
+      "require": "./dist/modules/styles/mixins.scss"
+    },
     "./styles/variables.scss": {
+      "import": "./dist/modules/styles/variables.scss",
+      "require": "./dist/modules/styles/variables.scss"
+    },
+    "./styles/variables": {
       "import": "./dist/modules/styles/variables.scss",
       "require": "./dist/modules/styles/variables.scss"
     },
