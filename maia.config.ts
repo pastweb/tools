@@ -2,7 +2,7 @@ export default [
   {
     entry: {
       index: 'src/index.ts',
-      'all.scss': 'src/all.scss',
+      '_index.scss': 'src/_index.scss',
     },
     versionFile: true,
     build: { target: 'lib' },
@@ -10,6 +10,7 @@ export default [
       package: {
         exports: {
           exclude: [
+            /.*_index\.scss/,
             /createMatchDevice\/util$/,
             /createLangAsyncStore\/.*$/,
             /createViewRouter\/util\/(constants|getLocation|normalizeOptions|normalizePath|normalizeRoute|normalizeRouteParamValue)$/,

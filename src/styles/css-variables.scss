@@ -1,0 +1,161 @@
+// Colors
+$background-color: #fff !default;
+$text_color: hsl(0, 0%, 29%) !default;
+$text_strong_color: hsl(0, 0%, 21%) !default;
+
+// Control
+$control_background-color: #fafafa !default;
+
+// Radious
+$rounded_border-radius: 2rem !default;
+$xx-large_border-radius: 1.25rem !default;
+$x-large_border-radius: 1 !default;
+$large_border-radius: 0.75rem !default;
+$medium_border-radius: 0.5rem !default;
+$border-radius: 0.5rem !default;
+$small_border-radius: 0.375rem !default;
+$x-small_border-radius: 0.25rem !default;
+
+// Fonts
+$lighter_font-weight: 100 !default;
+$light_font-weight: 200 !default;
+$semilight_font-weight: 300 !default;
+$font-weight: 400 !default;
+$medium_font-weight: 500 !default;
+$semibold_font-weight: 600 !default;
+$bold_font-weight: 700 !default;
+
+$x-small_font-size: 0.5rem !default;
+$small_font-size: 0.7rem !default;
+$font-size: 1rem !default;
+$medium_font-size: 1.3rem !default;
+$large_font-size: 1.5rem !default;
+$x-large_font-size: 2rem !default;
+
+$x-small_line-height: 0.625rem !default;
+$small_line-height: 1.125rem !default;
+$line-height: 1.25rem !default;
+$medium_line-height: 1.5rem !default;
+$large_line-height: 1.625rem !default;
+$x-large_line-height: 1.75rem !default;
+
+// Elements
+$BODY_background-color: hsl(0, 0%, 100%) !default;
+$BODY_font-size: 16px !default;
+$BODY_min-width: 300px !default;
+$BODY_text-rendering: optimizeLegibility !default;
+$BODY_font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif !default;
+$BODY_overflow-x: hidden !default;
+$BODY_overflow-y: scroll !default;
+
+$BODY_color: $text_color !default;
+$BODY_font-size: 1rem !default;
+$BODY_font-weight: $font-weight !default;
+$BODY_line-height: 1.5rem !default;
+
+$CODE_background-color: $background-color !default;
+$CODE_color: hsl(348, 86%, 46%) !default;
+$CODE_font-family: monospace !default;
+$CODE_padding: 0.25em 0.5em 0.25em !default;
+$CODE_font-weight: normal !default;
+$CODE_font-size: 0.875em !default;
+
+$LINK_color: hsl(229, 53%,  53%) !default;
+$LINK_hover_color: hsl(0, 0%, 21%) !default;
+
+$SMALL_font-size: 0.875em !default;
+
+$HR_background-color: $background-color !default;
+$HR_height: 0.125rem !default;
+$HR_margin: 1.5rem 0 !default;
+
+$STRONG_color: $text_strong_color !default;
+$STRONG_font-weight: $bold_font-weight !default;
+
+$PRE_color: $text_color !default;
+$PRE_background-color: $background-color !default;
+$PRE_font-size: 0.875em !default;
+$PRE_padding: 1.25rem 1.5rem !default;
+$PRE_code_font-size: 1em !default;
+
+:root {
+  // Colors
+  --background-color: #{ $background-color };
+  --text_color: #{ $text_color };
+  --text_strong_color: #{ $text_strong_color };
+
+  // Control
+  --control_background-color: #{ $control_background-color };
+
+  // Radious
+  --rounded_border-radius: #{ $rounded_border-radius };
+  --xx-large_border-radius: #{ $xx-large-border-radius };
+  --x-large_border-radius: #{ $x-large_border-radius };
+  --large_border-radius: #{ $large_border-radius };
+  --medium_border-radius: #{ $medium_border-radius };
+  --border-radius: #{ $border-radius };
+  --small_border-radius: #{ $small_border-radius };
+  --x-small_border-radius: #{ $x-small_border-radius };
+
+  // Fonts
+  --lighter_font-weight: #{ $lighter_font-weight };
+  --light_font-weight: #{ $light_font-weight };
+  --semilight_font-weight: #{ $semilight_font-weight };
+  --font-weight: #{ $font-weight };
+  --medium_font-weight: #{ $medium_font-weight };
+  --semibold_font-weight: #{ $semibold_font-weight };
+  --bold_font-weight: #{ $bold_font-weight };
+
+  --x-small_font-size: #{ $x-small_font-size };
+  --small_font-size: #{ $small_font-size };
+  --font-size: #{ $font-size };
+  --medium_font-size: #{ $medium_font-size };
+  --large_font-size: #{ $large_font-size };
+  --x-large_font-size: #{ $x-large_font-size };
+
+  --x-small_line-height: #{ $x-small_line-height };
+  --small_line-height: #{ $small_line-height };
+  --line-height: #{ $line-height };
+  --medium_line-height: #{ $medium_line-height };
+  --large_line-height: #{ $large_line-height };
+  --x-large_line-height: #{ $x-large_line-height };
+
+  // Elements
+  --BODY_background-color: #{ $BODY_background-color };
+  --BODY_font-size: #{ $BODY_font-size };
+  --BODY_min-width: #{ $BODY_min-width };
+  --BODY_text-rendering: #{ $BODY_text-rendering };
+  --BODY_font-family: #{ $BODY_font-family };
+  --BODY_overflow-x: #{ $BODY_overflow-x };
+  --BODY_overflow-y: #{ $BODY_overflow-y };
+
+  --BODY_color: #{ $BODY_color };
+  --BODY_font-size: #{ $BODY_font-size };
+  --BODY_font-weight: #{ $BODY_font-weight };
+  --BODY_line-height: #{ $BODY_line-height };
+
+  --CODE_background-color: #{ $CODE_background-color };
+  --CODE_color: #{ $CODE_color };
+  --CODE_font-family: #{ $CODE_font-family };
+  --CODE_padding: #{ $CODE_padding };
+  --CODE_font_weight: #{ $CODE_font_weight };
+  --CODE_font-size: #{ $CODE_font-size };
+
+  --LINK_color: #{ $LINK_color };
+  --LINK_hover_color: #{ $LINK_hover_color };
+
+  --SMALL_font-size: #{ $SMALL_font-size };
+
+  --HR_background-color: #{ $HR_background-color };
+  --HR_height: #{ $HR_height };
+  --HR_margin: #{ $HR_margin };
+
+  --STRONG_color: #{ $STRONG_color };
+  --STRONG_font-weight: #{ $STRONG_font-weight };
+
+  --PRE_color: #{ $PRE_color };
+  --PRE_background-color: #{ $PRE_background-color };
+  --PRE_font-size: #{ $PRE_font-size };
+  --PRE_padding: #{ $PRE_padding };
+  --PRE_code_font-size: #{ $PRE_code_font-size };
+}

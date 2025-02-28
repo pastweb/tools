@@ -1009,6 +1009,72 @@ const clsReplace = cl.setClasses([ cssModules1, cssModules2 ], 'replace');
 const replacedClassNames = clsReplace('btn', 'btn-primary');
 // Output: 'btn_hash1 btn-primary_hash2'
 ```
+
+Or is it possible make a composition with different `ClassProcessor`.
+Key Features:
+
+1. Type Definition: Added `ClassProcessor` interface to define the shape of our function with both the call signature and `setClasses` method.
+2. Composable setClasses: Each setClasses call:
+  * Creates a new processor function
+  * Maintains its own classes and mode
+  * Returns a new function with its own setClasses method
+  * Concatenates classes when composing
+
+**Example:**
+```typescript
+import { cl } from '@pastweb/tools';
+// Basic usage
+cl('btn', 'active'); // 'btn active'
+
+// Single module
+const module1 = { btn: 'btn_123', active: 'active_456' };
+const cl1 = cl.setClasses(module1);
+cl1('btn', 'active'); // 'btn_123 active_456'
+
+// Multiple modules composition
+const module2 = { btn: 'btn_789', hover: 'hover_abc' };
+const cl2 = cl1.setClasses(module2);
+cl2('btn', 'hover'); // 'btn_123 btn_789 hover_abc'
+
+// Different modes
+const cl3 = cl2.setClasses({ btn: 'btn_xyz' }, 'replace');
+cl3('btn', 'active'); // 'btn_xyz active_456'
+
+// Each instance remains independent
+cl('btn');     // 'btn'
+cl1('btn');    // 'btn_123'
+cl2('btn');    // 'btn_123 btn_789'
+cl3('btn');    // 'btn_xyz'
+
+// Example CSS modules
+const module1 = { foo: 'foo_1', bar: 'bar_1' };
+const module2 = { foo: 'foo_2', baz: 'baz_2' };
+const module3 = { bar: 'bar_3' };
+
+// Chained setClasses calls
+const cx = cl
+  .setClasses(module1, 'merge')        // First set of classes
+  .setClasses(module2, 'replace')      // Override with second set
+  .setClasses(module3, 'merge');       // Add third set
+
+// Usage
+console.log(cx('foo', 'bar', 'baz')); 
+// Output depends on final composition, likely "foo_2 bar_3 baz_2"
+```
+
+Benefits:
+
+1. Chainable: You can keep adding modules with .setClasses().
+2. Immutable: Each call creates a new processor without modifying previous ones.
+3. Flexible: Maintains mode control at each composition level.
+4. Type-safe: TypeScript will properly infer types throughout the chain.
+
+Performance Benefits:
+
+1. Frequent calls with the same arguments will return cached results.
+2. Each processor instance maintains its own cache.
+3. Reduces computation for repeated class combinations.
+
 ---
 ### `createEntry`
 Creates an entry object with event emitter capabilities and various utility methods to be extended for a specific frontend framework.
@@ -2210,54 +2276,69 @@ exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
 
 This library provide a micro, general styling system written and prodived in `scss`. To be able to use it you need to install and configure [sass](https://www.npmjs.com/package/sass) for your build chain tool.
 You can check [here](https://vitejs.dev/config/shared-options.html#css-preprocessoroptions) for Vite or [here](https://webpack.js.org/loaders/sass-loader/) for webpack.
-The micro-style is composed from `variables`, `mixins`, `document` and `layout` files, in order to use it you need to import them as you need.
-The best way to setup your progect is to create a main `scss` file and let it auto import from `sass`.
+The best way to setup your progect is to create a main `scss` file and let it auto import/use from `sass` in each other sass module.
 
 ### `setup`
 The code below is the general way to setup a project:
+```md
+src/lib
+      └ _index.scss
+      └ css-variables.scss
+      └ document.scss
+      └ variables.scss
+```
 
 ```scss
-// ./src/styles/all.scss
-@import "@pastweb/tools/styles/utils.scss";
+// ./src/styles/_index.scss
+@forward '@pastweb/tools/styles/mixins';
+@forward './variables';
 ```
 ```js
 // sass config
 ...
 {
-  additionalData: `@import "./src/styles/all.scss";`,
+  additionalData: `@use "./src/styles";`,
 }
 ...
 ```
+```scss
+// ./src/styles/variables.scss
+@forward '@pastweb/tools/styles/variables';
 
-The `@pastweb/tools/styles/utils.scss` file contains three files:
+// Here you can write your custom variables
+```
+```scss
+// ./src/styles/css-variables.scss
+@forward '@pastweb/tools/styles/css-variables';
+
+// Here you can import other css-variables or add different color-scheme
+```
+```scss
+// ./src/styles/document.scss
+@use './css-variables';
+@use '@pastweb/tools/styles/document';
+```
+
+The `./src/styles/document.scss` file is the moduse to be used in your main js/ts file:
+
 
 * [@pastweb/tools/styles/variables.scss](https://github.com/pastweb/tools/blob/master/src/styles/variables.scss) _(mandatory)_
-  * contains the sass variables you can customise in your `./src/styles/all.scss` file for your project.
+  * contains the sass variables you can customise in your `./src/styles/variables.scss` file for your project using the `with` sass clausule.
 * [@pastweb/tools/styles/mixins.scss](https://github.com/pastweb/tools/blob/master/src/styles/mixins.scss)
-  * contains icon and media query mixins.
-
-You can decide if load all of then or just some as you need.
-In your main `js`/`ts` file you need to import the `document` file.
-Your can choose between two versions:
-
+  * contains media variables and query mixins.
 * [@pastweb/tools/styles/document.scss](https://github.com/pastweb/tools/blob/master/src/styles/document.scss)
-  * contains the [minireset](https://github.com/jgthms/bulma/blob/master/sass/base/generic.sass) and use the `sass` variables importen/declared in your `./src/styles/all.scss` file.
-* [@pastweb/tools/styles/document.variables.scss](https://github.com/pastweb/tools/blob/master/src/styles/document.variables.scss)
-  * It is the same as the previous one, but exports and use the `sass` variables as `css variables`.
+  * contains the [minireset](https://github.com/jgthms/bulma/blob/master/sass/base/generic.sass) and use the `sass` and `css` you can customize with the `with` sass clausule.
+
 
 The `document.variables.scss` exports the `sass` variables as `css variables` using the same variable name convention.
 This is in case you want to implement a different `color scheme` for your project as in the example below:
 
 ```scss
-// ./src/styles/all.scss
-@import "@pastweb/tools/styles/utils.scss";
+// ./src/styles/css-variables.scss
+@forward '@pastweb/tools/styles/css-variables';
 
 $background-color_dark: black;
 $color_text_dark: white;
-```
-```scss
-// ./src/main.scss
-@import "@pastweb/tools/styles/document.variables.scss";
 
 @media (prefers-color-scheme: dark) {
   :root {

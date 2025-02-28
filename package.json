@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -61,10 +61,6 @@
     }
   },
   "exports": {
-    "./all.scss": {
-      "import": "./dist/modules/all.scss",
-      "require": "./dist/modules/all.scss"
-    },
     "./assign": {
       "import": "./dist/modules/assign/assign.mjs",
       "require": "./dist/modules/assign/assign.cjs",
@@ -290,17 +286,13 @@
       "require": "./dist/modules/select/select.cjs",
       "types": "./dist/types/select/select.d.ts"
     },
-    "./styles/all.scss": {
-      "import": "./dist/modules/styles/all.scss",
-      "require": "./dist/modules/styles/all.scss"
+    "./styles/css-variables.scss": {
+      "import": "./dist/modules/styles/css-variables.scss",
+      "require": "./dist/modules/styles/css-variables.scss"
     },
     "./styles/document.scss": {
       "import": "./dist/modules/styles/document.scss",
       "require": "./dist/modules/styles/document.scss"
-    },
-    "./styles/document.variables.scss": {
-      "import": "./dist/modules/styles/document.variables.scss",
-      "require": "./dist/modules/styles/document.variables.scss"
     },
     "./styles/flex-layout.module.scss": {
       "import": "./dist/modules/styles/flex-layout.module.scss",
@@ -317,10 +309,6 @@
     "./styles/mixins.scss": {
       "import": "./dist/modules/styles/mixins.scss",
       "require": "./dist/modules/styles/mixins.scss"
-    },
-    "./styles/utils.scss": {
-      "import": "./dist/modules/styles/utils.scss",
-      "require": "./dist/modules/styles/utils.scss"
     },
     "./styles/variables.scss": {
       "import": "./dist/modules/styles/variables.scss",
