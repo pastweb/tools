@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.18.2",
+  "version": "1.18.3",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -135,6 +135,16 @@
       "import": "./dist/modules/createMatchDevice/createMatchDevice.mjs",
       "require": "./dist/modules/createMatchDevice/createMatchDevice.cjs",
       "types": "./dist/types/createMatchDevice/createMatchDevice.d.ts"
+    },
+    "./createMatchScheme": {
+      "import": "./dist/modules/createMatchScheme/createMatchScheme.mjs",
+      "require": "./dist/modules/createMatchScheme/createMatchScheme.cjs",
+      "types": "./dist/types/createMatchScheme/createMatchScheme.d.ts"
+    },
+    "./createMatchScheme/createMatchSchemeAsyncStore": {
+      "import": "./dist/modules/createMatchScheme/createMatchSchemeAsyncStore.mjs",
+      "require": "./dist/modules/createMatchScheme/createMatchSchemeAsyncStore.cjs",
+      "types": "./dist/types/createMatchScheme/createMatchSchemeAsyncStore.d.ts"
     },
     "./createState": {
       "import": "./dist/modules/createState/createState.mjs",

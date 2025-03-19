@@ -32,6 +32,9 @@ export type { LangAsyncStore, LangOptions, Translations, LazyTranslations } from
 export { createMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
 export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig } from './createMatchDevice';
 
+export { createMatchScheme, createMatchSchemeAsyncStore } from './createMatchScheme';
+export type { SchemeOptions, MatchScheme, ColorSchemeInfo, ColorSchemeAsyncStore } from './createMatchScheme';
+
 export { createState } from './createState';
 export type { InitiaStateFunction } from './createState';
 

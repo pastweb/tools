@@ -66,7 +66,7 @@ export function createStorage(config: StorageConfig = {}): Storage {
   (async () => {
     _store = type === 'indexedDB' ? await getDB() : getStorage();
     storeReady = true;
-
+  
     if (!Object.keys(_store).length && defaultSettings) {
       Object.entries(defaultSettings).forEach(async ([key, value]) => {
         if (!_store[key]) {
@@ -103,7 +103,7 @@ export function createStorage(config: StorageConfig = {}): Storage {
           const store = transaction.objectStore(storeName);
           const request = store.get('storage');
           
-          request.onsuccess = () => resolve(request.result);
+          request.onsuccess = () => resolve(request.result || {});
           request.onerror = (event: Event) => {
             reject(`Get all objects error in store "${storeName}": ${(event.target as IDBRequest).error}`);
           };
@@ -115,7 +115,6 @@ export function createStorage(config: StorageConfig = {}): Storage {
 
         if (!db.objectStoreNames.contains(storeName)) {
           db.createObjectStore(storeName);
-          resolve({});
         }
       };
 
@@ -172,7 +171,7 @@ export function createStorage(config: StorageConfig = {}): Storage {
    * @param {boolean} [store=false] - Whether to store the value in the underlying storage (e.g., IndexedDB or localStorage).
    * @returns {Promise<void>}
    */
-  async function set(path: string, value: any, store = false): Promise<void> {
+  async function set(path: string, value: any, store: boolean = false): Promise<void> {
     await isStoreReady;
 
     let _value = value;
@@ -260,7 +259,7 @@ export function createStorage(config: StorageConfig = {}): Storage {
    * @param {boolean} [justLocalStorage=false] - Whether to only remove the value from local storage.
    * @returns {Promise<void>}
    */
-  async function remove(path: string, justLocalStorage = false): Promise<void> {
+  async function remove(path: string, justLocalStorage: boolean = false): Promise<void> {
     await isStoreReady;
 
     if (onRemove[path]) {

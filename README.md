@@ -18,6 +18,8 @@ Below you will find descriptions of each function along with examples of how to 
   - [throttle](#throttle)
 - [Browser functions](#browser-functions)
   - [createMatchDevice](#creatematchdevice)
+  - [createMatchScheme](#creatematchscheme)
+    - [createMatchSchemeAsyncStore](#creatematchschemeasyncstore)
   - [createStorage](#createStorage)
   - [createViewRouter](#createviewrouter)
     - [Route Object](#route-object)
@@ -468,6 +470,197 @@ const currentDevices = matchDevice.getDevices();
 console.log('Current matched devices:', currentDevices);
 ```
 ---
+
+Here is the **Markdown documentation** in the same style as the "isType" function documentation:  
+
+---
+
+### `createMatchScheme`
+
+> #### Syntax 
+```ts
+function createMatchScheme(config?: SchemeOptions): MatchScheme;
+```
+
+## Description  
+
+Creates a match scheme manager that allows setting and tracking the color scheme mode.  
+It detects system preferences, provides methods to update the mode, and notifies listeners of changes.
+
+## Parameters  
+
+### `config` (optional)  
+**Type:** `SchemeOptions`  
+An object containing configuration options for the match scheme.
+
+| Property       | Type      | Default  | Description |
+|---------------|----------|----------|-------------|
+| `defaultMode` | `string` | `"auto"` | The initial color mode: `'auto'`, `'light'`, or `'dark'`. |
+| `datasetName` | `string \| false` | `false` | The dataset attribute name used to store the color scheme in the root element. If `false`, it uses CSS class names instead. |
+
+## Returns  
+
+**Type:** `MatchScheme`  
+An object with methods to manage and listen to scheme changes.
+
+## Methods  
+
+#### `getInfo`  
+```ts
+getInfo(): { mode: string; system: string; selected: string };
+```
+**Description:**  
+Retrieves the current color scheme information.
+
+**Returns:**
+| Property   | Type   | Description |
+|------------|--------|-------------|
+| `mode`     | `string` | The currently set mode (`'auto'`, `'light'`, or `'dark'`). |
+| `system`   | `string` | The system's detected color scheme (`'light'` or `'dark'`). |
+| `selected` | `string` | The active mode (either `mode` or the detected system scheme if `mode` is `'auto'`). |
+
+**Example:**  
+```ts
+const scheme = createMatchScheme();
+console.log(scheme.getInfo()); 
+// { mode: 'auto', system: 'light', selected: 'light' }
+```
+
+#### `setMode`  
+```ts
+setMode(mode: string): void;
+```
+**Description:**  
+Updates the color mode. If `'auto'` is selected, the mode will follow the system's preference.
+
+**Parameters:**
+| Name   | Type   | Description |
+|--------|--------|-------------|
+| `mode` | `string` | The new mode: `'auto'`, `'light'`, or `'dark'`. |
+
+**Example:**  
+```ts
+scheme.setMode('dark'); 
+console.log(scheme.getInfo()); 
+// { mode: 'dark', system: 'light', selected: 'dark' }
+```
+
+#### `onModeChange`  
+```ts
+onModeChange(fn: (mode: string) => void): void;
+```
+**Description:**  
+Registers a callback that is triggered when the mode changes.
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `fn` | `(mode: string) => void` | A callback function that receives the new mode. |
+
+**Example:**  
+```ts
+scheme.onModeChange((mode) => {
+  console.log(`Mode changed to: ${mode}`);
+});
+scheme.setMode('light'); 
+// Logs: "Mode changed to: light"
+```
+
+#### `onSysSchemeChange`  
+```ts
+onSysSchemeChange(fn: (mode: string) => void): void;
+```
+**Description:**  
+Registers a callback that triggers when the system's preferred color scheme changes.
+
+**Parameters:**
+| Name | Type | Description |
+|------|------|-------------|
+| `fn` | `(mode: string) => void` | A callback function that receives the new system scheme (`'light'` or `'dark'`). |
+
+**Example:**  
+```ts
+scheme.onSysSchemeChange((systemMode) => {
+  console.log(`System scheme changed to: ${systemMode}`);
+});
+```
+
+## Example Usage  
+```ts
+const scheme = createMatchScheme({ defaultMode: 'auto', datasetName: 'theme' });
+
+console.log(scheme.getInfo()); 
+// { mode: 'auto', system: 'dark', selected: 'dark' }
+
+scheme.onModeChange((mode) => {
+  console.log(`Color mode changed to: ${mode}`);
+});
+
+scheme.setMode('light');
+// Logs: "Color mode changed to: light"
+```
+
+---
+
+### `createMatchSchemeAsyncStore`
+
+> #### Syntax  
+```ts
+function createMatchSchemeAsyncStore(options?: SchemeOptionsAsyncStore): ColorSchemeAsyncStore;
+```
+
+## Description  
+
+Creates an asynchronous store for managing color schemes.  
+This function initializes an asynchronous store specifically for handling  
+color scheme preferences and system theme detection. It integrates with  
+`createMatchScheme` to track and manage color mode changes.
+
+## Parameters  
+
+#### `options` (optional)  
+**Type:** `SchemeOptionsAsyncStore`  
+Configuration options for the asynchronous store.
+
+| Property       | Type                  | Default              | Description |
+|---------------|-----------------------|----------------------|-------------|
+| `storeName`   | `string`               | `"ColorSchemeStore"` | The name of the store. |
+| `datasetName` | `string \| false`      | `false`              | The dataset attribute name for storing the color scheme. If `false`, it uses CSS class names instead. |
+| `defaultMode` | `string`               | `"auto"`             | The default mode (`'auto'`, `'light'`, or `'dark'`). |
+| `initStore`   | `(matchScheme: MatchScheme) => Promise<void>` | `noop` | An asynchronous function that runs during store initialization. |
+
+## Returns  
+
+**Type:** `ColorSchemeAsyncStore`  
+An object that provides methods and properties for managing color schemes asynchronously.
+
+## Properties  
+
+### `matchScheme`  
+**Type:** `MatchScheme`  
+Manages color scheme detection and provides methods to get or change the scheme.
+
+#### `init`  
+**Type:** `() => void`  
+A no-op function for initialization.
+
+#### `setStoreReady`  
+**Type:** `() => void`  
+Marks the store as ready after initialization.
+
+## Example Usage  
+
+```ts
+const colorSchemeStore = createMatchSchemeAsyncStore({
+  defaultMode: 'auto',
+  datasetName: 'theme',
+  initStore: async (matchScheme) => {
+    console.log('Initializing with:', matchScheme.getInfo());
+  }
+});
+```
+---
+
 ### `createStorage`
 
 Creates a versatile storage utility that supports both IndexedDB and localStorage.
