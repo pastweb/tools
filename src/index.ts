@@ -78,7 +78,7 @@ export { effect } from './effect';
 export type { EffectCallback } from './effect';
 
 export { getFullElementSize } from './getFullElementSize';
-export type { FullElementSize } from './getFullElementSize';
+export type { FullElementSize, Attribute } from './getFullElementSize';
 
 export { getType } from './getType';
 export { hashID } from './hashID';
