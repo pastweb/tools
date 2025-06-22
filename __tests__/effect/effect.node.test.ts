@@ -19,8 +19,9 @@ describe('effect', () => {
 
     jest.runOnlyPendingTimers();
 
-    expect(callback).toBeCalledTimes(1);
-    expect(JSON.stringify(callback.mock.calls[0][0])).toBe(JSON.stringify({ newValues: { first: 'first' }, oldValues: { first: 1 } }));
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(callback.mock.calls[0][0])).toBe(JSON.stringify({ first: 'first', second: 'second', third: 'third' }));
+    expect(JSON.stringify(callback.mock.calls[0][1])).toBe(JSON.stringify({ first: 1, second: 'second', third: 'third' }));
     expect(obj.first).toBe('first');
     expect(obj.second).toBe('second');
     expect(obj.third).toBe('third');
@@ -42,7 +43,7 @@ describe('effect', () => {
 
     jest.runOnlyPendingTimers();
 
-    expect(callback).toBeCalledTimes(0);
+    expect(callback).toHaveBeenCalledTimes(0);
     expect(obj.first).toBe(1);
     expect(obj.second).toBe('second');
     expect(obj.third).toBe('third');
@@ -66,8 +67,8 @@ describe('effect', () => {
 
     jest.runOnlyPendingTimers();
 
-    expect(cb1).toBeCalledTimes(1);
-    expect(cb2).toBeCalledTimes(2);
+    expect(cb1).toHaveBeenCalledTimes(1);
+    expect(cb2).toHaveBeenCalledTimes(1);
   });
 
   it('the callback should called just when "first" and "second" properties change.', async () => {
@@ -86,7 +87,7 @@ describe('effect', () => {
 
     jest.runOnlyPendingTimers();
 
-    expect(callback).toBeCalledTimes(2);
+    expect(callback).toHaveBeenCalledTimes(1);
     expect(obj.first).toBe('first');
     expect(obj.second).toBe('second');
     expect(obj.third).toBe('third');
@@ -108,7 +109,7 @@ describe('effect', () => {
 
     jest.runOnlyPendingTimers();
 
-    expect(callback).toBeCalledTimes(3);
+    expect(callback).toHaveBeenCalledTimes(1);
     expect(obj.first).toBe('first');
     expect(obj.second).toBe('second');
     expect(obj.third).toBe('third');
