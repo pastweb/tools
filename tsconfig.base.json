@@ -5,7 +5,6 @@
     "lib": ["esnext", "dom"],
     "strict": true,
     "sourceMap": true,
-    "declaration": true,
     "removeComments": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -13,7 +12,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "noImplicitThis": false,
-    "typeRoots": ["node_modules/@types"]
+    "typeRoots": ["node_modules/@types"],
   },
   "files": ["global.d.ts"],
   "exclude": ["node_modules"]

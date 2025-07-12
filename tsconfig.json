@@ -3,7 +3,6 @@
   "compilerOptions": {
     "module": "ESNext",
     "target": "ESNext",
-    "declarationDir": "dist/types",
     "outDir": "dist",
   },
   "include": ["src/**/*"],

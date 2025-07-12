@@ -1,11 +1,12 @@
-export default [
+import { builder } from '../cli-builder/src';
+
+export default builder([
   {
     entry: {
       index: 'src/index.ts',
       '_index.scss': 'src/_index.scss',
     },
     versionFile: true,
-    build: { target: 'lib' },
     output: {
       package: {
         exports: {
@@ -25,10 +26,9 @@ export default [
   },
   {
     entry: 'src/colorFilter/index.ts',
-    build: { target: 'lib' },
     output: {
       dir: 'colorFilter',
-      maia: false,
+      types: 'types/colorFilter',
       preserveModules: false,
       package: {
         files: [ '/colorFilter' ],
@@ -44,4 +44,4 @@ export default [
       }
     },
   },
-];
+]);

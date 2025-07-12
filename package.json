@@ -23,7 +23,7 @@
   "types": "./dist/types/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build": "rimraf dist && tsc --emitDeclarationOnly --skipLibCheck && bun ../maia/packages/maia-cli/src/cli/cli.ts build",
+    "build": "bun ../cli/src/cli/cli.ts build",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
