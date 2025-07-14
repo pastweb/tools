@@ -64,17 +64,17 @@
     "./assign": {
       "import": "./dist/modules/assign/assign.mjs",
       "require": "./dist/modules/assign/assign.cjs",
-      "types": "./dist/types/assign/assign.d.ts"
+      "types": "./dist/types/assign/index.d.ts"
     },
     "./camelize": {
       "import": "./dist/modules/camelize/camelize.mjs",
       "require": "./dist/modules/camelize/camelize.cjs",
-      "types": "./dist/types/camelize/camelize.d.ts"
+      "types": "./dist/types/camelize/index.d.ts"
     },
     "./cl": {
       "import": "./dist/modules/cl/cl.mjs",
       "require": "./dist/modules/cl/cl.cjs",
-      "types": "./dist/types/cl/cl.d.ts"
+      "types": "./dist/types/cl/index.d.ts"
     },
     "./cl/constants": {
       "import": "./dist/modules/cl/constants.mjs",
@@ -84,12 +84,12 @@
     "./createApiAgent": {
       "import": "./dist/modules/createApiAgent/createApiAgent.mjs",
       "require": "./dist/modules/createApiAgent/createApiAgent.cjs",
-      "types": "./dist/types/createApiAgent/createApiAgent.d.ts"
+      "types": "./dist/types/createApiAgent/index.d.ts"
     },
     "./createAsyncStore": {
       "import": "./dist/modules/createAsyncStore/createAsyncStore.mjs",
       "require": "./dist/modules/createAsyncStore/createAsyncStore.cjs",
-      "types": "./dist/types/createAsyncStore/createAsyncStore.d.ts"
+      "types": "./dist/types/createAsyncStore/index.d.ts"
     },
     "./createAsyncStore/normalizeAsyncQueue": {
       "import": "./dist/modules/createAsyncStore/normalizeAsyncQueue.mjs",
@@ -104,12 +104,12 @@
     "./createEntry": {
       "import": "./dist/modules/createEntry/createEntry.mjs",
       "require": "./dist/modules/createEntry/createEntry.cjs",
-      "types": "./dist/types/createEntry/createEntry.d.ts"
+      "types": "./dist/types/createEntry/index.d.ts"
     },
     "./createEventEmitter": {
       "import": "./dist/modules/createEventEmitter/createEventEmitter.mjs",
       "require": "./dist/modules/createEventEmitter/createEventEmitter.cjs",
-      "types": "./dist/types/createEventEmitter/createEventEmitter.d.ts"
+      "types": "./dist/types/createEventEmitter/index.d.ts"
     },
     "./createIdCache/constants": {
       "import": "./dist/modules/createIdCache/constants.mjs",
@@ -119,12 +119,12 @@
     "./createIdCache": {
       "import": "./dist/modules/createIdCache/createIdCache.mjs",
       "require": "./dist/modules/createIdCache/createIdCache.cjs",
-      "types": "./dist/types/createIdCache/createIdCache.d.ts"
+      "types": "./dist/types/createIdCache/index.d.ts"
     },
     "./createLangAsyncStore": {
       "import": "./dist/modules/createLangAsyncStore/createLangAsyncStore.mjs",
       "require": "./dist/modules/createLangAsyncStore/createLangAsyncStore.cjs",
-      "types": "./dist/types/createLangAsyncStore/createLangAsyncStore.d.ts"
+      "types": "./dist/types/createLangAsyncStore/index.d.ts"
     },
     "./createMatchDevice/constants": {
       "import": "./dist/modules/createMatchDevice/constants.mjs",
@@ -134,12 +134,12 @@
     "./createMatchDevice": {
       "import": "./dist/modules/createMatchDevice/createMatchDevice.mjs",
       "require": "./dist/modules/createMatchDevice/createMatchDevice.cjs",
-      "types": "./dist/types/createMatchDevice/createMatchDevice.d.ts"
+      "types": "./dist/types/createMatchDevice/index.d.ts"
     },
     "./createMatchScheme": {
       "import": "./dist/modules/createMatchScheme/createMatchScheme.mjs",
       "require": "./dist/modules/createMatchScheme/createMatchScheme.cjs",
-      "types": "./dist/types/createMatchScheme/createMatchScheme.d.ts"
+      "types": "./dist/types/createMatchScheme/index.d.ts"
     },
     "./createMatchScheme/createMatchSchemeAsyncStore": {
       "import": "./dist/modules/createMatchScheme/createMatchSchemeAsyncStore.mjs",
@@ -149,12 +149,12 @@
     "./createState": {
       "import": "./dist/modules/createState/createState.mjs",
       "require": "./dist/modules/createState/createState.cjs",
-      "types": "./dist/types/createState/createState.d.ts"
+      "types": "./dist/types/createState/index.d.ts"
     },
     "./createStorage": {
       "import": "./dist/modules/createStorage/createStorage.mjs",
       "require": "./dist/modules/createStorage/createStorage.cjs",
-      "types": "./dist/types/createStorage/createStorage.d.ts"
+      "types": "./dist/types/createStorage/index.d.ts"
     },
     "./createViewRouter/constants": {
       "import": "./dist/modules/createViewRouter/constants.mjs",
@@ -164,7 +164,7 @@
     "./createViewRouter": {
       "import": "./dist/modules/createViewRouter/createViewRouter.mjs",
       "require": "./dist/modules/createViewRouter/createViewRouter.cjs",
-      "types": "./dist/types/createViewRouter/createViewRouter.d.ts"
+      "types": "./dist/types/createViewRouter/index.d.ts"
     },
     "./createViewRouter/util/filterRoutes": {
       "import": "./dist/modules/createViewRouter/util/filterRoutes.mjs",
@@ -179,17 +179,17 @@
     "./debounce": {
       "import": "./dist/modules/debounce/debounce.mjs",
       "require": "./dist/modules/debounce/debounce.cjs",
-      "types": "./dist/types/debounce/debounce.d.ts"
+      "types": "./dist/types/debounce/index.d.ts"
     },
     "./deepMerge": {
       "import": "./dist/modules/deepMerge/deepMerge.mjs",
       "require": "./dist/modules/deepMerge/deepMerge.cjs",
-      "types": "./dist/types/deepMerge/deepMerge.d.ts"
+      "types": "./dist/types/deepMerge/index.d.ts"
     },
     "./effect": {
       "import": "./dist/modules/effect/effect.mjs",
       "require": "./dist/modules/effect/effect.cjs",
-      "types": "./dist/types/effect/effect.d.ts"
+      "types": "./dist/types/effect/index.d.ts"
     },
     "./getFullElementSize/constants": {
       "import": "./dist/modules/getFullElementSize/constants.mjs",
@@ -199,67 +199,67 @@
     "./getFullElementSize": {
       "import": "./dist/modules/getFullElementSize/getFullElementSize.mjs",
       "require": "./dist/modules/getFullElementSize/getFullElementSize.cjs",
-      "types": "./dist/types/getFullElementSize/getFullElementSize.d.ts"
+      "types": "./dist/types/getFullElementSize/index.d.ts"
     },
     "./getType": {
       "import": "./dist/modules/getType/getType.mjs",
       "require": "./dist/modules/getType/getType.cjs",
-      "types": "./dist/types/getType/getType.d.ts"
+      "types": "./dist/types/getType/index.d.ts"
     },
     "./hashID": {
       "import": "./dist/modules/hashID/hashID.mjs",
       "require": "./dist/modules/hashID/hashID.cjs",
-      "types": "./dist/types/hashID/hashID.d.ts"
+      "types": "./dist/types/hashID/index.d.ts"
     },
     ".": {
       "import": "./dist/modules/index.mjs",
       "require": "./dist/modules/index.cjs",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/./index.d.ts"
     },
     "./isDateYoungerOf": {
       "import": "./dist/modules/isDateYoungerOf/isDateYoungerOf.mjs",
       "require": "./dist/modules/isDateYoungerOf/isDateYoungerOf.cjs",
-      "types": "./dist/types/isDateYoungerOf/isDateYoungerOf.d.ts"
+      "types": "./dist/types/isDateYoungerOf/index.d.ts"
     },
     "./isHoursTimeYoungerThen": {
       "import": "./dist/modules/isHoursTimeYoungerThen/isHoursTimeYoungerThen.mjs",
       "require": "./dist/modules/isHoursTimeYoungerThen/isHoursTimeYoungerThen.cjs",
-      "types": "./dist/types/isHoursTimeYoungerThen/isHoursTimeYoungerThen.d.ts"
+      "types": "./dist/types/isHoursTimeYoungerThen/index.d.ts"
     },
     "./isObject": {
       "import": "./dist/modules/isObject/isObject.mjs",
       "require": "./dist/modules/isObject/isObject.cjs",
-      "types": "./dist/types/isObject/isObject.d.ts"
+      "types": "./dist/types/isObject/index.d.ts"
     },
     "./isSSR": {
       "import": "./dist/modules/isSSR/index.mjs",
       "require": "./dist/modules/isSSR/index.cjs",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/isSSR/index.d.ts"
     },
     "./isType": {
       "import": "./dist/modules/isType/isType.mjs",
       "require": "./dist/modules/isType/isType.cjs",
-      "types": "./dist/types/isType/isType.d.ts"
+      "types": "./dist/types/isType/index.d.ts"
     },
     "./kebabize": {
       "import": "./dist/modules/kebabize/kebabize.mjs",
       "require": "./dist/modules/kebabize/kebabize.cjs",
-      "types": "./dist/types/kebabize/kebabize.d.ts"
+      "types": "./dist/types/kebabize/index.d.ts"
     },
     "./memo": {
       "import": "./dist/modules/memo/memo.mjs",
       "require": "./dist/modules/memo/memo.cjs",
-      "types": "./dist/types/memo/memo.d.ts"
+      "types": "./dist/types/memo/index.d.ts"
     },
     "./noop": {
       "import": "./dist/modules/noop/index.mjs",
       "require": "./dist/modules/noop/index.cjs",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/noop/index.d.ts"
     },
     "./portals/anchorsSetup": {
       "import": "./dist/modules/portals/anchorsSetup/anchorsSetup.mjs",
       "require": "./dist/modules/portals/anchorsSetup/anchorsSetup.cjs",
-      "types": "./dist/types/portals/anchorsSetup/anchorsSetup.d.ts"
+      "types": "./dist/types/portals/anchorsSetup/index.d.ts"
     },
     "./portals/anchorsSetup/generateAnchors": {
       "import": "./dist/modules/portals/anchorsSetup/generateAnchors.mjs",
@@ -284,17 +284,17 @@
     "./proxy": {
       "import": "./dist/modules/proxy/proxy.mjs",
       "require": "./dist/modules/proxy/proxy.cjs",
-      "types": "./dist/types/proxy/proxy.d.ts"
+      "types": "./dist/types/proxy/index.d.ts"
     },
     "./remove": {
       "import": "./dist/modules/remove/remove.mjs",
       "require": "./dist/modules/remove/remove.cjs",
-      "types": "./dist/types/remove/remove.d.ts"
+      "types": "./dist/types/remove/index.d.ts"
     },
     "./select": {
       "import": "./dist/modules/select/select.mjs",
       "require": "./dist/modules/select/select.cjs",
-      "types": "./dist/types/select/select.d.ts"
+      "types": "./dist/types/select/index.d.ts"
     },
     "./styles/css-variables.scss": {
       "import": "./dist/modules/styles/css-variables.scss",
@@ -355,17 +355,17 @@
     "./throttle": {
       "import": "./dist/modules/throttle/throttle.mjs",
       "require": "./dist/modules/throttle/throttle.cjs",
-      "types": "./dist/types/throttle/throttle.d.ts"
+      "types": "./dist/types/throttle/index.d.ts"
     },
     "./update": {
       "import": "./dist/modules/update/update.mjs",
       "require": "./dist/modules/update/update.cjs",
-      "types": "./dist/types/update/update.d.ts"
+      "types": "./dist/types/update/index.d.ts"
     },
     "./withDefaults": {
       "import": "./dist/modules/withDefaults/withDefaults.mjs",
       "require": "./dist/modules/withDefaults/withDefaults.cjs",
-      "types": "./dist/types/withDefaults/withDefaults.d.ts"
+      "types": "./dist/types/withDefaults/index.d.ts"
     },
     "./colorFilter": {
       "import": "./colorFilter/index.mjs",
