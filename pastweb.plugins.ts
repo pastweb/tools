@@ -6,8 +6,8 @@ export default builder([
       index: 'src/index.ts',
       '_index.scss': 'src/_index.scss',
     },
-    versionFile: true,
     output: {
+      versionFile: true,
       package: {
         exports: {
           exclude: [
