@@ -1,7 +1,7 @@
 import { noop } from '../noop';
 import { createAsyncStore } from '../createAsyncStore';
 import { createMatchScheme } from './createMatchScheme';
-import { SchemeOptionsAsyncStore, ColorSchemeAsyncStore } from './types';
+import type { SchemeOptionsAsyncStore, ColorSchemeAsyncStore } from './types';
 
 /**
  * Creates an asynchronous store for managing color schemes.

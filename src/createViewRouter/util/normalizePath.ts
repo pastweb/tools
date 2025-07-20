@@ -1,4 +1,4 @@
-import { Route } from '../types';
+import type { Route } from '../types';
 
 export function normalizePath(base: string, route: Route, parent: string = ''): Route {
   let { path, redirect, children, ...rest } = route;

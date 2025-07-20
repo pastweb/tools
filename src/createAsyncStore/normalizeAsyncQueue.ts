@@ -1,5 +1,5 @@
 import { isObject } from '../isObject';
-import { Wait, AsyncStore } from './types';
+import type { Wait, AsyncStore } from './types';
 
 /**
  * Normalizes an array of asynchronous operations into an array of promises.

@@ -1,4 +1,4 @@
-import { RouteParamValue } from '../types';
+import type { RouteParamValue } from '../types';
 
 export function normalizeRouteParamValue(value: string): RouteParamValue {
   let val: RouteParamValue = value;

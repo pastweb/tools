@@ -1,6 +1,6 @@
 import { Entry } from '../../createEntry';
 import { getPortalElement } from './getPortalElement';
-import { Portals } from '../types';
+import type { Portals } from '../types';
 
 export function update(
   portals: Portals,

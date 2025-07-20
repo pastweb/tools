@@ -8,7 +8,7 @@ import {
   normalizeRouteParamValue,
 } from './util';
 import { EMPTY_ROUTE } from './constants';
-import {
+import type {
   ViewRouter,
   RouterOptions,
   Route,

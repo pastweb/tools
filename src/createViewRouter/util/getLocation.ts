@@ -1,4 +1,4 @@
-import { Location } from '../types';
+import type { Location } from '../types';
 
 export function getLocation(href: string): Location {
   const originMatch = href.match(/^(.*:\/\/)?[^\/]+(:[\d]+)?/);

@@ -1,4 +1,4 @@
-import { Portal, PortalHandler } from '../types';
+import type { Portal, PortalHandler } from '../types';
 
 export function handlerConstructor(portal: Portal, component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>): PortalHandler {
   const { open, update, close, remove, setOnRemove } = portal;

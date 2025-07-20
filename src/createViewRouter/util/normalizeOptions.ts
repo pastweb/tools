@@ -1,6 +1,6 @@
 import { isSSR } from '../../isSSR';
 import { createBrowserHistory } from 'history';
-import { RouterOptions, RouterNormalizedOptions } from '../types';
+import type { RouterOptions, RouterNormalizedOptions } from '../types';
 
 export function normalizeOptions(options: RouterOptions): RouterNormalizedOptions {
   const {

@@ -1,5 +1,5 @@
 import { ALPHABET, ID_LENGTH } from './constants';
-import { Config } from './types';
+import type { Config } from './types';
 
 /**
  * Returns a randomly-generated friendly ID.

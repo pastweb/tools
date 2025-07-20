@@ -1,5 +1,5 @@
-// export { Storage } from './Storage';
 export { createStorage } from './createStorage';
+
 export type {
   Storage,
   StorageConfig,

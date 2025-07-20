@@ -2,7 +2,7 @@ import { createAsyncStore } from '../createAsyncStore';
 import i18n, { Callback, TFunction } from 'i18next';
 import { languageDetector, translationImport } from './plugins';
 import { noop } from '../noop';
-import { LangAsyncStore, LangOptions } from './types';
+import type { LangAsyncStore, LangOptions } from './types';
 
 /**
  * Creates a language async store with i18next integration for managing translations.

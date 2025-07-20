@@ -1,5 +1,5 @@
-import { Entry } from '../createEntry';
-import { IdCache } from '../createIdCache';
+import type { Entry } from '../createEntry';
+import type { IdCache } from '../createIdCache';
 
 export type Portals = {
   [portalId: string]: { [entryId: string]: Entry<any> };

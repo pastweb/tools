@@ -4,8 +4,8 @@ import { noop } from '../noop';
 import { isSSR } from '../isSSR';
 import { hashID } from '../hashID';
 import { READ_ONLY_PROPS, METHODS } from './constants';
-import { Entry, EntryOptions } from './types';
 import { immutableProperty } from '../immutableProperty';
+import type { Entry, EntryOptions } from './types';
 
 const ssrIds = new Set<string>();
 let ssrMap: { [ssrKey: string]: Promise<string> } = {};

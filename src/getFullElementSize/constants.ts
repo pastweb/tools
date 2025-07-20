@@ -1,4 +1,4 @@
-import { FullElementSize } from './types';
+import type { FullElementSize } from './types';
 
 export enum ATTRIB {
   width = 'width',

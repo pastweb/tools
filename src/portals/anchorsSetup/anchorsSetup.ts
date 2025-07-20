@@ -3,7 +3,7 @@ import { isObject } from '../../isObject';
 import { createPortal } from './../createPortal';
 import { handlerConstructor } from './handlerConstructor';
 import { ELEMENTS_SCOPE } from '../constants';
-import { PortalAnchorsIds, Portals, EntryDescriptor, PortalsDescriptor } from '../types';
+import type { PortalAnchorsIds, Portals, EntryDescriptor, PortalsDescriptor } from '../types';
 
 function setPortals(ids: Record<string, any>, descriptor: Record<string, any>, portals: Record<string, any>, getEntry: () => any, idCache: IdCache, portalsCache: Portals) {
   Object.entries(ids).forEach(([key, val]) => {

@@ -1,4 +1,4 @@
-import { DebouceCallback } from './types';
+import type { DebouceCallback } from './types';
 
 /**
  * Creates a debounced function that delays invoking `fn` until after `timeout` milliseconds have elapsed since the last time the debounced function was invoked. The debounced function has methods `cancel` and `flush` to cancel delayed invocation and to immediately invoke them respectively.

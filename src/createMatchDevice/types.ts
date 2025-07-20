@@ -18,4 +18,4 @@ export interface MatchDevice {
   getDevices: () => MatchDevicesResult;
   onChange: (fn?: (devices: MatchDevicesResult) => void) => void;
   onMatch: (deviceName: string, fn: (result: boolean, deviceName: string) => void) => void;
-}
+};

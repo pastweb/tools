@@ -1,7 +1,7 @@
 import { createEventEmitter } from '../createEventEmitter';
 import { isSSR } from '../isSSR';
 import { noop } from '../noop';
-import { MatchDevice, DeviceConfig, DevicesConfig, MatchDevicesResult } from './types';
+import type { MatchDevice, DeviceConfig, DevicesConfig, MatchDevicesResult } from './types';
 
 /**
  * Creates a match device utility that detects device types based on user agent and media queries.

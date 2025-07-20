@@ -1,6 +1,6 @@
 import { isSSR } from '../isSSR';
 import { ATTRIBS, EMPTY } from './constants';
-import { Attribute, FullElementSize } from './types';
+import type { Attribute, FullElementSize } from './types';
 
 /**
  * Calculates the full size of an HTML element including padding, border, and margin, with the option to exclude certain attributes.

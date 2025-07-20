@@ -1,5 +1,5 @@
-import { RemoveListener } from '../createEventEmitter';
-import { BrowserHistory, HashHistory, MemoryHistory } from 'history';
+import type { RemoveListener } from '../createEventEmitter';
+import type { BrowserHistory, HashHistory, MemoryHistory } from 'history';
 
 export type View = any | (() => Promise<{ default: any, [prop: string]: any }>);
 

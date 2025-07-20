@@ -1,5 +1,5 @@
 import { hashID } from '../hashID';
-import { IdCache } from './types';
+import type { IdCache } from './types';
 
 /**
  * Creates a cache for managing unique IDs within different scopes.

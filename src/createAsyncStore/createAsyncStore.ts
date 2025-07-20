@@ -1,5 +1,5 @@
 import { immutableProperty } from '../immutableProperty';
-import { AsyncStore, AsyncStoreOptions } from './types';
+import type { AsyncStore, AsyncStoreOptions } from './types';
 
 /**
  * Creates an asynchronous store with the given options.

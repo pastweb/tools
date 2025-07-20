@@ -1,4 +1,4 @@
-import { ThrottleCallback } from './types';
+import type { ThrottleCallback } from './types';
 
 /**
  * Returns a throttle function defined in the @param fn parameter,

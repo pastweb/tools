@@ -1,7 +1,7 @@
 import clsx, { ClassValue } from 'clsx';
 import { isObject } from '../isObject';
 import { Mode, ERROR_MESSAGE } from './constants';
-import { CSSModuleClasses, ClassProcessor } from './types';
+import type { CSSModuleClasses, ClassProcessor } from './types';
 
 // Cache for processed class combinations
 const classCache = new Map<string, string>();

@@ -1,7 +1,7 @@
 import { assign } from '../../assign';
 import { IdCache, DEFAULT_ID_CACHE } from '../../createIdCache';
 import { ELEMENTS_SCOPE } from '../constants';
-import { PortalAnchorsIds } from '../types';
+import type { PortalAnchorsIds } from '../types';
 
 export function generateAnchors(anchors: string[], idCache: IdCache = DEFAULT_ID_CACHE): PortalAnchorsIds {
   const ids = {};

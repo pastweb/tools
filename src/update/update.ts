@@ -1,6 +1,6 @@
 import { isObject } from '../isObject';
-import { UpdateOptions } from './types';
 import { defaultOptions } from './constants';
+import type { UpdateOptions } from './types';
 
 /**
  * Updates the properties of a target object with values from a source object. 

@@ -1,4 +1,4 @@
-import { ProxyCallback } from './types';
+import type { ProxyCallback } from './types';
 
 /**
  * Creates a proxy object that intercepts get, set, and delete operations on the target object.

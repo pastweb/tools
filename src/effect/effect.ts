@@ -1,5 +1,5 @@
 import { debounce } from '../debounce';
-import { EffectCallback } from './types';
+import type { EffectCallback } from './types';
 
 /**
  * Creates a reactive effect on the specified properties of the target object. Whenever one of these properties changes, the provided callback function is executed with details about the change. Changes are batched and debounced to improve performance.

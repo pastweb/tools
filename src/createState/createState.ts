@@ -1,7 +1,7 @@
 import { deepMerge } from '../deepMerge';
 import { noop } from '../noop';
 import { update } from '../update';
-import { InitiaStateFunction } from './types';
+import type { InitiaStateFunction } from './types';
 
 /**
  * Creates a state management utility.

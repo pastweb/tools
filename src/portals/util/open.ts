@@ -2,7 +2,7 @@ import { Entry } from '../../createEntry';
 import { IdCache } from '../../createIdCache';
 import { getPortalElement } from './getPortalElement';
 import { ELEMENTS_SCOPE } from '../constants';
-import { Portals } from '../types';
+import type { Portals } from '../types';
 
 export function open(
   portals: Portals,

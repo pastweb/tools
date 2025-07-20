@@ -26,9 +26,6 @@ export type { EventEmitter, EventCallback, RemoveListener } from './createEventE
 export { createIdCache, DEFAULT_ID_CACHE } from './createIdCache';
 export type { IdCache } from './createIdCache';
 
-export { createLangAsyncStore } from './createLangAsyncStore';
-export type { LangAsyncStore, LangOptions, Translations, LazyTranslations } from './createLangAsyncStore';
-
 export { createMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
 export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig } from './createMatchDevice';
 

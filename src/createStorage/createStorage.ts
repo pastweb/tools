@@ -3,7 +3,7 @@ import { isObject } from '../isObject';
 import { remove as _remove } from '../remove';
 import { select } from '../select';
 import { noop } from '../noop';
-import { Storage, StorageConfig } from './types';
+import type { Storage, StorageConfig } from './types';
 
 /**
  * Creates a storage utility that supports both IndexedDB and localStorage,

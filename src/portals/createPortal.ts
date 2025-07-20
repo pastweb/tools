@@ -3,7 +3,7 @@ import { DEFAULT_ID_CACHE } from '../createIdCache';
 import { noop } from '../noop';
 import { assignDefaults, open, update, close, remove } from './util';
 import { DEFAULT_PORTALS_CACHE } from './constants';
-import { Portal } from './types';
+import type { Portal } from './types';
 
 export function createPortal(
   entry: ((props: Record<string, any>, component: any) => Entry<any>),

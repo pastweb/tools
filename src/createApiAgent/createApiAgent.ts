@@ -6,7 +6,7 @@ import axios, {
 } from 'axios';
 import { deepMerge } from '../deepMerge';
 import { noop } from '../noop';
-import { Agent, AgentSettings } from './types';
+import type { Agent, AgentSettings } from './types';
 
 /**
  * Creates an API agent with customizable settings for HTTP requests.

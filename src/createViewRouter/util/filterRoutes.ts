@@ -1,4 +1,4 @@
-import { Route, FilterDescriptor, FilterFunction } from '../types';
+import type { Route, FilterDescriptor, FilterFunction } from '../types';
 
 /**
  * Filters a list of routes based on the provided filter descriptor.

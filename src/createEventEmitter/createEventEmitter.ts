@@ -1,4 +1,4 @@
-import { EventEmitter, EventCallback, RemoveListener } from './types';
+import type { EventEmitter, EventCallback, RemoveListener } from './types';
 
 /**
  * Creates an event emitter that allows subscribing to events, emitting events, and removing event listeners.

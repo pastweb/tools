@@ -1,4 +1,4 @@
-import { SelectedRoute } from '../types';
+import type { SelectedRoute } from '../types';
 
 /**
  * Traverses the nested route structure up to a specified depth and returns the selected route.

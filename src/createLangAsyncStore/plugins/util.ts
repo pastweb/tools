@@ -1,5 +1,5 @@
 import { isObject } from '../../isObject';
-import { Translations, LazyTranslations, StaticTranslations } from '../types';
+import type { Translations, LazyTranslations, StaticTranslations } from '../types';
 
 export async function traversLazyTranslations(translations: Translations): Promise<StaticTranslations> {
   const staticTranslations: StaticTranslations = {};

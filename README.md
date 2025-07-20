@@ -6,6 +6,17 @@ Below you will find descriptions of each function along with examples of how to 
 * Production ready
 * Treeshake optimised
 
+## Installation
+```bash
+$ npm i -S @pastweb/tools
+```
+```bash
+$ pnpm i -S @pastweb/tools
+```
+```bash
+$ yarn add -S @pastweb/tools
+```
+
 ## Summary
 
 - [Async functions](#async-functions)
@@ -328,7 +339,7 @@ Methods and Properties
 $ npm i -S i18next
 ```
 ```typescript
-import { createLangAsyncStore } from '@pastweb/tools';
+import { createLangAsyncStore } from '@pastweb/tools/createLangAsyncStore';
 
 const langStore = createLangAsyncStore({
   initLang: 'en',

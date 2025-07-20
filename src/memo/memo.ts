@@ -1,4 +1,4 @@
-import { MemoCallback } from './types';
+import type { MemoCallback } from './types';
 
 /**
  * Retrieves the matching key from a map based on the provided arguments.

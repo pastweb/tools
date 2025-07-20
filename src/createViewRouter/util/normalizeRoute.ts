@@ -1,4 +1,4 @@
-import { Route } from '../types';
+import type { Route } from '../types';
 
 export function normalizeRoute(
   RouterView: any,

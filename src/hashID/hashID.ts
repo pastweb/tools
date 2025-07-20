@@ -1,6 +1,6 @@
 import { generate } from './generate';
 import { UNIQUE_RETRIES } from './constants';
-import { Config } from './types';
+import type { Config } from './types';
 
 /**
  * If the cache is Provided tries to generate a unique ID that is not defined in the

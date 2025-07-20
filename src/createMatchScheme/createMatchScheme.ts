@@ -1,5 +1,5 @@
 import { createEventEmitter } from '../createEventEmitter';
-import { SchemeOptions, MatchScheme } from './types';
+import type { SchemeOptions, MatchScheme } from './types';
 
 /**
  * Creates a match scheme manager that allows setting and tracking the color scheme mode.
