@@ -1,6 +1,6 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.18.8",
+  "version": "1.18.9",
   "description": "Set of tools for web application development",
   "repository": {
     "type": "git",
@@ -97,17 +97,17 @@
     "./colorFilter": {
       "import": "./dist/modules/colorFilter/index.mjs",
       "require": "./dist/modules/colorFilter/index.cjs",
-      "types": "./dist/types/colorFilter.d.ts"
+      "types": "./dist/types/colorFilter/index.d.ts"
     },
     "./colorFilter/Color": {
       "import": "./dist/modules/colorFilter/Color.mjs",
       "require": "./dist/modules/colorFilter/Color.cjs",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/colorFilter/Color.d.ts"
     },
     "./colorFilter/Solver": {
       "import": "./dist/modules/colorFilter/Solver.mjs",
       "require": "./dist/modules/colorFilter/Solver.cjs",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/colorFilter/Solver.d.ts"
     },
     "./createApiAgent": {
       "import": "./dist/modules/createApiAgent/createApiAgent.mjs",

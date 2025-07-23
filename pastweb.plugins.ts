@@ -42,7 +42,6 @@ export default builder([
     entry: 'src/createLangAsyncStore/index.ts',
     output: {
       dir: 'createLangAsyncStore',
-      types: 'types/createLangAsyncStore',
       package: {
         peerDependenciesMeta: {
           i18next: { optional: true },
