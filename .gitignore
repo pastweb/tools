@@ -1,13 +1,4 @@
-/dist
-.idea
-.vscode
 node_modules
-coverage
+dist
+*.log
 .DS_Store
-
-pnpm-lock.yaml
-yarn.lock
-.yarnrc
-yarn-error.log
-
-version.ts

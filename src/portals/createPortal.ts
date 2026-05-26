@@ -1,12 +1,12 @@
-import { Entry } from '../createEntry';
 import { DEFAULT_ID_CACHE } from '../createIdCache';
 import { noop } from '../noop';
 import { assignDefaults, open, update, close, remove } from './util';
-import { DEFAULT_PORTALS_CACHE } from './constants';
+import { DEFAULT_PORTALS_CACHE, PORTAL } from './constants';
+import type { Entry } from '../createEntry';
 import type { Portal } from './types';
 
 export function createPortal(
-  entry: ((props: Record<string, any>, component: any) => Entry<any>),
+  entry?: ((props: Record<string, any>, component: any) => Entry<any>),
   defaults: Record<string, any> = {},
 ): Portal {
   const _entry = entry;
@@ -18,24 +18,27 @@ export function createPortal(
   let onRemove = noop;
 
   const portal: Portal = {
-    $$portal: true,
     open: (component: any, props = {}, defaults = {}): string | false => {
       const withDefaults = assignDefaults({
         ...typeof props === 'function' ? props() : props,
       }, { ..._defaults, ...defaults });
 
-      const entry = typeof _entry === 'function' ? _entry(withDefaults, component) : _entry as Entry<any>;
-      entry.setEntryComponent(component);
-      
-      entry.mergeOptions({
-        initData: {
-          component,
-          ...withDefaults,
-          ...entry.options.initData,
-          portal,
-        },
-      });
-      
+      const entry = typeof _entry === 'function' ? _entry(withDefaults, component) : _entry;
+
+      if (entry) {
+        console.log(entry)
+        entry.setEntryComponent(component);
+
+        entry.mergeOptions({
+          initData: {
+            component,
+            ...withDefaults,
+            ...entry.options.initData,
+            portal,
+          },
+        });
+      }
+
       return open(portals, {
         portalElement,
         entry,
@@ -52,7 +55,7 @@ export function createPortal(
     close: (entryId: string): void => close(portalElement, entryId),
     remove: (entryId: string): boolean => {
       onRemove(entryId);
-      
+
       return remove(portals, {
         portalElement,
         entryId,
@@ -65,7 +68,7 @@ export function createPortal(
     setOnRemove: fn => { onRemove = fn; },
   };
 
-  Object.defineProperty(portal, '$$portal', {
+  Object.defineProperty(portal, PORTAL, {
     value: true,
     enumerable: false,
     writable: false,

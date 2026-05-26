@@ -1,6 +1,6 @@
 import type { Location } from '../types';
 
-export function getLocation(href: string): Location {
+export function getLocation(href: string, userAgent: string): Location {
   const originMatch = href.match(/^(.*:\/\/)?[^\/]+(:[\d]+)?/);
   const origin = originMatch ? originMatch[0] : '';
 
@@ -27,5 +27,6 @@ export function getLocation(href: string): Location {
     origin,
     pathname,
     searchParams: new URLSearchParams(searchParams),
+    userAgent,
   };
 }

@@ -1,1 +1,4 @@
-export type DebouceCallback = (...args: any[]) => any;
+export type DebouceCallback = (...args: any[]) => any & {
+  cancel: () => void;
+  flush: () => void;
+};

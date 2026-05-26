@@ -19,3 +19,8 @@ export interface MatchDevice {
   onChange: (fn?: (devices: MatchDevicesResult) => void) => void;
   onMatch: (deviceName: string, fn: (result: boolean, deviceName: string) => void) => void;
 };
+
+export type DevicesResult = {
+  devices: MatchDevicesResult;
+  onMatch: (deviceName: string, fn: (result: boolean, deviceName: string) => void) => void;
+};

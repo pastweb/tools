@@ -21,8 +21,11 @@ $ yarn add -S @pastweb/tools
 
 - [Async functions](#async-functions)
   - [createApiAgent](#createapiagent)
+    - [useQuery](#usequery)
+    - [useMutation](#usemutation)
   - [createAsyncStore](#createasyncstore)
     - [normalizeAsyncQueue](#normalizeasyncqueue)
+  - [createAsyncMicroSrote](#createasyncmicrostore)
   - [createEventEmitter](#createeventemitter)
   - [createLangAsyncStore](#createlangasyncstore)
   - [debounce](#debounce)
@@ -38,7 +41,6 @@ $ yarn add -S @pastweb/tools
     - [routeDive](#routedive)
 - [Date and Time](#date-and-time)
   - [isDateYoungerOf](#isdateyoungerof)
-  - [isHoursTimeYoungerThen](#ishourstimeyoungerthen) _(Deprecated)_
 - [Element functions](#element-functions)
   - [cl](#cl)
   - [createEntry](#createentry)
@@ -48,17 +50,21 @@ $ yarn add -S @pastweb/tools
   - [getFullElementSize](#getfullelementsize)
 - [Object functions](#object-functions)
   - [assign](#assign)
-  - [createState](#createstate)
   - [deepMerge](#deepmerge)
   - [getType](#gettype)
-  - [effect](#effect)
   - [isObject](#isobject)
   - [isType](#istype)
-  - [proxy](#proxy)
   - [remove](#remove)
   - [select](#select)
   - [update](#update)
   - [withDefaults](#withdefaults)
+- [Reactivity](#reactivity)
+  - [reactive](#reactive)
+  - [ref](#ref)
+  - [effect](#effect)
+  - [computed](#computed)
+  - [createMicroStore](#createmicrostore)
+  - [createMircoStoreCollector](#createmicrostorecollector)
 - [String functions](#string-functions)
   - [camelize](#camelize)
   - [createIdCache](#createidcache)
@@ -86,10 +92,10 @@ Creates an API agent with customizable settings for HTTP requests.
 function createApiAgent(settings?: AgentSettings): Agent;
 ```
 Parameters
-* `settings`: `AgentSettings` (optional) The settings for the API agent.
-  * `withCredentials`: `boolean` (optional, default: false)
+* `settings`: `AgentSettings` _(optional)_ The settings for the API agent.
+  * `withCredentials`: `boolean` _(optional)_ (default: false)
     * Indicates whether cross-site Access-Control requests should be made using credentials.
-  * `headers`: `Record<string, any>` (optional, default: {})
+  * `headers`: `Record<string, any>` _(optional)_ (default: {})
     * Custom headers to be sent with each request.
   * `exclude`: `string | RegExp | Array<string | RegExp>` _(optional)_
     * URLs or patterns to exclude from request intercepting.
@@ -97,30 +103,76 @@ Parameters
     * Function to get a valid token for authorization.
   * `onUnauthorizedResponse`: `() => void` _(optional)_
     * Callback for unauthorized responses.
+  * `pagination`: `boolean | Pagination` _(optional)_ (default: `true`)
+    * Enables pagination parsing. If `true`, uses default settings (`{ defaultPageLimit: 100, header: 'Content-Range' }`).
+      If an object, allows custom `defaultPageLimit` and `header`.
+  * `cache`: `boolean` _(optional)_ (default: `false`)
+    * Enables response caching for GET requests.
 
 Returns
 * `Agent`
   * The configured API agent.
 
 Methods
-* `setAgentConfig(settings: AgentSettings): void`
+* `setAgentOptions(options: AgentOptions): void`
   * Sets the agent configuration.
 * `mergeAgentConfig(newSettings: AxiosRequestConfig): void`
   * Merges new settings into the existing agent configuration.
-* `delete(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse>`
-  * Sends a DELETE request.
-* `get(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse>`
-  * Sends a GET request.
-* `patch(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse>`
+* `getPageLimit(limit?: PageLimit): number`
+  * Returns the page limit as a number (default: 100).
+* `getPageNumber(page?: PageNumber): number`
+  * Returns the page number as a number (default: 1).
+* `pageToOffset(page?: PageNumber, limit?: PageLimit): number`
+  * Converts a page number to an offset for pagination.
+* `delete<T = any>(url: string, options: MutationOptions): Promise<AxiosResponse<T>>`
+  * Sends a DELETE request. Supports `AxiosRequestConfig` and `onSuccess`/`onError` callbacks  if `cache = true` in the `AgentOptions`.
+* `get<T = any>(url: string, options: QueryOptions): Promise<AxiosResponse<T>>`
+  * Sends a GET request. Supports `AxiosRequestConfig` and caching with `queryKey` and `expireIn` if `cache = true` in the `AgentOptions`.
+* `patch<T = any>(url: string, data?: unknown, options: MutationOptions): Promise<AxiosResponse<T>>`
   * Sends a PATCH request.
-* `post(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse>`
+* `post<T = any>(url: string, data?: unknown, options: MutationOptions): Promise<AxiosResponse<T>>`
   * Sends a POST request.
-* `put(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse>`
+* `put<T = any>(url: string, data?: unknown, options: MutationOptions): Promise<AxiosResponse<T>>`
   * Sends a PUT request.
 * `upload(url: string, data: FormData, onUploadProgress?: (e: AxiosProgressEvent) => void): Promise<AxiosResponse>`
-  * Uploads a file using a POST request.
+  * Uploads a file using a POST request with `multipart/form-data` for file uploads.
 * `download(url: string, fileName: string, domElement?: HTMLElement): Promise<AxiosResponse>`
   * Downloads a file using a GET request and triggers a download in the browser.
+
+Cache
+When cache: `true` is set, GET requests are cached using a `queryKey` (defaults to the URL). The cache supports:
+* `get(key: string): QueryData`
+  * Retrieves a cached response.
+* `getAll(): [string, QueryData][]`
+  * Returns all cache entries.
+* `has(key: string): boolean`
+  * Checks if a key exists in the cache.
+* `set(key: string, data: QueryData): Map<string, QueryData>`
+  * Sets a cache entry with a response, timestamp, and expiration.
+* `delete(key: string): boolean`
+  * Removes a cache entry.
+* `invalidateQuery(queryKey?: string | string[]): void`
+  * Invalidates cache entries by key or prefix.
+
+Cache entries expire based on the `expireIn` option (e.g., `'1s'`, `'5m'`) using the [`isDateYoungerOf`](#isdateyoungerof) utility.
+
+Pagination
+When `pagination` is enabled, the `successResponseInterceptor` processes responses with a `Content-Range` header (e.g., `0-1/20` where `0-1` is start and end index adn `20` is the items total number).
+For `application/json` responses contains the pagination additional info:
+```typescript
+{
+  data: any, // Original response data
+  pagination: {
+    start: number, // Start index
+    end: number, // End index
+    total: number, // Total items
+    size: number, // Page size
+    current: number, // Current page
+    of: number // Total pages
+  }
+}
+```
+The `Content-Range` header is parsed to extract `start`, `end`, and `total`. The `limit` query parameter (or `defaultPageLimit`) determines the page size.
 
 **Example:**
 ```typescript
@@ -128,7 +180,11 @@ import { createApiAgent } from '@pastweb/tools';
 
 const apiAgent = createApiAgent({
   withCredentials: true,
-  headers: { 'Authorization': 'Bearer token' },
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer token'
+  },
   onGetValidToken: async () => ({ Authorization: 'Bearer newToken' }),
   onUnauthorizedResponse: () => {
     console.log('Unauthorized! Redirecting to login...');
@@ -149,8 +205,168 @@ apiAgent.upload('/api/upload', formData, (event) => {
 
 // Downloading a file
 apiAgent.download('/api/download', 'file.txt');
+
+// Cached GET Request
+const agent = createApiAgent({ cache: true });
+await agent.get('/api/users', { queryKey: 'users', expireIn: '5m' });
+await agent.get('/api/users', { queryKey: 'users' }); // Returns cached response
+
+// Paginated GET Request
+const agent = createApiAgent({ pagination: { defaultPageLimit: 10, header: 'Content-Range' } });
+const response = await agent.get('/api/users?offset0&limit=10');
+// Response: { data: [...], info: { start: 0, end: 9, total: 50, size: 10, current: 1, of: 5 } }
 ```
 ---
+### `useQuery`
+Creates a reactive query Object that fetches data using the provided function and updates based on reactive dependencies
+> #### Syntax
+```typescript
+function useQuery<T>(config: QueryConfig<T>): QueryInfo<T>
+```
+Parameters
+* `config: QueryConfig<T>` The configuration for the query.
+  * `fn: () => Promise<AxiosResponse<T>>` The function to fetch data, typically an agent.get call from createApiAgent.
+  * `source?: (() => any) | Ref<any> | Array<(() => any) | Ref<any>>` _(optional)_
+    Reactive dependencies to track (e.g., `() => page.value`). Required if fn uses reactive variables in its URL or parameters.
+  * `immediate?: boolean | Ref<boolean>` _(optional)_ (default: `true`)
+    If `true` or a `Ref` with `value: true`, runs the query immediately. If a `Ref<boolean>`, triggers the query when `value` becomes `true`.
+  * `initialData?: T` _(optional)_
+    Initial data to set before the first fetch. Sets isPlaceholderData to true until a fetch completes.
+  * `SSRWait` _(optional)_ (default: `true`)
+    If run in server side block the thread until the `fn: () => Promise<AxiosResponse<T>>` is solved or generate an error.
+
+Returns
+* `QueryInfo<T>` A reactive object with query state and methods.
+  * `data: T | null` The response data or `initialData`.
+  * `pagination: Page<any>['pagination'] | null` Pagination info if available
+  * `isPending: boolean` True during initial fetch or refetch.
+  * `isLoading: boolean` Alias for `isPending`.
+  * `isFetching: boolean` True during any fetch.
+  * `isError: boolean` True if an error occurred.
+  * `error: any` The error object, if any.
+  * `isPlaceholderData: boolean` True if `data` is `initialData`.
+  * `fetch: () => Promise<void>` Manually triggers the query.
+
+The `useQuery` function creates a reactive query that automatically fetches data when initialized (if `immediate` is `true`) or when reactive dependencies in `source` or `immediate` (if a `Ref`) change. It integrates with `createApiAgent` to handle reactive `AxiosResponse` objects, ensuring `data` updates with new responses or cache changes. The `source` parameter is required to track reactive variables used in `fn` (e.g., `page.value` in the `URL`).
+
+Example:
+```typescript
+import { createApiAgent, createQuery, ref } from '@pastweb/tools';
+
+// Create an API agent
+const agent = createApiAgent({
+  cache: true,
+  pagination: true,
+});
+
+// Basic query with immediate fetch
+const query = useQuery({
+  fn: () => agent.get('/api/users?_page=1&_limit=10'),
+});
+
+console.log(query.data); // Initially null, updates to { data: [...], info: {...} }
+console.log(query.isPending); // true during fetch, then false
+
+// Query with reactive dependency
+const page = ref(1);
+const reactiveQuery = useQuery({
+  fn: () => agent.get(`/api/users?_page=${page.value}&_limit=10`),
+  source: page,
+});
+
+page.value = 2; // Triggers refetch with new URL
+
+// Query with Ref<boolean> immediate
+const immediate = ref(false);
+const controlledQuery = useQuery({
+  fn: () => agent.get('/api/users'),
+  immediate,
+});
+
+immediate.value = true; // Triggers fetch
+```
+
+---
+### `useMutation`
+
+Creates a reactive mutation that executes the provided function and updates state with lifecycle hooks.
+
+> #### Syntax
+```typescript
+function useMutation<T>(config: MutationConfig<T>): MutationInfo<T>
+```
+
+Parameters
+* `config: MutationConfig<T>` The configuration for the mutation.
+* `fn: (...args: any[]) => Promise<AxiosResponse<T>>` The mutation function, typically `agent.post`, `agent.put`, or `agent.delete` from `createApiAgent`.
+* `onMutate?: (...args: any[]) => Promise<void> | void` _(optional)_ (default: `noop`)
+  Called before the mutation executes, with the same arguments as `mutate`.
+* `onSuccess?: (...args: any[]) => Promise<void> | void` _(optional)_ (default: `noop`)
+  Called after a successful mutation or error in the `finally` block, with the same arguments as `mutate`.
+* `onError?: (...args: any[]) => Promise<void> | void` _(optional)_ (default: `noop`)
+  Called if the mutation fails, with the error object.
+* `initialData?: T` _(optional)_ (default: `null`)
+  Initial data to set before the first mutation. Sets `isPlaceholderData` to t`rue` until a mutation completes.
+
+Returns
+* `MutationInfo<T>` A reactive object with mutation state and methods.
+* `data: T | null` The response `data` or `initialData`.
+* `isPending: boolean` True during mutation execution.
+* `isMutating: boolean` Alias for `isPending`.
+* `isError: boolean` True if an error occurred.
+* `error: any` The error object, if `any`.
+* `isPlaceholderData: boolean` True if `data` is `initialData`.
+* `mutate: (...args: any[]) => Promise<void>` Executes the mutation with provided arguments.
+
+The `useMutation` function creates a reactive mutation object for operations like POST, PUT, or DELETE requests. It supports variadic arguments for `mutate` and `fn`, allowing flexible payloads. Lifecycle hooks (`onMutate`, `onSuccess`, `onError`) enable custom logic before and after mutations. The function integrates with `createApiAgent’s` reactive `AxiosResponse`, ensuring `data` updates with new responses or cache changes. Unlike `useQuery`, mutations are triggered manually via `mutate`, not reactively.
+
+Example:
+```typescript
+import { createApiAgent, useMutation } from '@pastweb/tools';
+
+// Create an API agent
+const agent = createApiAgent({
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Basic mutation
+const mutation = useMutation({
+  fn: (data: any) => agent.post('/api/users', data),
+});
+
+await mutation.mutate({ name: 'John' });
+console.log(mutation.data); // { id: 1, name: 'John' }
+console.log(mutation.isMutating); // false
+
+// Mutation with lifecycle hooks
+const createUser = createMutation({
+  fn: (data: any) => agent.post('/api/users', data),
+  onMutate: async (data) => {
+    console.log('Starting mutation with:', data);
+  },
+  onSuccess: async (data) => {
+    console.log('Mutation succeeded with:', data);
+  },
+  onError: async (error) => {
+    console.error('Mutation failed:', error);
+  },
+});
+
+await createUser.mutate({ name: 'Jane' });
+
+// Mutation with initialData
+const updateUser = useMutation({
+  fn: (data: any) => agent.put('/api/users/1', data),
+  initialData: { id: 1, name: 'Placeholder' },
+});
+
+console.log(updateUser.data); // { id: 1, name: 'Placeholder' }
+console.log(updateUser.isPlaceholderData); // true
+await updateUser.mutate({ name: 'Updated' });
+console.log(updateUser.isPlaceholderData); // false 
+```
+---
+
 ### `createAsyncStore`
 
 Creates an asynchronous store with the given options.
@@ -241,6 +457,46 @@ This function supports:
 * Asynchronous stores
 
 If an asynchronous store is passed in, the function will check if the store is ready. If it is not, the `init` method of the store will be called to prepare it.
+
+---
+### `createAsyncMicroStore`
+
+Create an async wrapper around [creteMicroStoreCollector](#createmicrostorecollector) with an `onInit` async function to pass into the options, in case your store/s need to be initialized with data from `async` resources as example `indexedDB`.
+
+> #### Syntax
+```typescript
+function createAsyncMicroStore(options: MicroCollectorStoreOptions): MicroAsyncStore
+```
+Returns
+* `MicroAsyncStore`
+  * An object containing stores hooks to interact with the micro stores.
+
+**Example:**
+```typescript
+import { createAsyncMicroStore } from '@pastweb/tools';
+import { useCounterStore, useUserStore, useThemeStore } from '.../somewhere';
+
+const useAsyncStores = createAsyncMicroStore({
+  name: 'appStores',
+  stores: [useCounterStore, useUserStore, useThemeStore],
+  timeout: 15000,
+  onInit: async (collectedStores) => {
+    console.log('Initializing stores...', Object.keys(collectedStores));
+    // Example: load user data after stores are collected
+    await fetchInitialData(collectedStores.user);
+  },
+});
+
+// Usage in app bootstrap
+await useAsyncStores.init();
+
+// Now safe to use stores
+const counter = useAsyncStores.store.counter();
+const user = useAsyncStores.store.user();
+
+// Or wait for readiness
+await useAsyncStores.isReady;
+```
 
 ---
 ### `createEventEmitter`
@@ -767,7 +1023,7 @@ const storage = createStorage({
 
 The `createViewRouter` function is a core utility for managing routing in a single-page application (SPA).
 It provides the ability to define routes, navigate between them, and react to route changes within the application.
-The `ViewRouter` use [path-to-regexp](https://github.com/pillarjs/path-to-regexp) and [history](https://github.com/browserstate/history.js) libraries covering the most common
+The `ViewRouter` [history](https://github.com/browserstate/history.js) library covering the most common
 functionalities implemented in other router UI Frameworks like [react-router](https://reactrouter.com/en/main) or [vue-router](https://router.vuejs.org/).
 The goal of this implementation is to obtain a consistant set of API and terminology cross framework.
 
@@ -789,13 +1045,11 @@ Parameters
     * An array of route definitions.
   * `preloader`: `() => void` _(optional)_
     * A function to execute before a route is loaded.
-  * `href`: `string` _(optional)_
-    * The current URL as a string.
   * `RouterView`: `Component` _(mandatory)_
     * The component to render for matched routes.
-  * `beforeRouteParse`: `(route: Route) => Route` _(optional)_
+  * `beforeRouteParse`: `(route: Route) => Route | void | Promise<Route | void>` _(optional)_
     * A function to execute before parsing a route, if you want to modify a `Route`.
-  * `beforeRouteSelect`: `(route: SelectedRoute) => SelectedRoute` _(optional)_
+  * `beforeRouteSelect`: `(route: SelectedRoute) => SelectedRoute | void | Promise<SelectedRoute | void>` _(optional)_
     * A function to execute before selecting a route, as example for the route authentication/authirization.
   * `sensitive`: boolean _(optional)_
     * If true, route matching will be case-sensitive.
@@ -834,19 +1088,35 @@ Core Features
   * Supports route preloading, enabling efficient loading of route components.
 * `Custom Hooks`:
   * Provides hooks (`beforeRouteParse`, `beforeRouteSelect`) that allow custom logic to be executed during route parsing and selection.
+  
+**Example:**
+```typescript
+  beforeRouteParse: async (route) => {
+    // You can now do async work (API calls, config loading, etc.)
+    const extraData = await fetch(`/api/route-config${route.path}`);
+    return { ...route, meta: { ...route.meta, extraData } };
+  },
+
+  beforeRouteSelect: async (route) => {
+    if (route.path === '/admin' && !(await isUserAdmin())) {
+      return { ...route, redirect: '/login' }; // or throw new Error(...)
+    }
+    return route;
+  }
+```
 
 Methods
-* `setBase(base: string): void`
+* `setBase(base: string): Promise<void>`
   * Sets the base path for the router. The base path is the common prefix for all routes.
-* `addRoute(route: Route): void`
+* `addRoute(route: Route): Promise<void>`
   * Adds a new route to the router dynamically after the router has been initialized.
 * `onRouteChange(fn: (route: SelectedRoute) => void): RemoveListener`
   * Subscribes to route change events. The provided callback function will be called whenever the route changes.
 * `onRouteAdded(fn: (routes: Route[]) => void): RemoveListener`
   * Subscribes to route added events. The provided callback function will be called whenever a new route is added to the router.
-* `navigate(path: string, state?: any): void`
+* `navigate(path: string, state?: any): Promise<void>`
   * Navigates to a specific path programmatically.
-* `push(path: string, state?: any): void`
+* `push(path: string, state?: any): Promise<void>`
   * Pushes a new state onto the history stack and navigates to the specified path.
 * `replace(path: string, state?: any): void`
   * Replaces the current state in the history stack with a new state and navigates to the specified path.
@@ -856,6 +1126,10 @@ Methods
   * Sets the search parameters for the current location without reloading the page.
 * `setHash(hash?: string): void`
   * Sets the hash for the current location without reloading the page.
+* `getRoute(pathname: string): Promise<Route | false>`
+  * Find and return the current `route` or `false` for not route found.
+* `setRequest(request: ServerRequest): Promise<void>`
+  * Sets a new location and refreshes the current route. Useful in SSR context to initialize the router with the server request URL.
 * `getRouterLink(options: RouterLinkOptions): RouterLink`
   * Creates a router link object that contains methods for navigation and checks if the link is active or exactly active.
 
@@ -888,7 +1162,7 @@ interface Route {
 Props
 
 * `path`: `string`
-  * the path string description for the route match, you can check the match syntax [here](https://github.com/pillarjs/path-to-regexp?tab=readme-ov-file#match).
+  * the path string description for the route match.
 * `redirect`: `string` _(optional)_
   * the URL to be redirected if the route match the `path` rule.
 * `view`: `View = any | (() => Promise<{ default: any, [prop: string]: any }>)` _(optional)_
@@ -914,7 +1188,7 @@ const routes: Route[] = [
     icon: 'categoryIcon',
     children: [
       {
-        path: '/product/:id',
+        path: '/product/?:id',
         view: ProductComponent,
       }
     ],
@@ -925,6 +1199,17 @@ const routes: Route[] = [
   },
 ];
 ```
+> #### Parameters
+The parameters declared in the roue `path` will be present in the `SelectedRoute` structure described below under the property `params`.
+| Syntax                  | Meaning                          | Example Path                  | Resulting Params |
+|-------------------------|----------------------------------|-------------------------------|------------------|
+| `:name`                 | Required parameter               | `/user/john`                  | `{ name: 'john' }` |
+| `?:surname`             | Optional parameter               | `/user/john` or `/user/john/doe` | `{ name: 'john', surname?: 'doe' }` |
+| `:surname?`             | Optional parameter (alternative) | `/user/john` or `/user/john/doe` | `{ name: 'john', surname?: 'doe' }` |
+| `*slug`                 | Catch-all (rest) parameter       | `/user/john/profile/edit`     | `{ name: 'john', slug: ['profile', 'edit'] }` |
+| `?*slug`                | Optional catch-all               | `/user/john` or `/user/john/a/b` | `{ name: 'john', slug?: [...] }` |
+| `*slug?`                | Optional catch-all (alternative) | `/user/john` or `/user/john/a/b` | `{ name: 'john', slug?: [...] }` |
+
 
 When the browser URL will match one of the `Routes`, the `SelectedRoute` will be available in the `router.currentRoute` property having this structure:
 
@@ -1082,44 +1367,6 @@ console.log(isDateYoungerOf(date, '12h')); // Output: false
 Edge Cases
 * `Past and Future Dates`: The function checks the date against the current date and time, so it works for both past and future dates relative to `now`.
 * `Zero or Negative Durations`: If the duration components result in zero or negative values, the function will consider the date as not younger and will return `false`.
-
----
-
-### `isHoursTimeYoungerThen`
-> **⚠️ Deprecated:** This function is deprecated and will be removed in future versions. Please use the `isDateYoungerOf` function instead.
-
-The `isHoursTimeYoungerThen` function checks if the difference between the current time and a given timestamp is less than a specified number of hours.
-
-> #### Syntax
-```typescript
-function isHoursTimeYoungerThen(hoursTime: number, then: number): boolean;
-```
-
-Parameters
-* `hoursTime`: `number`
-  * A timestamp in milliseconds (since the Unix epoch) representing the time to compare against the current time.
-* `then`: `number`
-  * The threshold number of hours to compare against. If the difference between the current time and `hoursTime` is less than this value, the function returns `true`.
-
-Returns
-* `boolean`:
-  * Returns `true` if the time difference is less than the specified number of hours (`then`); otherwise, returns `false`.
-
-**Example:**
-```typescript
-import { isHoursTimeYoungerThen } from '@pastweb/tools';
-
-const hoursTime = new Date().getTime() - (2 * 60 * 60 * 1000); // 2 hours ago
-console.log(isHoursTimeYoungerThen(hoursTime, 3)); // Output: true
-```
-
-Notes
-* `Deprecation Notice`: This function is deprecated and will be removed in future versions. It is recommended to use the `isDateYoungerOf` function instead for more flexibility and comprehensive date comparison.
-* `Precision`: The function calculates the difference down to the hour level. If more precision is required (e.g., minutes or seconds), consider using a different approach or function.
-
-Limitations
-* `Limited Granularity`: The function only compares the difference at the hour level. It does not take minutes or seconds into account beyond converting them to hours.
-* `Handling of Edge Cases`: The function assumes that the `hoursTime` is a valid timestamp and that then is a non-negative number. Unexpected behavior may occur if invalid inputs are provided.
 
 ---
 
@@ -1684,60 +1931,6 @@ console.log(newObj); // Output: { a: { b: 3, c: 4 } }
 console.log(obj);    // Output: { a: { b: 3 } } (remains unchanged)
 ```
 ---
-### `createState`
-
-Creates a simple state management utility that allows you to manage and update state in a controlled manner.
-This function is generic and can be used to manage any kind of state object.
-
-> #### Syntax
-```typescript
-function createState<State>(
-  initialState: State | InitiaStateFunction<State> = {} as State,
-  onStateChange?: (state: State) => void
-): {
-  state: State;
-  setState: (state: Partial<State>) => void;
-}
-```
-
-Parameters
-* `initialState`: `State | InitiaStateFunction<State>` _(optional)_
-  * The initial state of the utility. This can either be a state object or a function that returns the initial state. If not provided, an empty object of type State is used as the default.
-* `onStateChange`: `(state: State) => void` _(optional)_
-  * A callback function that is triggered whenever the state changes. This function receives the updated state as its argument. By default, this parameter is a no-op function (does nothing).
-
-Returns
-* `Object`: An object containing two properties:
-  * `state`: `State`
-    * The current state object. This state is initialized with the initialState and updated when setState is called.
-  * `setState`: `(state: Partial<State>) => void`
-    * A function to update the state. This function accepts a partial state object and merges it with the existing state. After the state is updated, the onStateChange callback is invoked.
-
-**Example:**
-```typescript
-import { createState } from 'pastweb/tools';
-
-type MyState = {
-  count: number;
-  user: { name: string; age: number };
-};
-
-const initialState: MyState = { count: 0, user: { name: 'Alice', age: 25 } };
-
-const { state, setState } = createState(initialState, (newState) => {
-  console.log('State changed:', newState);
-});
-
-console.log(state.count); // 0
-
-setState({ count: state.count + 1 });
-console.log(state.count); // 1
-
-setState({ user: { name: 'Bob', age: 30 } });
-console.log(state.user.name); // Bob
-```
-
----
 ### `deepMerge`
 
 A utility function that deeply merges two or more objects, handling nested objects and arrays in a sophisticated manner.
@@ -1783,53 +1976,7 @@ console.log(merged);
 // }
 ```
 ---
-### `effect`
 
-The `effect` function creates a reactive effect on specified properties of a target object.
-Whenever one of these properties changes, a provided callback function is executed, receiving details about the change.
-This mechanism supports performance optimization by batching and debouncing changes.
-it is possible add properties filter as addition paramenters.
-
-> #### Syntax
-```typescript
-function effect<T extends object = {}>(
-  target: T,
-  callback: EffectCallback<T>,
-  ...filter: (Extract<keyof T, string> | number | symbol)[]
-): void;
-```
-
-Parameters
-* `target`: `T`
-  * The target object to observe. The function will monitor changes to specified properties of this object.
-* `callback`: `EffectCallback<T>`
-  * The callback function to execute when a specified property changes. It receives a `next` object parameter containing the new values and the properties (prop) that changed, and a `prev` object paramenter containing the old Values and the properties (prop) that changed.
-* `...filter`: `(Extract<keyof T, string> | number | symbol)[]`
-  * An optional list of property names, symbols, or numbers to observe. If not provided, all properties of the target object will be observed.
-
-Returns
-* `void`:
-  * This function doesn't return any value. It modifies the target object to reactively respond to changes.
-
-**Example:**
-```typescript
-import { effect } from '@pastweb/tools';
-
-const obj = { a: 1, b: 2 };
-
-effect(obj, (next, prev) => {
-  console.log(`Changes detected:`, next, prev);
-}, 'a');
-
-obj.a = 3; // Logs: Changes detected: { a: 3 } { a: 1 }
-```
-
-Description
-The effect function monitors changes to specific properties of a target object. When a change occurs, it triggers a callback function that receives information about the updated values. The changes are debounced to improve performance, ensuring that rapid updates are grouped together before the callback is executed.
-
-This function is useful for creating reactive systems where changes to an object's state should trigger specific actions or updates.
-
----
 ### `getType`
 
 The `getType` function is a utility that determines the type of a given value in a precise manner.
@@ -2180,6 +2327,375 @@ const defaultSettings = { theme: 'light', fontSize: 'medium' };
 
 const finalSettings = withDefaults(userSettings, defaultSettings);
 console.log(finalSettings); // Output: { theme: 'dark', fontSize: 'medium' }
+```
+---
+
+## Reactivity
+
+## `reactive`
+
+The `reactive` function creates a reactive proxy for an object, enabling dependency tracking and automatic effect triggering when properties are accessed or modified. This is useful for building reactive state management systems where changes to an object's properties trigger updates in dependent computations or UI components.
+
+> #### Syntax
+```typescript
+function reactive<T extends object>(obj: T, deep = false): T;
+```
+
+**Parameters**
+* `obj`: `T extends object`
+  * The object to make reactive. This can be any JavaScript object, such as a plain object or array.
+* `deep`: `boolean` _(optional)_
+  * If `true`, nested objects accessed via properties are also made reactive. Defaults to `false`.
+
+**Returns**
+* `T`
+  * A reactive proxy of the input object, with the same type as the input. The proxy tracks property access and triggers effects on property changes.
+
+**Example:**
+```typescript
+import { reactive, effect } from './reactivity';
+
+const obj = reactive({ count: 0 });
+
+effect(() => {
+  console.log(`Count is: ${obj.count}`);
+});
+
+obj.count = 1; // Logs: "Count is: 1"
+obj.count = 2; // Logs: "Count is: 2"
+
+const deepObj = reactive({ nested: { value: 10 } }, true);
+effect(() => {
+  console.log(`Nested value: ${deepObj.nested.value}`);
+});
+deepObj.nested.value = 20; // Logs: "Nested value: 20"
+```
+
+**Use Cases**
+* **State Management**:
+  * Creating reactive state objects in frameworks like Vue.js or custom reactive systems, where changes to state automatically update the UI.
+* **Data Binding**:
+  * Enabling two-way data binding in applications by tracking property changes and updating dependent components.
+* **Observable Data**:
+  * Building observable data structures for real-time applications, such as dashboards or live-updating forms.
+
+**Notes**
+* **Performance**:
+  * The function uses `Proxy` for reactivity, which is efficient but may have performance implications for large objects with frequent access or updates.
+* **Immutability**:
+  * The original object is modified to include a non-enumerable `isReactive` symbol to mark it as reactive. This property is not writable or configurable.
+* **Deep Reactivity**:
+  * When `deep` is `true`, nested objects are recursively made reactive, which can increase memory usage for complex object graphs.
+
+**Edge Cases**
+* **Non-Object Inputs**:
+  * The function expects an object as input. Passing non-objects (e.g., primitives) will result in a TypeScript type error.
+* **Circular References**:
+  * Deep reactivity may cause issues with circular references, requiring careful handling to avoid infinite recursion.
+
+---
+
+## `ref`
+
+The `ref` function creates a reactive reference (ref) for a single value, wrapping it in a reactive object with a `value` property. This is useful for managing reactive primitive values or simple state in reactive systems.
+
+> #### Syntax
+```typescript
+function ref<T>(value: T, deep = false): { value: T };
+```
+
+**Parameters**
+* `value`: `T`
+  * The value to make reactive. This can be any value, including primitives (e.g., number, string) or objects.
+* `deep`: `boolean` _(optional)_
+  * If `true`, nested objects within the value are also made reactive when accessed. Defaults to `false`.
+
+**Returns**
+* `{ value: T }`
+  * A reactive object with a single `value` property that holds the input value. The object is reactive, tracking access and triggering effects on changes.
+
+**Example:**
+```typescript
+import { ref, effect } from './reactivity';
+
+const count = ref(0);
+
+effect(() => {
+  console.log(`Count is: ${count.value}`);
+});
+
+count.value = 1; // Logs: "Count is: 1"
+count.value = 2; // Logs: "Count is: 2"
+
+const deepRef = ref({ nested: 10 }, true);
+effect(() => {
+  console.log(`Nested value: ${deepRef.value.nested}`);
+});
+deepRef.value.nested = 20; // Logs: "Nested value: 20"
+```
+
+**Use Cases**
+* **Single Value Reactivity**:
+  * Managing reactive state for single values, such as counters, flags, or settings, in reactive applications.
+* **Form Inputs**:
+  * Binding form input values to reactive refs for real-time validation or updates.
+* **State Isolation**:
+  * Isolating a single piece of state in a reactive system, making it easier to manage compared to complex objects.
+
+**Notes**
+* **Performance**:
+  * Refs are lightweight due to their single-property structure, but deep reactivity (when enabled) may add overhead for nested objects.
+* **Immutability**:
+  * The returned ref object includes a non-enumerable `isRef` symbol to mark it as a ref, which is not writable or configurable.
+* **Type Safety**:
+  * The generic type `T` ensures type safety for the `value` property, allowing TypeScript to enforce correct usage.
+
+**Edge Cases**
+* **Primitive vs. Object Values**:
+  * The function works with both primitives and objects, but deep reactivity only applies to object values.
+* **Reassignment**:
+  * Reassigning the entire ref object (e.g., `count = ref(5)`) does not affect reactivity; only changes to the `value` property are tracked.
+
+---
+
+## `effect`
+
+The `effect` function creates a reactive effect that runs when its dependencies change. It supports tracking dependencies from reactive objects, refs, or computed values, making it a core component of reactive systems.
+If there are not dependencies specified (source), the function callback is immediatelly executed registering the dependencies automatically.
+if dependencies are specified, the effect callback function will run just if any of the the dependencies changes.
+if you want to run immediatelly the function you can pass "true" as third parameter.
+The dependenciesrould be a function which returns the value to track of a reactive object "() => obj.a", a ref object, a reactive object itself or
+an array of these.
+If a reactive object is passed as dependency the function will run when any of the reactive object properties will change.
+
+> #### Syntax
+```typescript
+function effect<T>(
+  fn: (newVal: any | any[], oldVal: any | any[]) => void,
+  source?: (() => T) | { value: T } | Record<PropertyKey, any> | Array<(() => any) | { value: any } | Record<PropertyKey, any>>,
+  immediate = false
+);
+```
+
+**Parameters**
+* `fn`: `(newVal: any | any[], oldVal: any | any[]) => void`
+  * The effect function to run when dependencies change. It receives the new and old values of the tracked source(s).
+* `source`: `(() => T) | { value: T } | Record<PropertyKey, any> | Array<(() => any) | { value: any } | Record<PropertyKey, any>>` _(optional)_
+  * The reactive source(s) to track. Can be a function, a ref, a reactive object, or an array of such sources. If omitted, the effect tracks all reactive dependencies accessed within `fn`.
+* `immediate`: `boolean` _(optional)_
+  * If `true`, the effect runs immediately upon creation. Defaults to `false`.
+
+**Returns**
+* `void`
+  * The function does not return a value but sets up a reactive effect that runs when dependencies change.
+
+**Example:**
+```typescript
+import { reactive, ref, effect } from './reactivity';
+
+// Example with a ref
+const count = ref(0);
+effect((newVal) => {
+  console.log(`Count changed to: ${newVal}`);
+}, count);
+count.value = 1; // Logs: "Count changed to: 1"
+
+// Example with a reactive object
+const obj = reactive({ value: 10 });
+effect((newVal) => {
+  console.log(`Value is: ${newVal.value}`);
+}, obj, true); // Logs immediately: "Value is: 10"
+obj.value = 20; // Logs: "Value is: 20"
+
+// Example with multiple sources
+const source1 = ref(1);
+const source2 = reactive({ x: 2 });
+effect((newVal) => {
+  console.log(`Sources: ${newVal[0]}, ${newVal[1].x}`);
+}, [source1, source2]);
+source1.value = 3; // Logs: "Sources: 3, 2"
+source2.x = 4; // Logs: "Sources: 3, 4"
+```
+
+**Use Cases**
+* **UI Updates**:
+  * Automatically updating UI elements when reactive state changes, such as in reactive frameworks or custom rendering logic.
+* **Side Effects**:
+  * Performing side effects (e.g., logging, API calls) in response to changes in reactive data.
+* **Dependency Tracking**:
+  * Creating computed values or derived state that depend on multiple reactive sources.
+
+**Notes**
+* **Performance**:
+  * The effect uses debouncing (with a 16ms delay) to optimize performance and prevent excessive re-runs during rapid updates.
+* **Dependency Collection**:
+  * Dependencies are automatically collected during the execution of `fn` or `source` if they are reactive (via `reactive` or `ref`).
+* **Value Comparison**:
+  * The effect only runs if the new value differs from the old value, with special handling for arrays to check element-wise changes.
+
+**Edge Cases**
+* **No Source**:
+  * If no `source` is provided, the effect tracks all reactive dependencies accessed within `fn`, which may lead to unintended dependencies if not carefully managed.
+* **Immediate Execution**:
+  * When `immediate` is `true`, the effect runs immediately, which may cause unexpected behavior if `fn` has side effects that depend on initialization.
+
+---
+
+## `computed`
+
+The `computed` function creates a lazily-evaluated computed value that re-evaluates only when its dependencies change. This is useful for deriving values from reactive state without re-computing unless necessary.
+
+> #### Syntax
+```typescript
+function computed<T>(getter: () => T): { readonly value: T };
+```
+
+**Parameters**
+* `getter`: `() => T`
+  * A function that computes the value based on reactive dependencies. The function is called lazily when the `value` property is accessed.
+
+**Returns**
+* `{ readonly value: T }`
+  * An object with a readonly `value` property that returns the computed value. The value is cached until dependencies change.
+
+**Example:**
+```typescript
+import { ref, computed } from './reactivity';
+
+const count = ref(1);
+const doubled = computed(() => count.value * 2);
+
+console.log(doubled.value); // 2
+count.value = 2;
+console.log(doubled.value); // 4
+
+effect(() => {
+  console.log(`Doubled is: ${doubled.value}`);
+});
+count.value = 3; // Logs: "Doubled is: 6"
+```
+
+**Use Cases**
+* **Derived State**:
+  * Creating derived state, such as computed properties in Vue.js or calculations based on reactive data.
+* **Performance Optimization**:
+  * Avoiding unnecessary computations by caching the result and only re-computing when dependencies change.
+* **Reactive Dependencies**:
+  * Building values that depend on multiple reactive sources, such as combining refs and reactive objects.
+
+**Notes**
+* **Laziness**:
+  * The `getter` function is only called when the `value` property is accessed and the cached value is stale (i.e., dependencies have changed).
+* **Caching**:
+  * The computed value is cached, improving performance for expensive computations by avoiding redundant work.
+* **Dependency Tracking**:
+  * The computed value automatically tracks its reactive dependencies, ensuring re-computation only when necessary.
+
+**Edge Cases**
+* **Initial Evaluation**:
+  * The `getter` is not called until the `value` property is first accessed, which may delay side effects within the `getter`.
+* **Non-Reactive Dependencies**:
+  * If the `getter` accesses non-reactive data, changes to that data will not trigger re-computation, potentially leading to stale values.
+
+---
+
+### `createMicroStore`
+
+Creates a rective micro store to share between components not necessarly nested.
+Accept a `name` string as first argument and a `setup` function which returns a `MicroStore` object.
+The `setup` function can get a `selector` function as only argument in case of very complex `state` which will be used inside the `actions` object
+which contains the methods to handle the state.
+It returns a hook function which returns an object with a `state` prop which is the readonly version of the defined state in the setup function and the methods to handle it.
+
+ #### Syntax
+```typescript
+function createMicroStore<S extends Record<string, any>,A extends Record<string, (...args: any[]) => any>>(name: string,setup: (select: <T>(fn: Selector<T, S>) => T) => MicroStoreConfig<S, A>): UseMicroStore<S, A>
+```
+
+**Example:**
+```typescript
+import { createMicroStore } from '@pastweb/tools';
+
+const useCounterStore = createMicroStore('counter', select => ({
+  state: {
+    count: 0,
+    name: 'My Counter'
+  },
+  actions: {
+    increment: (by = 1) => {
+      const state = select(s => s);          // Get full state
+      state.count += by;        // Internal mutation (allowed)
+    },
+    decrement: (by = 1) => {
+      const state = select(s => s);
+      state.count -= by;
+    },
+    setName: (newName: string) => {
+      const state = select(s => s);
+      state.name = newName;
+    },
+  },
+}));
+// === Usage ===
+
+// 1. Full state
+const store = useCounterStore();
+console.log(store.state.count);
+store.increment(5);                    // Works via action
+
+// 2. With selector (any nested value)
+const countStore = useCounterStore(s => s.count);
+console.log(countStore.state);         // Readonly<number>
+
+const nameStore = useCounterStore(s => s.name);
+console.log(nameStore.state);          // Readonly<string>
+
+// Works with your effect system
+effect(() => {
+  const count = useCounterStore(s => s.count).state;
+  console.log('Count changed:', count);
+});
+```
+
+---
+
+### `createMicroStoreCollector`
+
+Create a collector object, this function is used to force the import/creation of the micro store/s hooks function in the same module there the `createMicroStoreCollector` is called in order to collect them in a single object for future devtoos.
+It is possible create multiple `MicroStoreCollector` in order to obtain different logic groups.
+
+> #### Syntax
+```typescript
+export function createMicroStoreCollector(options: MicroStoreCollectorOptions): CollectedStore
+```
+Parameters
+* `options`: `MicroStoreCollectorOptions`
+  * `name`: `string` _(optional)_
+    - The collector name.
+  * `stores`: `UseMicroStore<S, A> | UseMicroStore<S, A>[]` _(required)_
+    - The micro store/s hook to be collected.
+
+Returns
+* `CollectedStore` : `Record<string, UseMicroStore<S, A>>`
+  * An object with the `MicroStore` name as `key` and the hook function as `value`.
+
+
+---
+
+**Example:**
+```typescript
+import { createMicroStoreCollector } from '@pastweb/tools';
+import { useAddressStore, useUserStore, useCartStore } from '.../somewhere'; 
+
+const customerStores = createMicroStoreCollector({
+  name: 'customer',
+  stores: [useCounterStore, useUserStore, useCartStore],
+});
+
+// Usage in DevTools
+Object.entries(customerStores).forEach(([name, useStore]) => {
+  console.log(`${name} state:`, useStore().state);
+});
 ```
 ---
 

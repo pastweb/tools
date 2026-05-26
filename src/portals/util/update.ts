@@ -1,4 +1,4 @@
-import { Entry } from '../../createEntry';
+import { isEntry, type Entry } from '../../createEntry';
 import { getPortalElement } from './getPortalElement';
 import type { Portals } from '../types';
 
@@ -20,11 +20,11 @@ export function update(
 
   if (entryData) {
     if (entryId === '*') {
-      Object.values(portals[portalId]).forEach((entry: Entry<any>) => {
-        entry.emit('update', entryData);
+      Object.values(portals[portalId]).forEach(entry => {
+        if (isEntry(entry)) (entry as Entry<any>).emit('update', entryData);
       });
-    } else {
-      portals[portalId][entryId].emit('update', entryData);
+    } else if (isEntry(portals[portalId][entryId])) {
+      (portals[portalId][entryId] as Entry<any>).emit('update', entryData);
     }
   }
 

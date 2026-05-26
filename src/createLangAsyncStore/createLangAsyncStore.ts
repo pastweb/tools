@@ -1,5 +1,6 @@
+import { isSSR } from '../isSSR';
 import { createAsyncStore } from '../createAsyncStore';
-import i18n, { Callback, TFunction } from 'i18next';
+import i18n, { type Callback, type TFunction } from 'i18next';
 import { languageDetector, translationImport } from './plugins';
 import { noop } from '../noop';
 import type { LangAsyncStore, LangOptions } from './types';
@@ -50,7 +51,7 @@ export function createLangAsyncStore(options: LangOptions): LangAsyncStore {
   let currentLanguage: string = '';
   
   const _use = [
-    ...!initOptions.lng ? [
+    ...!initOptions.lng && !isSSR ? [
       languageDetector(store.supported, (lang) => {
         currentLanguage = lang;
       }, initLang)

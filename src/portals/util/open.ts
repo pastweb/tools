@@ -1,14 +1,14 @@
-import { Entry } from '../../createEntry';
-import { IdCache } from '../../createIdCache';
 import { getPortalElement } from './getPortalElement';
 import { ELEMENTS_SCOPE } from '../constants';
+import type { Entry } from '../../createEntry';
+import type { IdCache } from '../../createIdCache';
 import type { Portals } from '../types';
 
 export function open(
   portals: Portals,
   config: {
     portalElement: HTMLElement | (() => HTMLElement);
-    entry: Entry<any>;
+    entry?: Entry<any>;
     idCache: IdCache;
   }
 ): string | false {
@@ -21,28 +21,29 @@ export function open(
 
   const portalId = portalElement.id;
 
-  if (!portals[portalId]) {
-    portals[portalId] = {};
-  }
+  if (!portals[portalId]) portals[portalId] = {};
 
   const entryElement = document.createElement('div');
   const entryId = idCache.getId(ELEMENTS_SCOPE);
   entryElement.id = entryId;
   portalElement.appendChild(entryElement);
-  const querySelector = `#${entryId}`;
 
-  entry.mergeOptions({
-    entryElement,
-    querySelector,
-    initData: {
-      portalElement,
-      entryId,
-    },
-  });
+  if (entry) {
+    const querySelector = `#${entryId}`;
 
-  portals[portalId][entryId] = entry;
+    entry.mergeOptions({
+      entryElement,
+      querySelector,
+      initData: {
+        portalElement,
+        entryId,
+      },
+    });
+  }
+  
+  portals[portalId][entryId] = entry || true;
 
-  entry.emit('mount');
+  if (entry) entry.emit('mount');
 
   return entryId;
 }

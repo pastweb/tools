@@ -4,20 +4,36 @@ export { camelize } from './camelize';
 export { cl, Mode } from './cl';
 export type { ClassValue, CSSModuleClasses } from './cl';
 
-export { createApiAgent } from './createApiAgent';
+export { createApiAgent, useMutation, useQuery } from './createApiAgent';
 export type {
   Agent,
-  AgentSettings,
+  AgentOptions,
   ValidTokenResponse,
   RequestInterceptor,
   SuccessResponseInterceptor,
-  ErrorResponseInterceptor
+  ErrorResponseInterceptor,
+  PaginationConfig,
+  PageLimit,
+  PageNumber,
+  Pagination,
+  QueryConfig,
+  QueryInfo,
+  QueryData,
+  QueryOptions,
+  QueryCache,
+  QueryResponse,
+  MutationConfig,
+  MutationInfo,
+  MutationOptions,
 } from './createApiAgent';
 
-export { createAsyncStore, normalizeAsyncQueue } from './createAsyncStore';
+export { createAsyncMicroStore } from './createAsyncMicroStore';
+export type { MicroAsyncStore, MicroCollectorStoreOptions } from './createAsyncMicroStore';
+
+export { createAsyncStore, isAsyncStore, normalizeAsyncQueue } from './createAsyncStore';
 export type { AsyncStore, AsyncStoreOptions, Wait } from './createAsyncStore';
 
-export { createEntry } from './createEntry';
+export { createEntry, isEntry } from './createEntry';
 export type { Entry, EntryOptions } from './createEntry';
 
 export { createEventEmitter } from './createEventEmitter';
@@ -26,14 +42,14 @@ export type { EventEmitter, EventCallback, RemoveListener } from './createEventE
 export { createIdCache, DEFAULT_ID_CACHE } from './createIdCache';
 export type { IdCache } from './createIdCache';
 
-export { createMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
-export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig } from './createMatchDevice';
+export { createMatchDevice, useMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
+export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig, DevicesResult } from './createMatchDevice';
 
 export { createMatchScheme, createMatchSchemeAsyncStore } from './createMatchScheme';
 export type { SchemeOptions, MatchScheme, ColorSchemeInfo, ColorSchemeAsyncStore } from './createMatchScheme';
 
-export { createState } from './createState';
-export type { InitiaStateFunction } from './createState';
+export { createMicroStore, createMicroStoreCollector } from './createMicroStore';
+export type { MicroStore, UseMicroStore, Selector, MicroStoreConfig, MicroStoreCollectorOptions, CollectedStore } from './createMicroStore';
 
 export { createStorage } from './createStorage';
 export type {
@@ -62,6 +78,7 @@ export type {
   RouteParams,
   ParsedRoute,
   SelectedRoute,
+  ServerRequest,
   RouterLinkOptions,
   RouterLink,
 } from './createViewRouter';
@@ -71,16 +88,12 @@ export type { DebouceCallback } from './debounce';
 
 export { deepMerge } from './deepMerge';
 
-export { effect } from './effect';
-export type { EffectCallback } from './effect';
-
 export { getFullElementSize } from './getFullElementSize';
 export type { FullElementSize, Attribute } from './getFullElementSize';
 
 export { getType } from './getType';
 export { hashID } from './hashID';
 export { isDateYoungerOf } from './isDateYoungerOf';
-export { isHoursTimeYoungerThen } from './isHoursTimeYoungerThen';
 export { isObject } from './isObject';
 export { isSSR } from './isSSR';
 export { isType } from './isType';
@@ -92,8 +105,11 @@ export type { MemoCallback } from './memo';
 export { noop } from './noop';
 
 export {
-  createPortal,
   anchorsSetup,
+  createPortal,
+  isPortal,
+  isPortalHandler,
+  setAsPortalHandler,
   generateAnchors,
   DEFAULT_PORTALS_CACHE,
 } from './portals';
@@ -109,8 +125,8 @@ export type {
   EntryDescriptor,
 } from './portals';
 
-export { proxy } from './proxy';
-export type { ProxyInfo, ProxyCallback } from './proxy';
+export { effect, isRef, isReactive, ref, reactive } from './reactivity';
+export type { Computed, Ref, Reactive } from './reactivity';
 
 export { remove } from './remove';
 export { select } from './select';

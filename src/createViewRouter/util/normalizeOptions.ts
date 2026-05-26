@@ -4,12 +4,11 @@ import type { RouterOptions, RouterNormalizedOptions } from '../types';
 
 export function normalizeOptions(options: RouterOptions): RouterNormalizedOptions {
   const {
-    history = createBrowserHistory(),
+    history = isSSR ? undefined : createBrowserHistory(),
     debug,
     base = '',
     routes,
     preloader,
-    href = isSSR ? '' : window.location.href,
     RouterView,
     beforeRouteParse,
     beforeRouteSelect,
@@ -22,7 +21,6 @@ export function normalizeOptions(options: RouterOptions): RouterNormalizedOption
     history,
     routes,
     preloader,
-    href,
     RouterView,
     beforeRouteParse,
     beforeRouteSelect,

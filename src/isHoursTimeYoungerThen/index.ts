@@ -1,1 +1,0 @@
-export { isHoursTimeYoungerThen } from './isHoursTimeYoungerThen';

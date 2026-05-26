@@ -1,4 +1,4 @@
-import clsx, { ClassValue } from 'clsx';
+import clsx, { type ClassValue } from 'clsx';
 import { isObject } from '../isObject';
 import { Mode, ERROR_MESSAGE } from './constants';
 import type { CSSModuleClasses, ClassProcessor } from './types';

@@ -1,5 +1,5 @@
 import { assign } from '../../assign';
-import { IdCache, DEFAULT_ID_CACHE } from '../../createIdCache';
+import { DEFAULT_ID_CACHE, type IdCache } from '../../createIdCache';
 import { ELEMENTS_SCOPE } from '../constants';
 import type { PortalAnchorsIds } from '../types';
 

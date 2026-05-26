@@ -2,11 +2,13 @@ import type { Entry } from '../createEntry';
 import type { IdCache } from '../createIdCache';
 
 export type Portals = {
-  [portalId: string]: { [entryId: string]: Entry<any> };
+  [portalId: string]: { [entryId: string]: Entry<any> | true };
 };
 
 export type PortalHandler = {
   id: string | false;
+  portal: Portal;
+  readonly hasEntry: boolean;
   open: () => string | false;
   update: (props: Record<string, any>) => boolean;
   close: () => void;
@@ -22,7 +24,6 @@ export type HandlerConstructor = (
 ) => PortalHandler;
 
 export type Portal = {
-  $$portal: true;
   open: (component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>) => string | false;
   update: (entryId: string, entryData: any) => boolean;
   close: (entryId: string) => void;
@@ -52,15 +53,15 @@ export interface PortalsDescriptor {
 };
 
 export interface EntryDescriptor {
-  [ pathName: string]: EntryDescriptor | ((props: Record<string, any>, component: any) => Entry<any>);
+  [pathName: string]: EntryDescriptor | ((props: Record<string, any>, component: any) => Entry<any>);
 };
 
 export interface AnchorsDescriptor {
-  [ pathName: string ]: AnchorsDescriptor | HTMLElement | (() => HTMLElement);
+  [pathName: string]: AnchorsDescriptor | HTMLElement | (() => HTMLElement);
 };
 
 export interface PortalAnchorsIds {
-  [ pathName: string ]: string | PortalAnchorsIds;
+  [pathName: string]: string | PortalAnchorsIds;
 };
 
 export type PortalAnchors = string[] | AnchorsDescriptor;

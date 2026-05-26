@@ -1,16 +1,26 @@
+import { reactive } from '../../reactivity';
+import { setAsPortalHandler } from '../setAsPortalHandler';
 import type { Portal, PortalHandler } from '../types';
 
-export function handlerConstructor(portal: Portal, component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>): PortalHandler {
+export function handlerConstructor(
+  portal: Portal,
+  hasEntry: boolean,
+  component: any,
+  props?: Record<string, any> | (() => Record<string, any>),
+  defaults?: Record<string, any>,
+): PortalHandler {
   const { open, update, close, remove, setOnRemove } = portal;
-  
-  const handler: PortalHandler = {
+
+  const handler = reactive<PortalHandler>({
     id: false,
+    portal,
+    hasEntry,
     open: openPortal,
     update: updatePortal,
     close: closePortal,
     remove: removePortal,
     onRemove: (fn: () => void) => setOnRemove(fn),
-  };
+  });
 
   function openPortal(): string | false {
     handler.id = open(component, props, defaults);
@@ -27,7 +37,7 @@ export function handlerConstructor(portal: Portal, component: any, props?: Recor
   }
 
   function removePortal(): boolean {
-    
+
     if (handler.id) {
       if (remove(handler.id)) {
         handler.id = false;
@@ -40,5 +50,5 @@ export function handlerConstructor(portal: Portal, component: any, props?: Recor
     return false;
   }
 
-  return handler;
+  return setAsPortalHandler(handler) as PortalHandler;
 }

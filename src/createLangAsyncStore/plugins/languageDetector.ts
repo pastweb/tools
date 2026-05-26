@@ -1,5 +1,5 @@
 import { noop } from '../../noop';
-import { LanguageDetectorAsyncModule } from 'i18next';
+import type { LanguageDetectorAsyncModule } from 'i18next';
 import type { onInit } from '../types';
 
 export function getLang(supportedLangs: string[]): string {

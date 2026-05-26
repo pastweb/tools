@@ -1,4 +1,4 @@
-import { isObject } from '../isObject';
+import { isAsyncStore } from './isAsyncStore';
 import type { Wait, AsyncStore } from './types';
 
 /**
@@ -24,17 +24,12 @@ import type { Wait, AsyncStore } from './types';
  * 
  * @example
  * // Async store
- * const asyncStore = {
- *   $$asyncStore: true,
- *   isStoreReady: false,
- *   isReady: new Promise(resolve => resolve(true)),
- *   init: () => { asyncStore.isStoreReady = true; }
- * };
+ * const asyncStore = createAsyncStore({ storeName: 'myStore' });;
  * normalizeAsyncQueue(asyncStore); // [asyncStore.isReady]
  */
 export function normalizeAsyncQueue(wait: Wait | Wait[] ): Promise<any>[] {
   return (Array.isArray(wait) ? wait : [ wait ] as Wait[]).map((wait: Wait) => {
-    if (isObject(wait) && (wait as AsyncStore<any>).$$asyncStore) {
+    if (isAsyncStore(wait)) {
       if (!(wait as AsyncStore<any>).isStoreReady) {
         (wait as AsyncStore<any>).init();
       }

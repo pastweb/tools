@@ -1,5 +1,5 @@
-import { BackendModule } from 'i18next';
 import { traversLazyTranslations } from './util';
+import type { BackendModule } from 'i18next';
 import type { LangOptions, LazyTranslations } from '../types';
 
 export function translationImport(translations: LangOptions['translations']): BackendModule {

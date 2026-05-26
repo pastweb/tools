@@ -3,7 +3,7 @@ import { deepMerge } from '../deepMerge';
 import { noop } from '../noop';
 import { isSSR } from '../isSSR';
 import { hashID } from '../hashID';
-import { READ_ONLY_PROPS, METHODS } from './constants';
+import { ENTRY, READ_ONLY_PROPS, METHODS } from './constants';
 import { immutableProperty } from '../immutableProperty';
 import type { Entry, EntryOptions } from './types';
 
@@ -27,7 +27,6 @@ export function createEntry<E extends Entry<O>, O extends EntryOptions>(options?
   const removeListener = emitter.removeListener;
 
   const entry: Entry<O> = {
-    $$entry: true,
     EntryComponent: undefined,
     ssrId: undefined,
     querySelector: undefined,
@@ -145,6 +144,13 @@ export function createEntry<E extends Entry<O>, O extends EntryOptions>(options?
   function setEntryComponent(Component: any): void {
     entry.EntryComponent = Component;
   }
+
+  Object.defineProperty(entry, ENTRY, {
+    value: true,
+    enumerable: false,
+    writable: false,
+    configurable: false,
+  });
 
   immutableProperty<Entry<O>>(entry, READ_ONLY_PROPS as Extract<keyof Entry<O>, string>[]);
 

@@ -1,3 +1,4 @@
+import type { IncomingMessage } from 'node:http';
 import type { RemoveListener } from '../createEventEmitter';
 import type { BrowserHistory, HashHistory, MemoryHistory } from 'history';
 
@@ -16,7 +17,7 @@ export type FilterFunction = (value: any) => boolean;
 export type FilterDescriptor = Record<string, any | FilterFunction>;
 
 export type RouteParamValue = string | number | boolean | null | undefined;
-export type RouteParams = Record<string, RouteParamValue>;
+export type RouteParams = Record<string, RouteParamValue | RouteParamValue[]>;
 
 export interface Location {
   hash: string;
@@ -28,18 +29,18 @@ export interface Location {
   port: number;
   protocol: string;
   searchParams: URLSearchParams;
+  userAgent: string;
 };
 
 export interface RouterOptions {
   base?: string;
   debug?: boolean;
   history?: BrowserHistory | HashHistory | MemoryHistory;
-  RouterView: any;
+  RouterView?: any;
   preloader?: any;
-  beforeRouteParse?: (route: Route) => Route;
-  beforeRouteSelect?: (route: SelectedRoute) => SelectedRoute;
+  beforeRouteParse?: (route: Route) => Route | void | Promise<Route | void>;
+  beforeRouteSelect?: (route: SelectedRoute) => SelectedRoute | void | Promise<SelectedRoute | void>;
   routes: Route[];
-  href?: string;
   sensitive?: boolean;
   encode?: (str: string) => string;
 };
@@ -47,13 +48,12 @@ export interface RouterOptions {
 export interface RouterNormalizedOptions {
   base: string;
   debug: boolean;
-  history: BrowserHistory | HashHistory | MemoryHistory;
+  history?: BrowserHistory | HashHistory | MemoryHistory;
   RouterView: any;
   preloader?: any;
-  beforeRouteParse?: (route: Route) => Route;
-  beforeRouteSelect?: (route: SelectedRoute) => SelectedRoute;
+  beforeRouteParse?: (route: Route) => Route | void | Promise<Route | void>;
+  beforeRouteSelect?: (route: SelectedRoute) => SelectedRoute | void | Promise<SelectedRoute | void>;
   routes: Route[];
-  href: string;
   sensitive: boolean;
 };
 
@@ -99,6 +99,48 @@ export interface RouterLink {
   navigate: (to?: string) => void;
 };
 
+/*
+ * Server-side types
+ */
+export type NodeRequest = IncomingMessage;
+
+/**
+ * Base SSR Request - Cross-runtime friendly
+ */
+export interface ServerRequest {
+  /** Original native request from the underlying server */
+  originalRequest: NodeRequest;
+  /** IP address (commonly added by proxies/load balancers) */
+  ip: string;
+  /** User-Agent (convenience) */
+  userAgent: string;
+  /** Raw cookies string */
+  cookies: string;
+  /** Normalized URL (absolute) */
+  url: URL;
+  /** HTTP method */
+  method: string;
+  /** Request headers */
+  headers: Headers;
+};
+
+/**
+ * Render function signature used by page-router
+ */
+export type RenderFunction = (request: ServerRequest) => Promise<string>;
+
+/**
+ * Document settings for SSR rendering, allowing customization of HTML attributes and head elements.
+ * - `htmlAttrs`: Attributes to add to the `<html>` tag.
+ * - `head`: Elements to add to the `<head>`, where keys are tag names (e.g. "meta", "link") and values are either a single attributes object or an array of attributes objects for multiple tags.
+ * - `bodyAttrs`: Attributes to add to the `<body>` tag.
+ */
+export interface DocumentSettings {
+  htmlAttrs?: Record<string, string>;
+  head?: Record<string, Record<string, string> | Record<string, string>[]>;
+  bodyAttrs?: Record<string, string>;
+};
+
 export interface ViewRouter {
   back: () => void;
   currentRoute: SelectedRoute;
@@ -106,16 +148,22 @@ export interface ViewRouter {
   location: Location;
   preloader: any;
   paths: Route[];
+  isResolving: boolean;
   setBase: (base: string) => void;
-  addRoute: (route: Route) => void;
+  addRoute: (route: Route) => Promise<void>;
+  getRoute: (path: string) => Promise<SelectedRoute | false>;
   onRouteChange: (fn: (route: SelectedRoute) => void) => RemoveListener;
   onRouteAdded: (fn: (routes: Route[]) => void) => RemoveListener;
-  navigate: (path: string, state?: any) => void;
-  push: (path: string, state?: any) => void;
+  navigate: (path: string, state?: any) => Promise<void>;
+  push: (path: string, state?: any) => Promise<void>;
   replace: (path: string, state?: any) => void;
   go: (delta: number) => void;
   setSearchParams: (searchParams: URLSearchParams) => void;
   setHash: (hash?: string) => void;
   getRouterLink: (linkOptions: RouterLinkOptions) => RouterLink;
+  setRequest: (request: NodeRequest) => Promise<void>; // SSR-only method to update location and re-run route matching (useful for server-side rendering)
+  request: ServerRequest; // Expose the current server request (SSR-only)
+  setDocument: (settings: DocumentSettings) => void;
+  documentSettings: DocumentSettings;
 };
 

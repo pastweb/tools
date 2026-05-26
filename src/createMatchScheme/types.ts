@@ -1,5 +1,5 @@
-import { AsyncStore, AsyncStoreOptions } from '../createAsyncStore';
-import { RemoveListener } from '../createEventEmitter';
+import type { AsyncStore, AsyncStoreOptions } from '../createAsyncStore';
+import type { RemoveListener } from '../createEventEmitter';
 
 export interface ColorSchemeInfo {
   mode: string;

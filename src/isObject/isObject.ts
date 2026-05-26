@@ -7,5 +7,6 @@ import { isType } from '../isType';
  */
 
 export function isObject(target: any): boolean {
+  if (typeof target !== 'object') return false;
   return isType('Object', target);
 }

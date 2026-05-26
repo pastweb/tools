@@ -1,55 +1,61 @@
 {
   "name": "@pastweb/tools",
-  "version": "1.18.9",
+  "type": "module",
+  "version": "2.0.0",
   "description": "Set of tools for web application development",
+  "author": "Domenico Pasto",
+  "license": "MIT",
+  "homepage": "https://github.com/pastweb/tools#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pastweb/tools.git"
   },
-  "keywords": [],
-  "author": "Domenico Pasto",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/pastweb/tools/issues"
   },
-  "homepage": "https://github.com/pastweb/tools#readme",
   "files": [
-    "./dist",
+    "dist",
+    "LICENCE",
     "README.md"
   ],
-  "module": "./dist/modules/index.mjs",
-  "main": "./dist/modules/index.cjs",
-  "types": "./dist/types/index.d.ts",
-  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
   "scripts": {
-    "build": "bun ../cli/src/cli/cli.ts build",
-    "test": "jest",
-    "test-coverage": "jest --coverage"
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "release": "bumpp",
+    "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
-    "@pastweb/tools": "^1.18.7",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^22.4.0",
-    "axios": "^1.7.3",
-    "axios-mock-adapter": "^1.22.0",
-    "core-js": "^3.38.0",
-    "fake-indexeddb": "^6.0.0",
-    "i18next": "^23.12.2",
-    "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
+    "@types/node": "^25.6.2",
+    "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "@vitest/ui": "^4.1.6",
+    "axios": "^1.16.1",
+    "axios-mock-adapter": "^2.1.0",
+    "bumpp": "^11.1.0",
+    "clsx": "^2.1.1",
+    "core-js": "^3.49.0",
+    "fake-indexeddb": "^6.2.5",
+    "history": "^5.3.0",
+    "i18next": "^26.2.0",
     "jest-localstorage-mock": "^2.4.26",
-    "rimraf": "^6.0.1",
-    "sass": "^1.74.1",
-    "ts-jest": "^29.2.4",
-    "tslib": "^2.3.1",
-    "typescript": "^4.4.3"
+    "jsdom": "^29.1.1",
+    "rollup-plugin-preserve-directives": "^0.4.0",
+    "sass": "^1.99.0",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3",
+    "unrun": "^0.3.0",
+    "vitest": "^4.1.5",
+    "vitest-localstorage-mock": "^0.1.2"
   },
   "peerDependencies": {
     "axios": "*",
     "clsx": "*",
     "history": "*",
     "i18next": "*",
-    "path-to-regexp": "^8.2.0",
     "sass": "*"
   },
   "peerDependenciesMeta": {
@@ -62,423 +68,607 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/modules/index.mjs",
-      "require": "./dist/modules/index.cjs",
-      "types": "./dist/types/index.d.ts"
-    },
-    "./_index": {
-      "import": "./dist/modules/_index.scss",
-      "require": "./dist/modules/_index.scss"
-    },
-    "./_index.scss": {
-      "import": "./dist/modules/_index.scss",
-      "require": "./dist/modules/_index.scss"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     },
     "./assign": {
-      "import": "./dist/modules/assign/assign.mjs",
-      "require": "./dist/modules/assign/assign.cjs",
-      "types": "./dist/types/assign/index.d.ts"
+      "import": "./dist/assign/index.mjs",
+      "require": "./dist/assign/index.cjs"
+    },
+    "./assign/assign": {
+      "import": "./dist/assign/assign.mjs",
+      "require": "./dist/assign/assign.cjs"
     },
     "./camelize": {
-      "import": "./dist/modules/camelize/camelize.mjs",
-      "require": "./dist/modules/camelize/camelize.cjs",
-      "types": "./dist/types/camelize/index.d.ts"
+      "import": "./dist/camelize/index.mjs",
+      "require": "./dist/camelize/index.cjs"
+    },
+    "./camelize/camelize": {
+      "import": "./dist/camelize/camelize.mjs",
+      "require": "./dist/camelize/camelize.cjs"
     },
     "./cl": {
-      "import": "./dist/modules/cl/cl.mjs",
-      "require": "./dist/modules/cl/cl.cjs",
-      "types": "./dist/types/cl/index.d.ts"
+      "import": "./dist/cl/index.mjs",
+      "require": "./dist/cl/index.cjs"
+    },
+    "./cl/cl": {
+      "import": "./dist/cl/cl.mjs",
+      "require": "./dist/cl/cl.cjs"
     },
     "./cl/constants": {
-      "import": "./dist/modules/cl/constants.mjs",
-      "require": "./dist/modules/cl/constants.cjs",
-      "types": "./dist/types/cl/constants.d.ts"
+      "import": "./dist/cl/constants.mjs",
+      "require": "./dist/cl/constants.cjs"
+    },
+    "./cl/types": {
+      "import": "./dist/cl/types.mjs",
+      "require": "./dist/cl/types.cjs"
     },
     "./colorFilter": {
-      "import": "./dist/modules/colorFilter/index.mjs",
-      "require": "./dist/modules/colorFilter/index.cjs",
-      "types": "./dist/types/colorFilter/index.d.ts"
+      "import": "./dist/colorFilter/index.mjs",
+      "require": "./dist/colorFilter/index.cjs"
     },
     "./colorFilter/Color": {
-      "import": "./dist/modules/colorFilter/Color.mjs",
-      "require": "./dist/modules/colorFilter/Color.cjs",
-      "types": "./dist/types/colorFilter/Color.d.ts"
+      "import": "./dist/colorFilter/Color.mjs",
+      "require": "./dist/colorFilter/Color.cjs"
+    },
+    "./colorFilter/colorFilter": {
+      "import": "./dist/colorFilter/colorFilter.mjs",
+      "require": "./dist/colorFilter/colorFilter.cjs"
     },
     "./colorFilter/Solver": {
-      "import": "./dist/modules/colorFilter/Solver.mjs",
-      "require": "./dist/modules/colorFilter/Solver.cjs",
-      "types": "./dist/types/colorFilter/Solver.d.ts"
+      "import": "./dist/colorFilter/Solver.mjs",
+      "require": "./dist/colorFilter/Solver.cjs"
     },
     "./createApiAgent": {
-      "import": "./dist/modules/createApiAgent/createApiAgent.mjs",
-      "require": "./dist/modules/createApiAgent/createApiAgent.cjs",
-      "types": "./dist/types/createApiAgent/index.d.ts"
+      "import": "./dist/createApiAgent/index.mjs",
+      "require": "./dist/createApiAgent/index.cjs"
+    },
+    "./createApiAgent/createApiAgent": {
+      "import": "./dist/createApiAgent/createApiAgent.mjs",
+      "require": "./dist/createApiAgent/createApiAgent.cjs"
+    },
+    "./createApiAgent/types": {
+      "import": "./dist/createApiAgent/types.mjs",
+      "require": "./dist/createApiAgent/types.cjs"
+    },
+    "./createApiAgent/useMutation": {
+      "import": "./dist/createApiAgent/useMutation.mjs",
+      "require": "./dist/createApiAgent/useMutation.cjs"
+    },
+    "./createApiAgent/useQuery": {
+      "import": "./dist/createApiAgent/useQuery.mjs",
+      "require": "./dist/createApiAgent/useQuery.cjs"
+    },
+    "./createAsyncMicroStore": {
+      "import": "./dist/createAsyncMicroStore/index.mjs",
+      "require": "./dist/createAsyncMicroStore/index.cjs"
+    },
+    "./createAsyncMicroStore/createAsyncMicroStore": {
+      "import": "./dist/createAsyncMicroStore/createAsyncMicroStore.mjs",
+      "require": "./dist/createAsyncMicroStore/createAsyncMicroStore.cjs"
+    },
+    "./createAsyncMicroStore/types": {
+      "import": "./dist/createAsyncMicroStore/types.mjs",
+      "require": "./dist/createAsyncMicroStore/types.cjs"
     },
     "./createAsyncStore": {
-      "import": "./dist/modules/createAsyncStore/createAsyncStore.mjs",
-      "require": "./dist/modules/createAsyncStore/createAsyncStore.cjs",
-      "types": "./dist/types/createAsyncStore/index.d.ts"
+      "import": "./dist/createAsyncStore/index.mjs",
+      "require": "./dist/createAsyncStore/index.cjs"
+    },
+    "./createAsyncStore/constants": {
+      "import": "./dist/createAsyncStore/constants.mjs",
+      "require": "./dist/createAsyncStore/constants.cjs"
+    },
+    "./createAsyncStore/createAsyncStore": {
+      "import": "./dist/createAsyncStore/createAsyncStore.mjs",
+      "require": "./dist/createAsyncStore/createAsyncStore.cjs"
+    },
+    "./createAsyncStore/isAsyncStore": {
+      "import": "./dist/createAsyncStore/isAsyncStore.mjs",
+      "require": "./dist/createAsyncStore/isAsyncStore.cjs"
     },
     "./createAsyncStore/normalizeAsyncQueue": {
-      "import": "./dist/modules/createAsyncStore/normalizeAsyncQueue.mjs",
-      "require": "./dist/modules/createAsyncStore/normalizeAsyncQueue.cjs",
-      "types": "./dist/types/createAsyncStore/normalizeAsyncQueue.d.ts"
+      "import": "./dist/createAsyncStore/normalizeAsyncQueue.mjs",
+      "require": "./dist/createAsyncStore/normalizeAsyncQueue.cjs"
+    },
+    "./createAsyncStore/types": {
+      "import": "./dist/createAsyncStore/types.mjs",
+      "require": "./dist/createAsyncStore/types.cjs"
     },
     "./createEntry": {
-      "import": "./dist/modules/createEntry/createEntry.mjs",
-      "require": "./dist/modules/createEntry/createEntry.cjs",
-      "types": "./dist/types/createEntry/index.d.ts"
+      "import": "./dist/createEntry/index.mjs",
+      "require": "./dist/createEntry/index.cjs"
     },
     "./createEntry/constants": {
-      "import": "./dist/modules/createEntry/constants.mjs",
-      "require": "./dist/modules/createEntry/constants.cjs",
-      "types": "./dist/types/createEntry/constants.d.ts"
+      "import": "./dist/createEntry/constants.mjs",
+      "require": "./dist/createEntry/constants.cjs"
+    },
+    "./createEntry/createEntry": {
+      "import": "./dist/createEntry/createEntry.mjs",
+      "require": "./dist/createEntry/createEntry.cjs"
+    },
+    "./createEntry/isEntry": {
+      "import": "./dist/createEntry/isEntry.mjs",
+      "require": "./dist/createEntry/isEntry.cjs"
+    },
+    "./createEntry/types": {
+      "import": "./dist/createEntry/types.mjs",
+      "require": "./dist/createEntry/types.cjs"
     },
     "./createEventEmitter": {
-      "import": "./dist/modules/createEventEmitter/createEventEmitter.mjs",
-      "require": "./dist/modules/createEventEmitter/createEventEmitter.cjs",
-      "types": "./dist/types/createEventEmitter/index.d.ts"
+      "import": "./dist/createEventEmitter/index.mjs",
+      "require": "./dist/createEventEmitter/index.cjs"
+    },
+    "./createEventEmitter/createEventEmitter": {
+      "import": "./dist/createEventEmitter/createEventEmitter.mjs",
+      "require": "./dist/createEventEmitter/createEventEmitter.cjs"
+    },
+    "./createEventEmitter/types": {
+      "import": "./dist/createEventEmitter/types.mjs",
+      "require": "./dist/createEventEmitter/types.cjs"
     },
     "./createIdCache": {
-      "import": "./dist/modules/createIdCache/createIdCache.mjs",
-      "require": "./dist/modules/createIdCache/createIdCache.cjs",
-      "types": "./dist/types/createIdCache/index.d.ts"
+      "import": "./dist/createIdCache/index.mjs",
+      "require": "./dist/createIdCache/index.cjs"
     },
     "./createIdCache/constants": {
-      "import": "./dist/modules/createIdCache/constants.mjs",
-      "require": "./dist/modules/createIdCache/constants.cjs",
-      "types": "./dist/types/createIdCache/constants.d.ts"
+      "import": "./dist/createIdCache/constants.mjs",
+      "require": "./dist/createIdCache/constants.cjs"
+    },
+    "./createIdCache/createIdCache": {
+      "import": "./dist/createIdCache/createIdCache.mjs",
+      "require": "./dist/createIdCache/createIdCache.cjs"
+    },
+    "./createIdCache/types": {
+      "import": "./dist/createIdCache/types.mjs",
+      "require": "./dist/createIdCache/types.cjs"
     },
     "./createLangAsyncStore": {
-      "import": "./dist/modules/createLangAsyncStore/index.mjs",
-      "require": "./dist/modules/createLangAsyncStore/index.cjs",
-      "types": "./dist/types/createLangAsyncStore/index.d.ts"
+      "import": "./dist/createLangAsyncStore/index.mjs",
+      "require": "./dist/createLangAsyncStore/index.cjs"
+    },
+    "./createLangAsyncStore/createLangAsyncStore": {
+      "import": "./dist/createLangAsyncStore/createLangAsyncStore.mjs",
+      "require": "./dist/createLangAsyncStore/createLangAsyncStore.cjs"
+    },
+    "./createLangAsyncStore/plugins": {
+      "import": "./dist/createLangAsyncStore/plugins/index.mjs",
+      "require": "./dist/createLangAsyncStore/plugins/index.cjs"
     },
     "./createLangAsyncStore/plugins/languageDetector": {
-      "import": "./dist/modules/createLangAsyncStore/plugins/languageDetector.mjs",
-      "require": "./dist/modules/createLangAsyncStore/plugins/languageDetector.cjs",
-      "types": "./dist/types/createLangAsyncStore/plugins/languageDetector.d.ts"
+      "import": "./dist/createLangAsyncStore/plugins/languageDetector.mjs",
+      "require": "./dist/createLangAsyncStore/plugins/languageDetector.cjs"
     },
     "./createLangAsyncStore/plugins/translationImport": {
-      "import": "./dist/modules/createLangAsyncStore/plugins/translationImport.mjs",
-      "require": "./dist/modules/createLangAsyncStore/plugins/translationImport.cjs",
-      "types": "./dist/types/createLangAsyncStore/plugins/translationImport.d.ts"
+      "import": "./dist/createLangAsyncStore/plugins/translationImport.mjs",
+      "require": "./dist/createLangAsyncStore/plugins/translationImport.cjs"
     },
     "./createLangAsyncStore/plugins/util": {
-      "import": "./dist/modules/createLangAsyncStore/plugins/util.mjs",
-      "require": "./dist/modules/createLangAsyncStore/plugins/util.cjs",
-      "types": "./dist/types/createLangAsyncStore/plugins/util.d.ts"
+      "import": "./dist/createLangAsyncStore/plugins/util.mjs",
+      "require": "./dist/createLangAsyncStore/plugins/util.cjs"
+    },
+    "./createLangAsyncStore/types": {
+      "import": "./dist/createLangAsyncStore/types.mjs",
+      "require": "./dist/createLangAsyncStore/types.cjs"
     },
     "./createMatchDevice": {
-      "import": "./dist/modules/createMatchDevice/createMatchDevice.mjs",
-      "require": "./dist/modules/createMatchDevice/createMatchDevice.cjs",
-      "types": "./dist/types/createMatchDevice/index.d.ts"
+      "import": "./dist/createMatchDevice/index.mjs",
+      "require": "./dist/createMatchDevice/index.cjs"
     },
     "./createMatchDevice/constants": {
-      "import": "./dist/modules/createMatchDevice/constants.mjs",
-      "require": "./dist/modules/createMatchDevice/constants.cjs",
-      "types": "./dist/types/createMatchDevice/constants.d.ts"
+      "import": "./dist/createMatchDevice/constants.mjs",
+      "require": "./dist/createMatchDevice/constants.cjs"
+    },
+    "./createMatchDevice/createMatchDevice": {
+      "import": "./dist/createMatchDevice/createMatchDevice.mjs",
+      "require": "./dist/createMatchDevice/createMatchDevice.cjs"
+    },
+    "./createMatchDevice/types": {
+      "import": "./dist/createMatchDevice/types.mjs",
+      "require": "./dist/createMatchDevice/types.cjs"
+    },
+    "./createMatchDevice/useMatchDevice": {
+      "import": "./dist/createMatchDevice/useMatchDevice.mjs",
+      "require": "./dist/createMatchDevice/useMatchDevice.cjs"
     },
     "./createMatchScheme": {
-      "import": "./dist/modules/createMatchScheme/createMatchScheme.mjs",
-      "require": "./dist/modules/createMatchScheme/createMatchScheme.cjs",
-      "types": "./dist/types/createMatchScheme/index.d.ts"
+      "import": "./dist/createMatchScheme/index.mjs",
+      "require": "./dist/createMatchScheme/index.cjs"
+    },
+    "./createMatchScheme/createMatchScheme": {
+      "import": "./dist/createMatchScheme/createMatchScheme.mjs",
+      "require": "./dist/createMatchScheme/createMatchScheme.cjs"
     },
     "./createMatchScheme/createMatchSchemeAsyncStore": {
-      "import": "./dist/modules/createMatchScheme/createMatchSchemeAsyncStore.mjs",
-      "require": "./dist/modules/createMatchScheme/createMatchSchemeAsyncStore.cjs",
-      "types": "./dist/types/createMatchScheme/createMatchSchemeAsyncStore.d.ts"
+      "import": "./dist/createMatchScheme/createMatchSchemeAsyncStore.mjs",
+      "require": "./dist/createMatchScheme/createMatchSchemeAsyncStore.cjs"
     },
-    "./createState": {
-      "import": "./dist/modules/createState/createState.mjs",
-      "require": "./dist/modules/createState/createState.cjs",
-      "types": "./dist/types/createState/index.d.ts"
+    "./createMatchScheme/types": {
+      "import": "./dist/createMatchScheme/types.mjs",
+      "require": "./dist/createMatchScheme/types.cjs"
+    },
+    "./createMicroStore": {
+      "import": "./dist/createMicroStore/index.mjs",
+      "require": "./dist/createMicroStore/index.cjs"
+    },
+    "./createMicroStore/constants": {
+      "import": "./dist/createMicroStore/constants.mjs",
+      "require": "./dist/createMicroStore/constants.cjs"
+    },
+    "./createMicroStore/createMicrostore": {
+      "import": "./dist/createMicroStore/createMicrostore.mjs",
+      "require": "./dist/createMicroStore/createMicrostore.cjs"
+    },
+    "./createMicroStore/createMicroStoreCollector": {
+      "import": "./dist/createMicroStore/createMicroStoreCollector.mjs",
+      "require": "./dist/createMicroStore/createMicroStoreCollector.cjs"
+    },
+    "./createMicroStore/createReadonlyState": {
+      "import": "./dist/createMicroStore/createReadonlyState.mjs",
+      "require": "./dist/createMicroStore/createReadonlyState.cjs"
+    },
+    "./createMicroStore/types": {
+      "import": "./dist/createMicroStore/types.mjs",
+      "require": "./dist/createMicroStore/types.cjs"
     },
     "./createStorage": {
-      "import": "./dist/modules/createStorage/createStorage.mjs",
-      "require": "./dist/modules/createStorage/createStorage.cjs",
-      "types": "./dist/types/createStorage/index.d.ts"
+      "import": "./dist/createStorage/index.mjs",
+      "require": "./dist/createStorage/index.cjs"
+    },
+    "./createStorage/createStorage": {
+      "import": "./dist/createStorage/createStorage.mjs",
+      "require": "./dist/createStorage/createStorage.cjs"
+    },
+    "./createStorage/types": {
+      "import": "./dist/createStorage/types.mjs",
+      "require": "./dist/createStorage/types.cjs"
     },
     "./createViewRouter": {
-      "import": "./dist/modules/createViewRouter/createViewRouter.mjs",
-      "require": "./dist/modules/createViewRouter/createViewRouter.cjs",
-      "types": "./dist/types/createViewRouter/index.d.ts"
+      "import": "./dist/createViewRouter/index.mjs",
+      "require": "./dist/createViewRouter/index.cjs"
     },
     "./createViewRouter/constants": {
-      "import": "./dist/modules/createViewRouter/constants.mjs",
-      "require": "./dist/modules/createViewRouter/constants.cjs",
-      "types": "./dist/types/createViewRouter/constants.d.ts"
+      "import": "./dist/createViewRouter/constants.mjs",
+      "require": "./dist/createViewRouter/constants.cjs"
+    },
+    "./createViewRouter/createViewRouter": {
+      "import": "./dist/createViewRouter/createViewRouter.mjs",
+      "require": "./dist/createViewRouter/createViewRouter.cjs"
+    },
+    "./createViewRouter/types": {
+      "import": "./dist/createViewRouter/types.mjs",
+      "require": "./dist/createViewRouter/types.cjs"
+    },
+    "./createViewRouter/util": {
+      "import": "./dist/createViewRouter/util/index.mjs",
+      "require": "./dist/createViewRouter/util/index.cjs"
     },
     "./createViewRouter/util/filterRoutes": {
-      "import": "./dist/modules/createViewRouter/util/filterRoutes.mjs",
-      "require": "./dist/modules/createViewRouter/util/filterRoutes.cjs",
-      "types": "./dist/types/createViewRouter/util/filterRoutes.d.ts"
+      "import": "./dist/createViewRouter/util/filterRoutes.mjs",
+      "require": "./dist/createViewRouter/util/filterRoutes.cjs"
     },
     "./createViewRouter/util/getLocation": {
-      "import": "./dist/modules/createViewRouter/util/getLocation.mjs",
-      "require": "./dist/modules/createViewRouter/util/getLocation.cjs",
-      "types": "./dist/types/createViewRouter/util/getLocation.d.ts"
+      "import": "./dist/createViewRouter/util/getLocation.mjs",
+      "require": "./dist/createViewRouter/util/getLocation.cjs"
     },
     "./createViewRouter/util/normalizeOptions": {
-      "import": "./dist/modules/createViewRouter/util/normalizeOptions.mjs",
-      "require": "./dist/modules/createViewRouter/util/normalizeOptions.cjs",
-      "types": "./dist/types/createViewRouter/util/normalizeOptions.d.ts"
+      "import": "./dist/createViewRouter/util/normalizeOptions.mjs",
+      "require": "./dist/createViewRouter/util/normalizeOptions.cjs"
     },
     "./createViewRouter/util/normalizePath": {
-      "import": "./dist/modules/createViewRouter/util/normalizePath.mjs",
-      "require": "./dist/modules/createViewRouter/util/normalizePath.cjs",
-      "types": "./dist/types/createViewRouter/util/normalizePath.d.ts"
+      "import": "./dist/createViewRouter/util/normalizePath.mjs",
+      "require": "./dist/createViewRouter/util/normalizePath.cjs"
     },
     "./createViewRouter/util/normalizeRoute": {
-      "import": "./dist/modules/createViewRouter/util/normalizeRoute.mjs",
-      "require": "./dist/modules/createViewRouter/util/normalizeRoute.cjs",
-      "types": "./dist/types/createViewRouter/util/normalizeRoute.d.ts"
+      "import": "./dist/createViewRouter/util/normalizeRoute.mjs",
+      "require": "./dist/createViewRouter/util/normalizeRoute.cjs"
     },
     "./createViewRouter/util/normalizeRouteParamValue": {
-      "import": "./dist/modules/createViewRouter/util/normalizeRouteParamValue.mjs",
-      "require": "./dist/modules/createViewRouter/util/normalizeRouteParamValue.cjs",
-      "types": "./dist/types/createViewRouter/util/normalizeRouteParamValue.d.ts"
+      "import": "./dist/createViewRouter/util/normalizeRouteParamValue.mjs",
+      "require": "./dist/createViewRouter/util/normalizeRouteParamValue.cjs"
+    },
+    "./createViewRouter/util/normalizeServerRequest": {
+      "import": "./dist/createViewRouter/util/normalizeServerRequest.mjs",
+      "require": "./dist/createViewRouter/util/normalizeServerRequest.cjs"
+    },
+    "./createViewRouter/util/pathMatch": {
+      "import": "./dist/createViewRouter/util/pathMatch.mjs",
+      "require": "./dist/createViewRouter/util/pathMatch.cjs"
+    },
+    "./createViewRouter/util/pathToRegExp": {
+      "import": "./dist/createViewRouter/util/pathToRegExp.mjs",
+      "require": "./dist/createViewRouter/util/pathToRegExp.cjs"
     },
     "./createViewRouter/util/routeDive": {
-      "import": "./dist/modules/createViewRouter/util/routeDive.mjs",
-      "require": "./dist/modules/createViewRouter/util/routeDive.cjs",
-      "types": "./dist/types/createViewRouter/util/routeDive.d.ts"
+      "import": "./dist/createViewRouter/util/routeDive.mjs",
+      "require": "./dist/createViewRouter/util/routeDive.cjs"
     },
     "./debounce": {
-      "import": "./dist/modules/debounce/debounce.mjs",
-      "require": "./dist/modules/debounce/debounce.cjs",
-      "types": "./dist/types/debounce/index.d.ts"
+      "import": "./dist/debounce/index.mjs",
+      "require": "./dist/debounce/index.cjs"
+    },
+    "./debounce/debounce": {
+      "import": "./dist/debounce/debounce.mjs",
+      "require": "./dist/debounce/debounce.cjs"
+    },
+    "./debounce/types": {
+      "import": "./dist/debounce/types.mjs",
+      "require": "./dist/debounce/types.cjs"
     },
     "./deepMerge": {
-      "import": "./dist/modules/deepMerge/deepMerge.mjs",
-      "require": "./dist/modules/deepMerge/deepMerge.cjs",
-      "types": "./dist/types/deepMerge/index.d.ts"
+      "import": "./dist/deepMerge/index.mjs",
+      "require": "./dist/deepMerge/index.cjs"
     },
-    "./effect": {
-      "import": "./dist/modules/effect/effect.mjs",
-      "require": "./dist/modules/effect/effect.cjs",
-      "types": "./dist/types/effect/index.d.ts"
+    "./deepMerge/deepMerge": {
+      "import": "./dist/deepMerge/deepMerge.mjs",
+      "require": "./dist/deepMerge/deepMerge.cjs"
     },
     "./getFullElementSize": {
-      "import": "./dist/modules/getFullElementSize/getFullElementSize.mjs",
-      "require": "./dist/modules/getFullElementSize/getFullElementSize.cjs",
-      "types": "./dist/types/getFullElementSize/index.d.ts"
+      "import": "./dist/getFullElementSize/index.mjs",
+      "require": "./dist/getFullElementSize/index.cjs"
     },
     "./getFullElementSize/constants": {
-      "import": "./dist/modules/getFullElementSize/constants.mjs",
-      "require": "./dist/modules/getFullElementSize/constants.cjs",
-      "types": "./dist/types/getFullElementSize/constants.d.ts"
+      "import": "./dist/getFullElementSize/constants.mjs",
+      "require": "./dist/getFullElementSize/constants.cjs"
+    },
+    "./getFullElementSize/getFullElementSize": {
+      "import": "./dist/getFullElementSize/getFullElementSize.mjs",
+      "require": "./dist/getFullElementSize/getFullElementSize.cjs"
+    },
+    "./getFullElementSize/types": {
+      "import": "./dist/getFullElementSize/types.mjs",
+      "require": "./dist/getFullElementSize/types.cjs"
     },
     "./getType": {
-      "import": "./dist/modules/getType/getType.mjs",
-      "require": "./dist/modules/getType/getType.cjs",
-      "types": "./dist/types/getType/index.d.ts"
+      "import": "./dist/getType/index.mjs",
+      "require": "./dist/getType/index.cjs"
+    },
+    "./getType/getType": {
+      "import": "./dist/getType/getType.mjs",
+      "require": "./dist/getType/getType.cjs"
     },
     "./hashID": {
-      "import": "./dist/modules/hashID/hashID.mjs",
-      "require": "./dist/modules/hashID/hashID.cjs",
-      "types": "./dist/types/hashID/index.d.ts"
+      "import": "./dist/hashID/index.mjs",
+      "require": "./dist/hashID/index.cjs"
     },
     "./hashID/constants": {
-      "import": "./dist/modules/hashID/constants.mjs",
-      "require": "./dist/modules/hashID/constants.cjs",
-      "types": "./dist/types/hashID/constants.d.ts"
+      "import": "./dist/hashID/constants.mjs",
+      "require": "./dist/hashID/constants.cjs"
     },
     "./hashID/generate": {
-      "import": "./dist/modules/hashID/generate.mjs",
-      "require": "./dist/modules/hashID/generate.cjs",
-      "types": "./dist/types/hashID/generate.d.ts"
+      "import": "./dist/hashID/generate.mjs",
+      "require": "./dist/hashID/generate.cjs"
+    },
+    "./hashID/hashID": {
+      "import": "./dist/hashID/hashID.mjs",
+      "require": "./dist/hashID/hashID.cjs"
+    },
+    "./hashID/types": {
+      "import": "./dist/hashID/types.mjs",
+      "require": "./dist/hashID/types.cjs"
     },
     "./immutableProperty": {
-      "import": "./dist/modules/immutableProperty/immutableProperty.mjs",
-      "require": "./dist/modules/immutableProperty/immutableProperty.cjs",
-      "types": "./dist/types/immutableProperty/index.d.ts"
+      "import": "./dist/immutableProperty/index.mjs",
+      "require": "./dist/immutableProperty/index.cjs"
+    },
+    "./immutableProperty/immutableProperty": {
+      "import": "./dist/immutableProperty/immutableProperty.mjs",
+      "require": "./dist/immutableProperty/immutableProperty.cjs"
     },
     "./isDateYoungerOf": {
-      "import": "./dist/modules/isDateYoungerOf/isDateYoungerOf.mjs",
-      "require": "./dist/modules/isDateYoungerOf/isDateYoungerOf.cjs",
-      "types": "./dist/types/isDateYoungerOf/index.d.ts"
+      "import": "./dist/isDateYoungerOf/index.mjs",
+      "require": "./dist/isDateYoungerOf/index.cjs"
     },
-    "./isHoursTimeYoungerThen": {
-      "import": "./dist/modules/isHoursTimeYoungerThen/isHoursTimeYoungerThen.mjs",
-      "require": "./dist/modules/isHoursTimeYoungerThen/isHoursTimeYoungerThen.cjs",
-      "types": "./dist/types/isHoursTimeYoungerThen/index.d.ts"
+    "./isDateYoungerOf/isDateYoungerOf": {
+      "import": "./dist/isDateYoungerOf/isDateYoungerOf.mjs",
+      "require": "./dist/isDateYoungerOf/isDateYoungerOf.cjs"
     },
     "./isObject": {
-      "import": "./dist/modules/isObject/isObject.mjs",
-      "require": "./dist/modules/isObject/isObject.cjs",
-      "types": "./dist/types/isObject/index.d.ts"
+      "import": "./dist/isObject/index.mjs",
+      "require": "./dist/isObject/index.cjs"
+    },
+    "./isObject/isObject": {
+      "import": "./dist/isObject/isObject.mjs",
+      "require": "./dist/isObject/isObject.cjs"
     },
     "./isSSR": {
-      "import": "./dist/modules/isSSR/index.mjs",
-      "require": "./dist/modules/isSSR/index.cjs",
-      "types": "./dist/types/isSSR/index.d.ts"
+      "import": "./dist/isSSR/index.mjs",
+      "require": "./dist/isSSR/index.cjs"
     },
     "./isType": {
-      "import": "./dist/modules/isType/isType.mjs",
-      "require": "./dist/modules/isType/isType.cjs",
-      "types": "./dist/types/isType/index.d.ts"
+      "import": "./dist/isType/index.mjs",
+      "require": "./dist/isType/index.cjs"
+    },
+    "./isType/isType": {
+      "import": "./dist/isType/isType.mjs",
+      "require": "./dist/isType/isType.cjs"
     },
     "./kebabize": {
-      "import": "./dist/modules/kebabize/kebabize.mjs",
-      "require": "./dist/modules/kebabize/kebabize.cjs",
-      "types": "./dist/types/kebabize/index.d.ts"
+      "import": "./dist/kebabize/index.mjs",
+      "require": "./dist/kebabize/index.cjs"
+    },
+    "./kebabize/kebabize": {
+      "import": "./dist/kebabize/kebabize.mjs",
+      "require": "./dist/kebabize/kebabize.cjs"
     },
     "./memo": {
-      "import": "./dist/modules/memo/memo.mjs",
-      "require": "./dist/modules/memo/memo.cjs",
-      "types": "./dist/types/memo/index.d.ts"
+      "import": "./dist/memo/index.mjs",
+      "require": "./dist/memo/index.cjs"
+    },
+    "./memo/memo": {
+      "import": "./dist/memo/memo.mjs",
+      "require": "./dist/memo/memo.cjs"
+    },
+    "./memo/types": {
+      "import": "./dist/memo/types.mjs",
+      "require": "./dist/memo/types.cjs"
     },
     "./noop": {
-      "import": "./dist/modules/noop/index.mjs",
-      "require": "./dist/modules/noop/index.cjs",
-      "types": "./dist/types/noop/index.d.ts"
+      "import": "./dist/noop/index.mjs",
+      "require": "./dist/noop/index.cjs"
+    },
+    "./portals": {
+      "import": "./dist/portals/index.mjs",
+      "require": "./dist/portals/index.cjs"
     },
     "./portals/anchorsSetup": {
-      "import": "./dist/modules/portals/anchorsSetup/anchorsSetup.mjs",
-      "require": "./dist/modules/portals/anchorsSetup/anchorsSetup.cjs",
-      "types": "./dist/types/portals/anchorsSetup/index.d.ts"
+      "import": "./dist/portals/anchorsSetup/index.mjs",
+      "require": "./dist/portals/anchorsSetup/index.cjs"
+    },
+    "./portals/anchorsSetup/anchorsSetup": {
+      "import": "./dist/portals/anchorsSetup/anchorsSetup.mjs",
+      "require": "./dist/portals/anchorsSetup/anchorsSetup.cjs"
     },
     "./portals/anchorsSetup/generateAnchors": {
-      "import": "./dist/modules/portals/anchorsSetup/generateAnchors.mjs",
-      "require": "./dist/modules/portals/anchorsSetup/generateAnchors.cjs",
-      "types": "./dist/types/portals/anchorsSetup/generateAnchors.d.ts"
+      "import": "./dist/portals/anchorsSetup/generateAnchors.mjs",
+      "require": "./dist/portals/anchorsSetup/generateAnchors.cjs"
     },
     "./portals/anchorsSetup/handlerConstructor": {
-      "import": "./dist/modules/portals/anchorsSetup/handlerConstructor.mjs",
-      "require": "./dist/modules/portals/anchorsSetup/handlerConstructor.cjs",
-      "types": "./dist/types/portals/anchorsSetup/handlerConstructor.d.ts"
+      "import": "./dist/portals/anchorsSetup/handlerConstructor.mjs",
+      "require": "./dist/portals/anchorsSetup/handlerConstructor.cjs"
     },
     "./portals/constants": {
-      "import": "./dist/modules/portals/constants.mjs",
-      "require": "./dist/modules/portals/constants.cjs",
-      "types": "./dist/types/portals/constants.d.ts"
+      "import": "./dist/portals/constants.mjs",
+      "require": "./dist/portals/constants.cjs"
     },
     "./portals/createPortal": {
-      "import": "./dist/modules/portals/createPortal.mjs",
-      "require": "./dist/modules/portals/createPortal.cjs",
-      "types": "./dist/types/portals/createPortal.d.ts"
+      "import": "./dist/portals/createPortal.mjs",
+      "require": "./dist/portals/createPortal.cjs"
+    },
+    "./portals/isPortal": {
+      "import": "./dist/portals/isPortal.mjs",
+      "require": "./dist/portals/isPortal.cjs"
+    },
+    "./portals/isPortalHaldler": {
+      "import": "./dist/portals/isPortalHaldler.mjs",
+      "require": "./dist/portals/isPortalHaldler.cjs"
+    },
+    "./portals/setAsPortalHandler": {
+      "import": "./dist/portals/setAsPortalHandler.mjs",
+      "require": "./dist/portals/setAsPortalHandler.cjs"
+    },
+    "./portals/types": {
+      "import": "./dist/portals/types.mjs",
+      "require": "./dist/portals/types.cjs"
+    },
+    "./portals/util": {
+      "import": "./dist/portals/util/index.mjs",
+      "require": "./dist/portals/util/index.cjs"
     },
     "./portals/util/assignDefaults": {
-      "import": "./dist/modules/portals/util/assignDefaults.mjs",
-      "require": "./dist/modules/portals/util/assignDefaults.cjs",
-      "types": "./dist/types/portals/util/assignDefaults.d.ts"
+      "import": "./dist/portals/util/assignDefaults.mjs",
+      "require": "./dist/portals/util/assignDefaults.cjs"
     },
     "./portals/util/close": {
-      "import": "./dist/modules/portals/util/close.mjs",
-      "require": "./dist/modules/portals/util/close.cjs",
-      "types": "./dist/types/portals/util/close.d.ts"
+      "import": "./dist/portals/util/close.mjs",
+      "require": "./dist/portals/util/close.cjs"
     },
     "./portals/util/getPortalElement": {
-      "import": "./dist/modules/portals/util/getPortalElement.mjs",
-      "require": "./dist/modules/portals/util/getPortalElement.cjs",
-      "types": "./dist/types/portals/util/getPortalElement.d.ts"
+      "import": "./dist/portals/util/getPortalElement.mjs",
+      "require": "./dist/portals/util/getPortalElement.cjs"
     },
     "./portals/util/open": {
-      "import": "./dist/modules/portals/util/open.mjs",
-      "require": "./dist/modules/portals/util/open.cjs",
-      "types": "./dist/types/portals/util/open.d.ts"
+      "import": "./dist/portals/util/open.mjs",
+      "require": "./dist/portals/util/open.cjs"
     },
     "./portals/util/remove": {
-      "import": "./dist/modules/portals/util/remove.mjs",
-      "require": "./dist/modules/portals/util/remove.cjs",
-      "types": "./dist/types/portals/util/remove.d.ts"
+      "import": "./dist/portals/util/remove.mjs",
+      "require": "./dist/portals/util/remove.cjs"
     },
     "./portals/util/update": {
-      "import": "./dist/modules/portals/util/update.mjs",
-      "require": "./dist/modules/portals/util/update.cjs",
-      "types": "./dist/types/portals/util/update.d.ts"
+      "import": "./dist/portals/util/update.mjs",
+      "require": "./dist/portals/util/update.cjs"
     },
-    "./proxy": {
-      "import": "./dist/modules/proxy/proxy.mjs",
-      "require": "./dist/modules/proxy/proxy.cjs",
-      "types": "./dist/types/proxy/index.d.ts"
+    "./reactivity": {
+      "import": "./dist/reactivity/index.mjs",
+      "require": "./dist/reactivity/index.cjs"
+    },
+    "./reactivity/constants": {
+      "import": "./dist/reactivity/constants.mjs",
+      "require": "./dist/reactivity/constants.cjs"
+    },
+    "./reactivity/isReactive": {
+      "import": "./dist/reactivity/isReactive.mjs",
+      "require": "./dist/reactivity/isReactive.cjs"
+    },
+    "./reactivity/isRef": {
+      "import": "./dist/reactivity/isRef.mjs",
+      "require": "./dist/reactivity/isRef.cjs"
+    },
+    "./reactivity/reactivity": {
+      "import": "./dist/reactivity/reactivity.mjs",
+      "require": "./dist/reactivity/reactivity.cjs"
+    },
+    "./reactivity/types": {
+      "import": "./dist/reactivity/types.mjs",
+      "require": "./dist/reactivity/types.cjs"
     },
     "./remove": {
-      "import": "./dist/modules/remove/remove.mjs",
-      "require": "./dist/modules/remove/remove.cjs",
-      "types": "./dist/types/remove/index.d.ts"
+      "import": "./dist/remove/index.mjs",
+      "require": "./dist/remove/index.cjs"
+    },
+    "./remove/remove": {
+      "import": "./dist/remove/remove.mjs",
+      "require": "./dist/remove/remove.cjs"
     },
     "./select": {
-      "import": "./dist/modules/select/select.mjs",
-      "require": "./dist/modules/select/select.cjs",
-      "types": "./dist/types/select/index.d.ts"
+      "import": "./dist/select/index.mjs",
+      "require": "./dist/select/index.cjs"
     },
-    "./styles/_index": {
-      "import": "./dist/modules/styles/_index.scss",
-      "require": "./dist/modules/styles/_index.scss"
-    },
-    "./styles/_index.scss": {
-      "import": "./dist/modules/styles/_index.scss",
-      "require": "./dist/modules/styles/_index.scss"
-    },
-    "./styles/css-variables": {
-      "import": "./dist/modules/styles/css-variables.scss",
-      "require": "./dist/modules/styles/css-variables.scss"
-    },
-    "./styles/css-variables.scss": {
-      "import": "./dist/modules/styles/css-variables.scss",
-      "require": "./dist/modules/styles/css-variables.scss"
-    },
-    "./styles/document": {
-      "import": "./dist/modules/styles/document.scss",
-      "require": "./dist/modules/styles/document.scss"
-    },
-    "./styles/document.scss": {
-      "import": "./dist/modules/styles/document.scss",
-      "require": "./dist/modules/styles/document.scss"
-    },
-    "./styles/flex-layout": {
-      "import": "./dist/modules/styles/flex-layout.scss",
-      "require": "./dist/modules/styles/flex-layout.scss"
-    },
-    "./styles/flex-layout.scss": {
-      "import": "./dist/modules/styles/flex-layout.scss",
-      "require": "./dist/modules/styles/flex-layout.scss"
-    },
-    "./styles/minireset": {
-      "import": "./dist/modules/styles/minireset.scss",
-      "require": "./dist/modules/styles/minireset.scss"
-    },
-    "./styles/minireset.scss": {
-      "import": "./dist/modules/styles/minireset.scss",
-      "require": "./dist/modules/styles/minireset.scss"
-    },
-    "./styles/mixins": {
-      "import": "./dist/modules/styles/mixins.scss",
-      "require": "./dist/modules/styles/mixins.scss"
-    },
-    "./styles/mixins.scss": {
-      "import": "./dist/modules/styles/mixins.scss",
-      "require": "./dist/modules/styles/mixins.scss"
-    },
-    "./styles/variables": {
-      "import": "./dist/modules/styles/variables.scss",
-      "require": "./dist/modules/styles/variables.scss"
-    },
-    "./styles/variables.scss": {
-      "import": "./dist/modules/styles/variables.scss",
-      "require": "./dist/modules/styles/variables.scss"
+    "./select/select": {
+      "import": "./dist/select/select.mjs",
+      "require": "./dist/select/select.cjs"
     },
     "./throttle": {
-      "import": "./dist/modules/throttle/throttle.mjs",
-      "require": "./dist/modules/throttle/throttle.cjs",
-      "types": "./dist/types/throttle/index.d.ts"
+      "import": "./dist/throttle/index.mjs",
+      "require": "./dist/throttle/index.cjs"
+    },
+    "./throttle/throttle": {
+      "import": "./dist/throttle/throttle.mjs",
+      "require": "./dist/throttle/throttle.cjs"
+    },
+    "./throttle/types": {
+      "import": "./dist/throttle/types.mjs",
+      "require": "./dist/throttle/types.cjs"
     },
     "./update": {
-      "import": "./dist/modules/update/update.mjs",
-      "require": "./dist/modules/update/update.cjs",
-      "types": "./dist/types/update/index.d.ts"
+      "import": "./dist/update/index.mjs",
+      "require": "./dist/update/index.cjs"
     },
     "./update/constants": {
-      "import": "./dist/modules/update/constants.mjs",
-      "require": "./dist/modules/update/constants.cjs",
-      "types": "./dist/types/update/constants.d.ts"
+      "import": "./dist/update/constants.mjs",
+      "require": "./dist/update/constants.cjs"
+    },
+    "./update/types": {
+      "import": "./dist/update/types.mjs",
+      "require": "./dist/update/types.cjs"
+    },
+    "./update/update": {
+      "import": "./dist/update/update.mjs",
+      "require": "./dist/update/update.cjs"
+    },
+    "./version": {
+      "import": "./dist/version.mjs",
+      "require": "./dist/version.cjs"
     },
     "./withDefaults": {
-      "import": "./dist/modules/withDefaults/withDefaults.mjs",
-      "require": "./dist/modules/withDefaults/withDefaults.cjs",
-      "types": "./dist/types/withDefaults/index.d.ts"
+      "import": "./dist/withDefaults/index.mjs",
+      "require": "./dist/withDefaults/index.cjs"
+    },
+    "./withDefaults/withDefaults": {
+      "import": "./dist/withDefaults/withDefaults.mjs",
+      "require": "./dist/withDefaults/withDefaults.cjs"
+    },
+    "./package.json": "./package.json",
+    "./*.scss": {
+      "import": "./dist/*.scss",
+      "require": "./dist/*.scss",
+      "style": "./dist/*.scss"
+    },
+    "./**/*.scss": {
+      "import": "./dist/**/*.scss",
+      "require": "./dist/**/*.scss",
+      "style": "./dist/**/*.scss"
     }
   }
 }

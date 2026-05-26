@@ -1,7 +1,7 @@
-import { Entry } from '../../createEntry';
-import { IdCache } from '../../createIdCache';
 import { getPortalElement } from './getPortalElement';
 import { ELEMENTS_SCOPE } from '../constants';
+import { isEntry, type Entry } from '../../createEntry';
+import type { IdCache } from '../../createIdCache';
 import type { Portals } from '../types';
 
 export function remove(
@@ -21,12 +21,14 @@ export function remove(
   }
 
   function closeIt({ portalId, entryId, idCache }: Record<string, any>) {
-    (portals[portalId][entryId] as Entry<any>).emit('unmount');
-    idCache.removeId(ELEMENTS_SCOPE, entryId);
-    
-    if ((portals[portalId][entryId] as Entry<any>).entryElement) {
-      ((portals[portalId][entryId] as Entry<any>).entryElement as HTMLElement).remove();
+    if (isEntry(portals[portalId][entryId])) {
+      const entry = portals[portalId][entryId] as Entry<any>;
+      entry.emit('unmount');
     }
+
+    const entryElement = document.querySelector(`#${entryId}`);
+    if (entryElement) entryElement.remove();
+    idCache.removeId(ELEMENTS_SCOPE, entryId);
 
     delete portals[portalId][entryId];
 

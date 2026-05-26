@@ -1,11 +1,16 @@
-import { match, pathToRegexp } from 'path-to-regexp';
-import { createEventEmitter, RemoveListener } from '../createEventEmitter';
+// import { match, pathToRegexp } from 'path-to-regexp';
+import { createEventEmitter, type RemoveListener } from '../createEventEmitter';
+import { isObject } from '../isObject';
+import { noop } from '../noop';
+import { isSSR } from '../isSSR';
 import {
   normalizeOptions,
   getLocation,
   normalizePath,
   normalizeRoute,
-  normalizeRouteParamValue,
+  pathMatch,
+  pathToRegExp,
+  normalizeServerRequest,
 } from './util';
 import { EMPTY_ROUTE } from './constants';
 import type {
@@ -16,6 +21,9 @@ import type {
   SelectedRoute,
   RouterLinkOptions,
   RouterLink,
+  NodeRequest,
+  ServerRequest,
+  DocumentSettings,
 } from './types';
 
 /**
@@ -32,52 +40,78 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
     history,
     routes,
     preloader,
-    href,
     RouterView,
-    beforeRouteParse,
-    beforeRouteSelect,
+    beforeRouteParse = noop,
+    beforeRouteSelect = noop,
     sensitive,
   } = _options;
 
   const _emitter = createEventEmitter();
-  let _location = getLocation(href);
+  let _location = getLocation(isSSR ? '' : window.location.href, isSSR ? '' : navigator && (navigator as any).userAgent as string);
 
   let _baseInit = true;
   let _base = base;
   setBase(base);
   let _paths = routes.map(route => normalizePath(_base, route));
-  let _parsedRoutes = _paths.map(route => parseRoute(route));
-
+  let _parsedRoutes: ParsedRoute[] = [];
   let _currentRoute: SelectedRoute = EMPTY_ROUTE;
+  let _isResolving = false;
+  let _request: ServerRequest = {} as ServerRequest; // Placeholder for SSR request, will be set via setRequest method
 
-  history.listen(() => {
-    _location = getLocation(window.location.href);
-    _currentRoute = getRoute() || EMPTY_ROUTE;
-    _emitter.emit('routeChanged', _currentRoute);
+  // =============================================================
+  // INITIAL ASYNC SETUP
+  // =============================================================
+  async function initialSetup() {
+    _parsedRoutes = await Promise.all(_paths.map(route => parseRoute(route)));
+    const current = await getRoute();
+    if (current) _currentRoute = current;
 
     if (debug) {
+      console.log(`[router](paths) ->`, _paths);
+      console.log(`[router](parsed routes) ->`, _parsedRoutes);
       console.log(`[router](current route) ->`, _currentRoute);
     }
-  });
-
-  const current = getRoute();
-
-  if (current) {
-    _currentRoute = current;
   }
 
-  if (debug) {
-    console.log(`[router](paths) ->`, _paths);
-    console.log(`[router](parsed routes) ->`, _parsedRoutes);
-    console.log(`[router](current route) ->`, _currentRoute);
+  if (!isSSR) {
+    (async () => {
+      await initialSetup();
+    })();
+  }
+
+  // =============================================================
+  // Helper: refresh current route after navigation
+  // =============================================================
+  async function refreshCurrentRoute(): Promise<void> {
+    _isResolving = true;
+    try {
+      const newRoute = await getRoute();
+      _currentRoute = newRoute || EMPTY_ROUTE;
+      _emitter.emit('routeChanged', _currentRoute);
+
+      if (debug) {
+        console.log(`[router](current route) ->`, _currentRoute);
+      }
+    } finally {
+      _isResolving = false;
+    }
+  }
+
+  if (history && !isSSR) {
+    history.listen(() => {
+      _location = getLocation(window.location.href, navigator && (navigator as any).userAgent as string);
+      refreshCurrentRoute();
+    });
   }
 
   const router = {
     location: _location,
     currentRoute: _currentRoute,
     paths: _paths,
-    back: history.back,
-    forward: history.forward,
+    request: _request,
+    isResolving: _isResolving,
+    back: history ? history.back : noop,
+    forward: history ? history.forward : noop,
     preloader,
     setBase,
     addRoute,
@@ -90,18 +124,22 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
     setSearchParams,
     setHash,
     getRouterLink,
+    getRoute,
+    setRequest,
+    setDocument,
+    documentSettings: {
+      htmlAttrs: {},
+      head: {},
+      bodyAttrs: {},
+    },
   };
 
   Object.defineProperties(router, {
-    location: {
-      get() { return _location; },
-    },
-    currentRoute: {
-      get() { return _currentRoute; },
-    },
-    paths: {
-      get() { return _paths; },
-    },
+    currentRoute: { get() { return _currentRoute; } },
+    location: { get() { return _location; } },
+    isResolving: { get() { return _isResolving; } },
+    paths: { get() { return _paths; } },
+    request: { get() { return _request; } },  
   });
 
   /**
@@ -111,51 +149,56 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param start - A flag indicating whether the route is the start route.
    * @returns The parsed route.
    */
-  function parseRoute(route: Route, start: boolean = true): ParsedRoute {
+  async function parseRoute(route: Route, start: boolean = true): Promise<ParsedRoute> {
     const normalized = normalizeRoute(RouterView, route);
-    const before = beforeRouteParse ? beforeRouteParse(normalized) : normalized;
-    const { path, redirect, views = {}, children = [], ...rest } = before;
+    const result = await Promise.resolve(beforeRouteParse(normalized));
+    const parsed: Route = isObject(result) ? result : normalized;
+    let { path, redirect, views = {}, children = [], ...rest } = parsed;
 
-    let { regexp } = pathToRegexp(path, { end: !children.length, sensitive });
+    path = start && !path.startsWith('/') ? `/${path}` : path;
+    path = path.replace(/\/+/g, '/');
 
-    if (!start) regexp = new RegExp(regexp.source.substring(1));
+    const end = !children || children.length === 0;
+
+    const regexp = pathToRegExp(path, { start, end, sensitive });
 
     const options = { ...redirect ? { redirect } : {}, ...rest };
-    
-    return { path, regexp, views, options, children: children.map(route => parseRoute(route, false)) };
+
+    return { 
+      path, 
+      regexp, 
+      views, 
+      options, 
+      children: await Promise.all(children.map(child => parseRoute(child, false))) 
+    };
   }
 
   /**
    * Sets the base path for the router.
    * 
-   * @param base - The base path.
+   * @param newBase - The new base path.
    */
-  function setBase(base: string = ''): void {
-    base = !base || base === '/' ? '/' : `/${base.replace(/(^\/)|(\/$)/g, '').replace(/\/+/g, '/')}/`;
+  async function setBase(newBase: string = ''): Promise<void> {
+    _base = !newBase || newBase === '/' 
+      ? '/' 
+      : `/${newBase.replace(/(^\/)|(\/$)/g, '').replace(/\/+/g, '/')}/`;
 
     if (_baseInit) {
       _baseInit = false;
-    } else {
-      _paths = _paths.map(({ path, redirect, ...rest }) => ({
-        path: `${_base}${path.replace(_base, base)}`,
-        ...redirect ? { redirect: `${_base}${redirect.replace(_base, base)}` } : {},
-        ...rest
-      }));
-      
-      _parsedRoutes = _parsedRoutes.map(({ path, options: { redirect, ...restOptions }, ...rest }) => ({
-        path: `${_base}${path.replace(_base, base)}`,
-        options: {
-          ...redirect ? { redirect: `${_base}${redirect.replace(_base, base)}` } : {},
-          ...restOptions
-        },
-        ...rest
-      }));
-
-      _currentRoute = getRoute() || EMPTY_ROUTE;
-      _emitter.emit('routeChanged', _currentRoute);
+      return;
     }
 
-    _base = base;
+    _paths = _paths.map(({ path, redirect, ...rest }) => ({
+      path: `${_base}${path.replace(_base, _base)}`,
+      ...redirect ? { redirect: `${_base}${redirect.replace(_base, _base)}` } : {},
+      ...rest,
+    }));
+
+    _parsedRoutes = await Promise.all(_paths.map(route => parseRoute(route)));
+
+    const current = await getRoute();
+    _currentRoute = current || EMPTY_ROUTE;
+    _emitter.emit('routeChanged', _currentRoute);
   }
 
   /**
@@ -164,8 +207,8 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param pathname - The pathname to match.
    * @returns The selected route or false if no match is found.
    */
-  function getRoute(pathname: string = _location.pathname): SelectedRoute | false {
-    const selected = findRoute(pathname, _parsedRoutes);
+  async function getRoute(pathname: string = _location.pathname): Promise<SelectedRoute | false> {
+    const selected = await findRoute(pathname, _parsedRoutes);
 
     if (typeof selected !== 'boolean') {
       return selected as SelectedRoute;
@@ -187,21 +230,17 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param params - The route parameters.
    * @returns The selected route or boolean.
    */
-  function findRoute(
+  async function findRoute(
     pathname: string,
     routes: ParsedRoute[],
     parent: SelectedRoute | false = false,
     params: Record<string, any> = {}
-  ): SelectedRoute | boolean {
-    let selected: SelectedRoute | boolean = false;
-
+  ): Promise<SelectedRoute | boolean> {
     for (const route of routes) {
-      selected = handleRoute(pathname, route, parent, params);
-
-      if (selected) break;
+      const selected = await handleRoute(pathname, route, parent, params);
+      if (selected) return selected;
     }
-
-    return selected;
+    return false;
   }
 
   /**
@@ -213,30 +252,20 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param params - The route parameters.
    * @returns The selected route or boolean.
    */
-  function handleRoute(
+  async function handleRoute(
     pathname: string,
     route: ParsedRoute,
     parent: SelectedRoute | false = false,
     params: Record<string, any>
-  ): SelectedRoute | boolean {
+  ): Promise<SelectedRoute | boolean> {
     const { path, regexp, views, options, children } = route;
     const { redirect } = options;
+    
+    const mathchParams = pathMatch(path, regexp, pathname);
 
-    if (regexp.test(pathname)) {
-      const matchFn = match(path, { decode: decodeURIComponent });
-      const matchResult = matchFn(pathname);
-
-      if (matchResult) {
-        const matchParams = Object.entries(matchResult.params).reduce((acc, [name, value]) => ({
-          ...acc,
-          [name]: normalizeRouteParamValue(value as string),
-        }), {});
-
-        params = { ...params, ...matchParams };
-      }
-      
+    if (mathchParams) {
+      params = { ...params, ...mathchParams };
       const { hash, searchParams } = _location;
-
       let selected: SelectedRoute = {
         parent,
         regexp,
@@ -250,12 +279,10 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
         options,
         child: false,
       };
-      
-      selected.child = findRoute(pathname, children, selected, params);
 
-      if (beforeRouteSelect) {
-        selected = beforeRouteSelect(selected);
-      }
+      selected.child = await findRoute(pathname, children, selected, params);
+      const result = await Promise.resolve(beforeRouteSelect(selected));
+      selected = isObject(result) ? result : selected;
 
       if (redirect) {
         navigate(redirect);
@@ -273,10 +300,11 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * 
    * @param route - The route to add.
    */
-  function addRoute(route: Route): void {
+  async function addRoute(route: Route): Promise<void> {
     const normalized = normalizePath(_base, route);
     _paths.push(normalized);
-    _parsedRoutes.push(parseRoute(normalized));
+    const parsed = await parseRoute(normalized);
+    _parsedRoutes.push(parsed);
     _emitter.emit('routeAdded', _paths);
   }
 
@@ -306,8 +334,9 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param path - The path to navigate to.
    * @param state - The state to pass to the navigation.
    */
-  function navigate(path: string, state?: any): void {
-    history.push(path, state);
+  async function navigate(path: string, state?: any): Promise<void> {
+    if (history && !isSSR) history.push(path, state);
+    await refreshCurrentRoute();
   }
 
   /**
@@ -316,8 +345,8 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param path - The path to push.
    * @param state - The state to pass to the navigation.
    */
-  function push(path: string, state?: any): void {
-    navigate(path, state);
+  async function push(path: string, state?: any): Promise<void> {
+    return navigate(path, state);
   }
 
   /**
@@ -327,7 +356,8 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param state - The state to pass to the navigation.
    */
   function replace(path: string, state?: any): void {
-    history.replace(path, state);
+    if (history && !isSSR) history.replace(path, state);
+    refreshCurrentRoute();
   }
 
   /**
@@ -336,7 +366,7 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
    * @param delta - The number of entries to move.
    */
   function go(delta: number): void {
-    history.go(delta);
+    if (history && !isSSR) history.go(delta);
   }
 
   /**
@@ -364,29 +394,38 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
   }
 
   /**
+   * Sets a new location and refreshes the current route.
+   * 
+   * Useful in SSR context to initialize the router with the server request URL.
+   * 
+   * @param request - The server request containing the new URL and user agent.
+   */
+  async function setRequest(request: NodeRequest): Promise<void> {
+    const normalizedRequest = normalizeServerRequest(request);
+    _location = getLocation(normalizedRequest.url.href, normalizedRequest.userAgent);
+    _request = normalizedRequest;
+    await initialSetup();
+  }
+
+  /**
    * Gets a router link with the specified options.
    * 
    * @param options - The router link options.
    * @returns The created router link.
    */
   function getRouterLink({ path, params = {}, searchParams, hash }: RouterLinkOptions): RouterLink {
-    // apply the params to the path description
     path = Object.entries(params || {}).reduce((acc, [prop, value]) => {
       return acc.replace(new RegExp(`((\\()?|(\\(\\/))?\:${prop}(\\)?\\?)?`), `${value}`);
     }, path);
 
-    // cut the path from the first parameter description is it exsists
-    path.replace(/\/?((\()?|(\(\/))?\:[^\/]+(\)?\?)?.*/, '');
+    path = path.replace(/\/?((\()?|(\(\/))?\:[^\/]+(\)?\?)?.*/, '');
 
-    // apply search params
     const search = searchParams ? `${path.split('?')[0]}?${searchParams.toString()}` : '';
-
-    // apply hash
     path = `${path}${search}${hash ? `#${hash}` : ''}`;
 
-    const { regexp: isActiveRE } = pathToRegexp(path, { end: false, sensitive });
-    const { regexp: isExactActiveRE } = pathToRegexp(path, { end: true, sensitive });
-    
+    const isActiveRE = pathToRegExp(path, { end: false, sensitive });
+    const isExactActiveRE = pathToRegExp(path, { end: true, sensitive });
+
     const { pathname } = _location;
 
     return {
@@ -395,6 +434,54 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
       isExactActive: isExactActiveRE.test(pathname),
       navigate: (to?: string) => navigate(to || path),
     };
+  }
+
+  /**
+   * Modify <html>, <head>, and <body> tag attributes.
+   * Can be called from inside your page component.
+   */
+  function setDocument(settings: DocumentSettings): void {
+    if (!settings || typeof settings !== 'object') return;
+
+    if (settings.htmlAttrs) {
+      router.documentSettings.htmlAttrs = settings.htmlAttrs;
+    }
+    if (settings.head) {
+      router.documentSettings.head = settings.head;
+    }
+    if (settings.bodyAttrs) {
+      router.documentSettings.bodyAttrs = settings.bodyAttrs;
+    }
+
+    if(isSSR) return; // No need to manipulate actual document in SSR context
+    
+    if (settings.htmlAttrs) {
+      Object.entries(settings.htmlAttrs).forEach(([k, v]) => {
+        document.documentElement.setAttribute(k, v);
+      });
+    }
+    
+    if (settings.head) {
+      Object.entries(settings.head).forEach(([k, v]) => {
+        if (Array.isArray(v)) {
+          v.forEach(attrs => {
+            const el = document.createElement(k);
+            Object.entries(attrs).forEach(([ak, av]) => el.setAttribute(ak, av));
+            document.head.appendChild(el);
+          });
+        } else {
+          const el = document.createElement(k);
+          Object.entries(v).forEach(([ak, av]) => el.setAttribute(ak, av));
+          document.head.appendChild(el);
+        }
+      });
+    }
+    
+    if (settings.bodyAttrs) {
+      Object.entries(settings.bodyAttrs).forEach(([k, v]) => {
+        document.body.setAttribute(k, v);
+      });
+    }
   }
 
   return router;

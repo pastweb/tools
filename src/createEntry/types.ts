@@ -1,4 +1,4 @@
-import { EventCallback, RemoveListener } from '../createEventEmitter';
+import type { EventCallback, RemoveListener } from '../createEventEmitter';
 
 export type EntryOptions = {
   EntryComponent?: any;
@@ -8,7 +8,6 @@ export type EntryOptions = {
 };
 
 export interface Entry<O extends EntryOptions> {
-  readonly $$entry: true;
   EntryComponent: any;
   ssrId?: string;
   querySelector?: string;

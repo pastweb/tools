@@ -1,25 +1,29 @@
 import type { Route } from '../types';
 
-export function normalizeRoute(
-  RouterView: any,
-  route: Route ,
-  parent: string = ''
-): Route {
+export function normalizeRoute(RouterView: any, route: Route, fullParent: string = ''): Route {
   const { path: _path, redirect, view, views: _views = {}, children, ...rest } = route;
-  let path = parent ? route.path.replace(parent, '').replace(/^\//, '') : route.path;
-  path = path.replace(/\/\*/g, '(.*)');
+  // Compute relative path using full parent
+  let relativePath = fullParent
+    ? route.path.replace(fullParent, '').replace(/^\//, '')
+    : route.path;
 
   if (redirect) {
-    return { path, redirect: `/${redirect.replace(/^\//, '')}`, ...rest };
+    return { path: relativePath, redirect: `/${redirect.replace(/^\//, '')}`, ...rest };
   }
 
   const views = { default: view || RouterView, ..._views };
 
   if (route.children) {
-    const children = route.children.map(child => normalizeRoute(RouterView, child, path));
+    // Compute full path for this level (for recursing to children)
+    const fullPathForThis = fullParent ? `${fullParent}/${relativePath}` : route.path;
 
-    return { path, views, children, ...rest };
+    // Recurse with full path as new parent
+    const childrenNormalized = route.children.map(child =>
+      normalizeRoute(RouterView, child, fullPathForThis)
+    );
+
+    return { path: relativePath, views, children: childrenNormalized, ...rest };
   }
-  
-  return { path, views, ...rest };
+
+  return { path: relativePath, views, ...rest };
 }

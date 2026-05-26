@@ -1,14 +1,14 @@
 import i18n, {
-  TFunction,
-  Callback,
-  InitOptions,
-  PostProcessorModule,
-  LanguageDetectorAsyncModule,
-  LanguageDetectorModule,
-  BackendModule,
-  ThirdPartyModule,
+  type TFunction,
+  type Callback,
+  type InitOptions,
+  type PostProcessorModule,
+  type LanguageDetectorAsyncModule,
+  type LanguageDetectorModule,
+  type BackendModule,
+  type ThirdPartyModule,
 } from 'i18next';
-import { AsyncStore, AsyncStoreOptions } from '../createAsyncStore';
+import type { AsyncStore, AsyncStoreOptions } from '../createAsyncStore';
 
 export type LazyTranslations = () => Promise<Translations>;
 

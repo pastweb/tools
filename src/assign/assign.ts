@@ -11,48 +11,50 @@ import { isObject } from '../isObject';
  *                                          Otherwise, returns void.
  */
 export function assign(target: Record<string, any>, path: string, value: any, immutable = false): void | Record<string, any> {
-  if (!isObject(target) || !path.length) return target;
+  if (!isObject(target) || !path) return immutable ? { ...target } : undefined;
 
-  const components = path.split('.');
-  
-  if (immutable) {
-    const [ prop, ...rest ] = components;
-    
-    if (!target[prop]) {
-      target = { ...target };
-      
-      Object.defineProperty(target, prop, {
-        value: rest.length ? {} : value,
-        configurable: false,
-        enumerable: true,
-        writable: false,
-      });
+  const keys = path.split('.');
+
+  // ========================
+  // Mutable version (fast)
+  // ========================
+  if (!immutable) {
+    let current: any = target;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (!isObject(current[key])) {
+        current[key] = {};
+      }
+      current = current[key];
     }
 
-    return Object.entries(target).reduce((acc, [propName, propValue]) => ({
-      ...acc,
-      [propName]: isObject(propValue) && rest.length ? assign(propValue, rest.join('.'), value, true) : propValue,
-    }), {});
-  } else {
-    let curr = target;
-
-    for (let i=0; i<components.length; i++) {
-      const prop = components[i];
-      
-      if (i === components.length - 1) {
-        curr[prop] = value;
-        return;
-      }
-
-      if (!curr[prop]) {
-        curr[prop] = {};
-        curr = curr[prop];
-        continue;
-      }
-
-      if (!isObject(curr[prop])) return;
-
-      curr = curr[prop];
-    }
+    current[keys[keys.length - 1]] = value;
+    return;
   }
+
+  // ========================
+  // Immutable version (clean recursive)
+  // ========================
+  function setImmutable(obj: Record<string, any>, remainingKeys: string[], newValue: any): Record<string, any> {
+    const [key, ...rest] = remainingKeys;
+
+    // Final key → just assign the value (works whether it's primitive or object!)
+    if (rest.length === 0) {
+      return {
+        ...obj,
+        [key]: newValue,
+      };
+    }
+
+    // Intermediate key → create new object along the path
+    const nextObj = isObject(obj[key]) ? obj[key] : {};
+
+    return {
+      ...obj,
+      [key]: setImmutable(nextObj, rest, newValue),
+    };
+  }
+
+  return setImmutable(target, keys, value);
 }

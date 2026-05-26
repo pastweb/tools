@@ -1,5 +1,6 @@
+export const ENTRY = Symbol();
+
 export const READ_ONLY_PROPS = [
-  '$$entry',
   'on',
   'emit',
   'removeListener',
