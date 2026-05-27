@@ -1,8 +1,8 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 
-const WEB_REGEX = '**/tests/**/*.only.web.test.{js,ts,jsx,tsx}';
-const NODE_REGEX = '**/tests/**/*.only.node.test.{js,ts,jsx,tsx}';
+const WEB_REGEX = '**/tests/**/*.web.test.{js,ts,jsx,tsx}';
+const NODE_REGEX = '**/tests/**/*.node.test.{js,ts,jsx,tsx}';
 
 export default defineConfig({
   test: {
