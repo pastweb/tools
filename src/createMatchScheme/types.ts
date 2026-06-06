@@ -20,6 +20,7 @@ export interface SchemeOptions {
 };
 
 export interface SchemeOptionsAsyncStore extends SchemeOptions {
+  name?: string;
   initStore?: (matchScheme: MatchScheme) => Promise<void>;
 }
 

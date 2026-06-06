@@ -1,6 +1,6 @@
 // https://github.com/dyakovk/jest-matchmedia-mock
 import { vi } from 'vitest';
-import { MediaQueryListener, MediaQueryList } from './types';
+import type { MediaQueryListener, MediaQueryList } from './types';
 
 export class MatchMedia {
   private mediaQueries: {

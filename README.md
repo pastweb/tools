@@ -28,12 +28,12 @@ $ yarn add -S @pastweb/tools
   - [createAsyncMicroSrote](#createasyncmicrostore)
   - [createEventEmitter](#createeventemitter)
   - [createLangAsyncStore](#createlangasyncstore)
+  - [createMatchSchemeAsyncStore](#creatematchschemeasyncstore)
   - [debounce](#debounce)
   - [throttle](#throttle)
 - [Browser functions](#browser-functions)
   - [createMatchDevice](#creatematchdevice)
   - [createMatchScheme](#creatematchscheme)
-    - [createMatchSchemeAsyncStore](#creatematchschemeasyncstore)
   - [createStorage](#createStorage)
   - [createViewRouter](#createviewrouter)
     - [Route Object](#route-object)
@@ -63,6 +63,9 @@ $ yarn add -S @pastweb/tools
   - [ref](#ref)
   - [effect](#effect)
   - [computed](#computed)
+  - [createMediatorContext](#createMediatorContext)
+    - [getContext](#getContext)
+    - [setContext](#setContext)
   - [createMicroStore](#createmicrostore)
   - [createMircoStoreCollector](#createmicrostorecollector)
 - [String functions](#string-functions)
@@ -609,6 +612,66 @@ langStore.changeLanguage('fr').then((t) => {
 });
 ```
 ---
+
+### `createMatchSchemeAsyncStore`
+
+> #### Syntax  
+```ts
+function createMatchSchemeAsyncStore(options?: SchemeOptionsAsyncStore): ColorSchemeAsyncStore;
+```
+
+## Description  
+
+Creates an asynchronous store for managing color schemes.  
+This function initializes an asynchronous store specifically for handling  
+color scheme preferences and system theme detection. It integrates with  
+[`createMatchScheme`](#creatematchscheme) to track and manage color mode changes.
+
+## Parameters  
+
+#### `options` (optional)  
+**Type:** `SchemeOptionsAsyncStore`  
+Configuration options for the asynchronous store.
+
+| Property       | Type                  | Default              | Description |
+|---------------|-----------------------|----------------------|-------------|
+| `storeName`   | `string`               | `"ColorSchemeStore"` | The name of the store. |
+| `datasetName` | `string \| false`      | `false`              | The dataset attribute name for storing the color scheme. If `false`, it uses CSS class names instead. |
+| `defaultMode` | `string`               | `"auto"`             | The default mode (`'auto'`, `'light'`, or `'dark'`). |
+| `initStore`   | `(matchScheme: MatchScheme) => Promise<void>` | `noop` | An asynchronous function that runs during store initialization. |
+
+## Returns  
+
+**Type:** `ColorSchemeAsyncStore`  
+An object that provides methods and properties for managing color schemes asynchronously.
+
+## Properties  
+
+### `matchScheme`  
+**Type:** `MatchScheme`  
+Manages color scheme detection and provides methods to get or change the scheme.
+
+#### `init`  
+**Type:** `() => void`  
+A no-op function for initialization.
+
+#### `setStoreReady`  
+**Type:** `() => void`  
+Marks the store as ready after initialization.
+
+## Example Usage  
+
+```ts
+const colorSchemeStore = createMatchSchemeAsyncStore({
+  defaultMode: 'auto',
+  datasetName: 'theme',
+  initStore: async (matchScheme) => {
+    console.log('Initializing with:', matchScheme.getInfo());
+  }
+});
+```
+---
+
 ### `debounce`
 Creates a debounced function that delays invoking `fn` until after `timeout` milliseconds have elapsed since the last time the debounced function was invoked.
 The debounced function includes methods `cancel` and `flush` to cancel delayed invocation and to immediately invoke them, respectively.
@@ -867,65 +930,6 @@ scheme.setMode('light');
 // Logs: "Color mode changed to: light"
 ```
 
----
-
-### `createMatchSchemeAsyncStore`
-
-> #### Syntax  
-```ts
-function createMatchSchemeAsyncStore(options?: SchemeOptionsAsyncStore): ColorSchemeAsyncStore;
-```
-
-## Description  
-
-Creates an asynchronous store for managing color schemes.  
-This function initializes an asynchronous store specifically for handling  
-color scheme preferences and system theme detection. It integrates with  
-`createMatchScheme` to track and manage color mode changes.
-
-## Parameters  
-
-#### `options` (optional)  
-**Type:** `SchemeOptionsAsyncStore`  
-Configuration options for the asynchronous store.
-
-| Property       | Type                  | Default              | Description |
-|---------------|-----------------------|----------------------|-------------|
-| `storeName`   | `string`               | `"ColorSchemeStore"` | The name of the store. |
-| `datasetName` | `string \| false`      | `false`              | The dataset attribute name for storing the color scheme. If `false`, it uses CSS class names instead. |
-| `defaultMode` | `string`               | `"auto"`             | The default mode (`'auto'`, `'light'`, or `'dark'`). |
-| `initStore`   | `(matchScheme: MatchScheme) => Promise<void>` | `noop` | An asynchronous function that runs during store initialization. |
-
-## Returns  
-
-**Type:** `ColorSchemeAsyncStore`  
-An object that provides methods and properties for managing color schemes asynchronously.
-
-## Properties  
-
-### `matchScheme`  
-**Type:** `MatchScheme`  
-Manages color scheme detection and provides methods to get or change the scheme.
-
-#### `init`  
-**Type:** `() => void`  
-A no-op function for initialization.
-
-#### `setStoreReady`  
-**Type:** `() => void`  
-Marks the store as ready after initialization.
-
-## Example Usage  
-
-```ts
-const colorSchemeStore = createMatchSchemeAsyncStore({
-  defaultMode: 'auto',
-  datasetName: 'theme',
-  initStore: async (matchScheme) => {
-    console.log('Initializing with:', matchScheme.getInfo());
-  }
-});
-```
 ---
 
 ### `createStorage`
@@ -2598,6 +2602,77 @@ count.value = 3; // Logs: "Doubled is: 6"
   * If the `getter` accesses non-reactive data, changes to that data will not trigger re-computation, potentially leading to stale values.
 
 ---
+
+### `createMediatorContext`
+
+A `mediator` is a function used to export the component logic outside, rendering the logic portable for different front end frameworks. The `mediator` function get two parameters `props: Record<string, any>` and `extras: Record<string, any>`, and returns a mediator object with a rective `state` and other properties as example the functions to the attached to the listeners (onclick, onchange...).
+The `createMediatorContext` is used inside a specific framework function, called `useMediator` in order to makes availble the component context inside the `mediator` function using the `getContext` and `setContext` functions.
+
+> #### Syntax
+```typescript
+function createMediatorContext<T>(mediator: MediatorFunction<T>, props: Props = {}, extras: Extras = {}, context: Context): any & T
+```
+
+#### `getContext`
+
+This function allow to retrive a context value from the component context inside the `mediator` function and must be called in the `mediator` function body.
+
+```typescript
+function getContext<T = any>(key: string): T | undefined
+```
+**Parameters**
+* `key`: `string`
+  * the key string used in the context objet to get the value
+
+**Example:**
+```typescript
+import { reactive, getContext, effect } from '@pastweb/tools';
+
+function myMediator(props, extras) {
+  const state = reactive({ value: 'initialValue' });
+  
+  const ctx = getContext('contextKey');
+  // assuming the context value is a rective object
+  effect(() => {
+    state.value = ctx.value;
+  });
+
+  function onClick() {
+    console.log('state value:', state.value);
+  }
+
+  return { state, onClick };
+}
+```
+
+#### `setContext`
+
+This function allow to set a value to the context object of a component from inside the `mediator` function and must be called in the `mediator` function body.
+
+```typescript
+function setContext<T = any>(key: string, value: T): void
+```
+
+**Parameters**
+* `key`: `string`
+  * the key string used in the context objet to get the value
+* `value`: `T`
+  * the value which will be set to the context object for the specified `key`.
+
+**Example:**
+```typescript
+import { reactive, setContext, effect } from '@pastweb/tools';
+
+function myMediator(props, extras) {
+  const state = reactive({ value: 'initialValue' });
+  
+  setContext('contextKey', 'contextValue');
+  // ...
+}
+```
+
+---
+
 
 ### `createMicroStore`
 

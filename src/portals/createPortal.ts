@@ -1,7 +1,7 @@
-import { DEFAULT_ID_CACHE } from '../createIdCache';
 import { noop } from '../noop';
+import { setSymbolKey } from '../setSymbolKey';
 import { assignDefaults, open, update, close, remove } from './util';
-import { DEFAULT_PORTALS_CACHE, PORTAL } from './constants';
+import { PORTAL } from './constants';
 import type { Entry } from '../createEntry';
 import type { Portal } from './types';
 
@@ -12,9 +12,6 @@ export function createPortal(
   const _entry = entry;
   const _defaults = defaults;
 
-  let portalElement: HTMLElement | (() => HTMLElement) = noop;
-  let idCache = DEFAULT_ID_CACHE;
-  let portals = DEFAULT_PORTALS_CACHE;
   let onRemove = noop;
 
   const portal: Portal = {
@@ -26,12 +23,10 @@ export function createPortal(
       const entry = typeof _entry === 'function' ? _entry(withDefaults, component) : _entry;
 
       if (entry) {
-        console.log(entry)
         entry.setEntryComponent(component);
 
         entry.mergeOptions({
           initData: {
-            component,
             ...withDefaults,
             ...entry.options.initData,
             portal,
@@ -39,41 +34,22 @@ export function createPortal(
         });
       }
 
-      return open(portals, {
-        portalElement,
-        entry,
-        idCache,
-      });
+      return open(portal.getPortalElement, entry);
     },
     update: (entryId: string, entryData?: any): boolean => {
-      return update(portals, {
-        portalElement,
-        entryId,
-        entryData,
-      });
+      return update(portal.getPortalElement, entryId, entryData);
     },
-    close: (entryId: string): void => close(portalElement, entryId),
+    close: (entryId: string): void => close(portal.getPortalElement, entryId),
     remove: (entryId: string): boolean => {
       onRemove(entryId);
 
-      return remove(portals, {
-        portalElement,
-        entryId,
-        idCache,
-      });
+      return remove(portal.getPortalElement, entryId);
     },
-    setIdCache: newCache => { idCache = newCache; },
-    setPortalElement: newElement => { portalElement = newElement; },
-    setPortalsCache: newPorals => { portals = newPorals; },
+    getPortalElement: noop,
     setOnRemove: fn => { onRemove = fn; },
   };
 
-  Object.defineProperty(portal, PORTAL, {
-    value: true,
-    enumerable: false,
-    writable: false,
-    configurable: false,
-  });
+  setSymbolKey(portal, PORTAL);
 
   return portal;
 }

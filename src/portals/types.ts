@@ -1,5 +1,4 @@
 import type { Entry } from '../createEntry';
-import type { IdCache } from '../createIdCache';
 
 export type Portals = {
   [portalId: string]: { [entryId: string]: Entry<any> | true };
@@ -7,8 +6,8 @@ export type Portals = {
 
 export type PortalHandler = {
   id: string | false;
+  getPortalElement: () => HTMLElement;
   portal: Portal;
-  readonly hasEntry: boolean;
   open: () => string | false;
   update: (props: Record<string, any>) => boolean;
   close: () => void;
@@ -28,32 +27,22 @@ export type Portal = {
   update: (entryId: string, entryData: any) => boolean;
   close: (entryId: string) => void;
   remove: (entryId: string) => boolean;
-  setIdCache: (idCahche: IdCache) => void;
-  setPortalElement: (portalElement: HTMLElement | (() => HTMLElement)) => void;
-  setPortalsCache: (portalsCache: Portals) => void;
+  getPortalElement: () => HTMLElement;
   setOnRemove: (fn: (entryId: string) => void) => void;
 };
 
-export declare function portalFunction(component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>,): PortalHandler
-export declare namespace portalFunction {
-  const open: (component: any, props?: Record<string, any> | (() => Record<string, any>) | undefined, defaults?: Record<string, any> | undefined) => string | false;
-  const update: (entryId: string, props: Record<string, any>) => boolean;
-  const close: (entryId: string) => void;
-  const remove: (entryId: string) => boolean;
-  const getEntryId: () => string;
-  const removeEntryId: (id: string) => void;
+export type PortalFunction = ((component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>,) => PortalHandler) & {
+  update: (entryId: string, props: Record<string, any>) => boolean;
+  close: (entryId: string) => void;
+  remove: (entryId: string) => boolean;
+  getEntryId: () => string;
+  removeEntryId: (id: string) => void;
 };
-
-export type PortalFunction = typeof portalFunction;
 
 export type PortalsMap = Record<string, Portal>;
 
 export interface PortalsDescriptor {
-  [pathName: string]: Portal | PortalsDescriptor | typeof portalFunction;
-};
-
-export interface EntryDescriptor {
-  [pathName: string]: EntryDescriptor | ((props: Record<string, any>, component: any) => Entry<any>);
+  [pathName: string]: Portal | PortalsDescriptor | PortalFunction;
 };
 
 export interface AnchorsDescriptor {
@@ -61,7 +50,7 @@ export interface AnchorsDescriptor {
 };
 
 export interface PortalAnchorsIds {
-  [pathName: string]: string | PortalAnchorsIds;
+  [pathName: string]: string;
 };
 
 export type PortalAnchors = string[] | AnchorsDescriptor;

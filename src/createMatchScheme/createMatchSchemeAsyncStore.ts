@@ -11,7 +11,7 @@ import type { SchemeOptionsAsyncStore, ColorSchemeAsyncStore } from './types';
  * `createMatchScheme` to track and manage color mode changes.
  *
  * @param options - Configuration options for the asynchronous store.
- *                  - `storeName` (optional): The name of the store, defaulting to `'ColorSchemeStore'`.
+ *                  - `name` (optional): The name of the store, defaulting to `'ColorSchemeStore'`.
  *                  - `datasetName` (optional): The dataset attribute name for storing the color scheme.
  *                  - `defaultMode` (optional): The default mode ('auto', 'light', or 'dark').
  *                  - `initStore` (optional): An asynchronous function that runs during store initialization.
@@ -35,7 +35,7 @@ export function createMatchSchemeAsyncStore(options: SchemeOptionsAsyncStore = {
   // Create an async store for managing color scheme preferences
   const store = createAsyncStore<ColorSchemeAsyncStore>({
     ...options,
-    storeName: 'ColorSchemeStore'
+    name: `ColorSchemeStore${options.name ? `:${options.name}` : ''}`,
   }) as ColorSchemeAsyncStore;
 
   // Attach the match scheme instance to handle color scheme detection

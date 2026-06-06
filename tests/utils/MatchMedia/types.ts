@@ -1,5 +1,9 @@
 export type MediaQueryListener = (this: MediaQueryList, ev: MediaQueryListEvent) => void;
 
+export interface MediaQueryCache {
+  [query: string]: MediaQueryListener[] | MediaQueryCache;
+}
+
 export interface MediaQueryList {
   readonly matches: boolean;
   readonly media: string;

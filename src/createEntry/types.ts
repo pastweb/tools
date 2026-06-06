@@ -21,7 +21,7 @@ export interface Entry<O extends EntryOptions> {
   setEntryElement: (entryElement: HTMLElement) => void;
   setQuerySelector: (querySelector: string) => void;
   setOptions: (options: O) => void;
-  mergeOptions: (options: O) => void;
+  mergeOptions: (options: Partial<O>) => void;
   setEntryComponent: (Component: any) => void;
   mount?: (...args: any[]) => void;
   update?: (...args: any[]) => void;

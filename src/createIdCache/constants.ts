@@ -1,3 +1,4 @@
-import { createIdCache } from './createIdCache';
+export const cacheIds: Map<symbol, Set<string>> = new Map();
 
-export const DEFAULT_ID_CACHE = createIdCache();
+export const ELEMENTS_SCOPE = Symbol('$$Elements');
+export const CUSTOM_ELEMENTS_SCOPE = Symbol('$$CustomElements');

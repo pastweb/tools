@@ -76,23 +76,34 @@ export function createEntry<E extends Entry<O>, O extends EntryOptions>(options?
    * @returns {Promise<string>} The composed SSR HTML.
    */
   async function getComposedSSR(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      try {
-        const htmlMap: Record<string, string> = Object.entries(ssrMap)
-        .reduce(async (acc, [id, promiseHTML]) => ({
-          ...acc,
-          [id]: await promiseHTML,
-        }), {});
-        
-        const finalRender = Object.entries(htmlMap).reduce((acc, [id, HTML]) => {
-          return acc.replace(id, HTML);
-        }, '');
-  
-        resolve(finalRender);
-        ssrIds.clear();
-        ssrMap = {};
-      } catch (e) { reject(e); }
-    });
+    if (!Object.keys(ssrMap).length) return '';
+
+    try {
+      // Resolve all pending SSR renders in parallel
+      const resolved = await Promise.all(
+        Object.entries(ssrMap).map(async ([ssrId, htmlPromise]) => {
+          const html = await htmlPromise;
+          return { ssrId, html };
+        })
+        .reverse() // Reverse to ensure correct nesting order
+      );
+
+      const htmlMap: Record<string, string> = resolved.reduce((acc, { ssrId, html }) => ({ ...acc, [ssrId]: html}), {});
+
+      // Concatenate all rendered HTML
+      const finalHTML = Object.entries(htmlMap).reduce((acc, [id, HTML]) => acc ? acc.replace(id, HTML) : HTML, '');
+
+      // Clean up after rendering
+      ssrIds.clear();
+      ssrMap = {};
+
+      return finalHTML;
+    } catch (error) {
+      // Clean up on error too
+      ssrIds.clear();
+      ssrMap = {};
+      throw error;
+    }
   }
 
   /**
@@ -131,7 +142,7 @@ export function createEntry<E extends Entry<O>, O extends EntryOptions>(options?
    *
    * @param {O} options - The options to merge.
    */
-  function mergeOptions(options: O): void {
+  function mergeOptions(options: Partial<O>): void {
     const newOptions = deepMerge(entry.options || {}, options) as O;
     setOptions(newOptions);
   }

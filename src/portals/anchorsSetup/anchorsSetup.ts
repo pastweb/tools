@@ -1,49 +1,34 @@
 import { isObject } from '../../isObject';
-import { isPortal } from '../isPortal';
 import { createPortal } from './../createPortal';
 import { handlerConstructor } from './handlerConstructor';
-import { ELEMENTS_SCOPE } from '../constants';
+import { ELEMENTS_SCOPE } from '../../createIdCache';
+import { currentIdCache, setCurrentIdCache } from '../../createIdCache';
+import { currentPortalsCache, setCurrentPortalsCache } from '../setCurrentPortalsCache';
 import type { IdCache } from '../../createIdCache';
-import type { PortalAnchorsIds, Portals, EntryDescriptor, PortalsDescriptor } from '../types';
+import type { PortalAnchorsIds, Portals, PortalsDescriptor } from '../types';
 
-function setPortals(ids: Record<string, any>, descriptor: Record<string, any>, portals: Record<string, any>, idCache: IdCache, portalsCache: Portals, getEntry?: () => any) {
+function setPortals(getEntry: () => any, ids: Record<string, string>, portals: Record<string, any>) {
   Object.entries(ids).forEach(([key, val]) => {
     if (isObject(val)) {
-      if (descriptor[key] && (!isPortal(descriptor[key]))) {
-        throw Error('Portals setup error - The anchors and descriptors Object structure is not the same.');
-      }
-
-      descriptor[key] = descriptor[key] || {};
-      portals[key] = portals[key] || {};
-      setPortals(val, descriptor[key], portals[key], idCache, portalsCache, getEntry);
+      throw Error('Portals setup error - The anchors and descriptors Object cannot be a nested object.');
     } else {
-      const portalElement = () => document.getElementById(val as string) as HTMLElement;
+      const getPortalElement = () => document.getElementById(val) as HTMLElement;
 
       function portalFunction(component: any, props?: Record<string, any> | (() => Record<string, any>), defaults?: Record<string, any>) {
-        const hasEntry = !!getEntry;
-        const portal = createPortal(descriptor[key] || getEntry);
+        const portal = createPortal(getEntry);
+        portal.getPortalElement = getPortalElement;
 
-        portal.setPortalElement(portalElement);
-        portal.setIdCache(idCache);
-        portal.setPortalsCache(portalsCache);
-
-        return handlerConstructor(portal, hasEntry, component, props, defaults);
+        return handlerConstructor(getPortalElement, portal, component, props, defaults);
       }
 
-      const portal = createPortal(descriptor[key] || getEntry);
+      const portal = createPortal(getEntry);
+      portal.getPortalElement = getPortalElement;
 
-      portal.setPortalElement(portalElement);
-      portal.setIdCache(idCache);
-      portal.setPortalsCache(portalsCache);
-
-      const { open, update, close, remove } = portal;
-
-      portalFunction.open = open;
-      portalFunction.update = update;
-      portalFunction.close = close;
-      portalFunction.remove = remove;
-      portalFunction.getEntryId = () => idCache.getId(ELEMENTS_SCOPE);
-      portalFunction.removeEntryId = (id: string) => idCache.removeId(ELEMENTS_SCOPE, id);
+      portalFunction.update = portal.update;
+      portalFunction.close = portal.close;
+      portalFunction.remove = portal.remove;
+      portalFunction.getEntryId = () => currentIdCache.getId(ELEMENTS_SCOPE);
+      portalFunction.removeEntryId = (id: string) => currentIdCache.removeId(ELEMENTS_SCOPE, id);
 
       portals[key] = portalFunction;
     }
@@ -51,15 +36,17 @@ function setPortals(ids: Record<string, any>, descriptor: Record<string, any>, p
 }
 
 export function anchorsSetup(
-  anchors: PortalAnchorsIds,
-  descriptor: EntryDescriptor,
-  idCache: IdCache,
-  portalsCache: Portals,
-  getEntry?: (...args: any[]) => any,
+  getEntry: (...args: any[]) => any,
+  anchorIds: PortalAnchorsIds,
+  idCache: IdCache = currentIdCache,
+  portalsCache: Portals = currentPortalsCache,
 ): PortalsDescriptor {
+  setCurrentIdCache(idCache);
+  setCurrentPortalsCache(portalsCache);
+
   const portals = {};
 
-  setPortals(anchors, descriptor, portals, idCache, portalsCache, getEntry);
+  setPortals(getEntry, anchorIds, portals);
 
   return portals;
 }

@@ -20,7 +20,7 @@ import type { AsyncStoreOptions } from './types';
  * const myStore = createAsyncStore(storeOptions);
  */
 export function createAsyncStore<T>(options: AsyncStoreOptions): T {
-  const { name, timeout = 20000, store, onInit } = options;
+  const { name, timeout = 20000, onInit } = options;
   
   if (!name) {
     throw Error('The "name" option must be set for a better error debugging.');
@@ -34,7 +34,6 @@ export function createAsyncStore<T>(options: AsyncStoreOptions): T {
     isReady: new Promise(checkReady),
     setStoreReady,
     init : onInit || init,
-    store: store || {},
   };
 
 

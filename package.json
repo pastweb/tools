@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Set of tools for web application development",
   "author": "Domenico Pasto",
   "license": "MIT",

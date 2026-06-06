@@ -1,6 +1,10 @@
-import type { Portals } from './types';
-
-export const ELEMENTS_SCOPE = 'elements';
-export const DEFAULT_PORTALS_CACHE: Portals = {};
 export const PORTAL = Symbol();
 export const PORTAL_HANDLER = Symbol();
+export const PORTALS_CONTEXT_KEY = '$$portals';
+export const PORTAL_ANCHORS_CONTEXT_KEY = '$$portalAncors';
+export const DEFAULT_PORTAL_ANCHORS = [
+  'window',
+  'menuSheet',
+  'viewSheet',
+  'toaster',
+];

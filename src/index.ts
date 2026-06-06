@@ -39,7 +39,7 @@ export type { Entry, EntryOptions } from './createEntry';
 export { createEventEmitter } from './createEventEmitter';
 export type { EventEmitter, EventCallback, RemoveListener } from './createEventEmitter';
 
-export { createIdCache, DEFAULT_ID_CACHE } from './createIdCache';
+export { ELEMENTS_SCOPE, CUSTOM_ELEMENTS_SCOPE, createIdCache, setCurrentIdCache, currentIdCache } from './createIdCache';
 export type { IdCache } from './createIdCache';
 
 export { createMatchDevice, useMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
@@ -47,6 +47,9 @@ export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig, Devi
 
 export { createMatchScheme, createMatchSchemeAsyncStore } from './createMatchScheme';
 export type { SchemeOptions, MatchScheme, ColorSchemeInfo, ColorSchemeAsyncStore } from './createMatchScheme';
+
+export { createMediatorContext, getContext, setContext } from './createMediatorContext';
+export type { Context, Extras, MediatorFunction, Props } from './createMediatorContext';
 
 export { createMicroStore, createMicroStoreCollector } from './createMicroStore';
 export type { MicroStore, UseMicroStore, Selector, MicroStoreConfig, MicroStoreCollectorOptions, CollectedStore } from './createMicroStore';
@@ -64,6 +67,8 @@ export type {
 } from './createStorage';
 
 export {
+  ROUTER_CONTEXT_KEY,
+  ROUTE_DEPTH_CONTEXT_KEY,
   createViewRouter,
   routeDive,
   filterRoutes,
@@ -107,11 +112,15 @@ export { noop } from './noop';
 export {
   anchorsSetup,
   createPortal,
+  currentPortalsCache,
   isPortal,
   isPortalHandler,
   setAsPortalHandler,
+  setCurrentPortalsCache,
   generateAnchors,
-  DEFAULT_PORTALS_CACHE,
+  DEFAULT_PORTAL_ANCHORS,
+  PORTALS_CONTEXT_KEY,
+  PORTAL_ANCHORS_CONTEXT_KEY,
 } from './portals';
 export type {
   Portal,
@@ -122,14 +131,16 @@ export type {
   HandlerConstructor,
   PortalHandler,
   PortalsDescriptor,
-  EntryDescriptor,
 } from './portals';
 
-export { effect, isRef, isReactive, ref, reactive } from './reactivity';
+export { computed, effect, isRef, isReactive, ref, reactive } from './reactivity';
 export type { Computed, Ref, Reactive } from './reactivity';
 
 export { remove } from './remove';
 export { select } from './select';
+export { setReadOnly } from './setReadOnly';
+
+export { DEFAULT_SYMBOL_DESCRIPTOR, setSymbolKey } from './setSymbolKey';
 
 export { throttle } from './throttle';
 export type { ThrottleCallback } from './throttle';

@@ -1,17 +1,8 @@
+import { currentPortalsCache as portals } from '../setCurrentPortalsCache';
 import { isEntry, type Entry } from '../../createEntry';
-import { getPortalElement } from './getPortalElement';
-import type { Portals } from '../types';
 
-export function update(
-  portals: Portals,
-  config: {
-    portalElement: HTMLElement | (() => HTMLElement);
-    entryId: string;
-    entryData: any;
-  }
-): boolean {
-  const { entryId, entryData } = config;
-  const portalElement = getPortalElement(config.portalElement);
+export function update(getPortalElement: () => HTMLElement, entryId: string, entryData: any): boolean {
+  const portalElement = getPortalElement();
   const portalId = portalElement.id;
 
   if (!portals[portalId] || (entryId !== '*' && !portals[portalId][entryId])) {

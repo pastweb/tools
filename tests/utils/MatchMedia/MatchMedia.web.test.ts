@@ -23,7 +23,7 @@ describe('MatchMedia Mock', () => {
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
-      mql.addListener(firstListener);
+      mql.addEventListener('change', firstListener);
       mql.addEventListener<'change'>('change', secondListener);
 
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(2);
@@ -44,7 +44,7 @@ describe('MatchMedia Mock', () => {
       const listener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
-      mql.addListener(listener);
+      mql.addEventListener('change', listener);
       mql.addEventListener<'change'>('change', listener);
 
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(1);
@@ -57,12 +57,12 @@ describe('MatchMedia Mock', () => {
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
-      mql.addListener(firstListener);
+      mql.addEventListener('change', firstListener);
       mql.addEventListener('change', secondListener);
 
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(2);
 
-      mql.removeListener(firstListener);
+      mql.removeEventListener('change', firstListener);
       mql.removeEventListener('change', secondListener);
 
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(0);
@@ -84,7 +84,7 @@ describe('MatchMedia Mock', () => {
       const listener = vi.fn();
 
       expect(matchMedia.getMediaQueries()).not.toContain(listener);
-      window.matchMedia(appearanceMq.dark).removeListener(listener);
+      window.matchMedia(appearanceMq.dark).removeEventListener('change', listener);
       expect(matchMedia.getMediaQueries()).not.toContain(listener);
     });
 
@@ -93,12 +93,12 @@ describe('MatchMedia Mock', () => {
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
-      mql.addListener(firstListener);
+      mql.addEventListener('change', firstListener);
       mql.addEventListener<'change'>('change', secondListener);
 
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(2);
 
-      mql.removeListener(firstListener);
+      mql.removeEventListener('change', firstListener);
       mql.removeEventListener<'change'>('change', firstListener);
 
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(1);
@@ -122,13 +122,13 @@ describe('MatchMedia Mock', () => {
     });
 
     test('calls listener functions when applying a media query with previously registered listeners', () => {
-      const firstListener = vi.fn<void, []>();
-      const secondListener = vi.fn<void, []>();
+      const firstListener = vi.fn();
+      const secondListener = vi.fn();
 
       const mql = window.matchMedia(appearanceMq.light);
 
-      mql.addListener((ev) => ev.matches && firstListener());
-      mql.addListener((ev) => ev.matches && secondListener());
+      mql.addEventListener('change', (ev) => ev.matches && firstListener());
+      mql.addEventListener('change', (ev) => ev.matches && secondListener());
 
       matchMedia.useMediaQuery(appearanceMq.light);
 
@@ -143,7 +143,7 @@ describe('MatchMedia Mock', () => {
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
-      mql.addListener(firstListener);
+      mql.addEventListener('change', firstListener);
       mql.addEventListener<'change'>('change', secondListener);
 
       expect(matchMedia.getMediaQueries()).toHaveLength(1);

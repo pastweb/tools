@@ -1,19 +1,9 @@
-import { getPortalElement } from './getPortalElement';
-import { ELEMENTS_SCOPE } from '../constants';
+import { ELEMENTS_SCOPE, currentIdCache as idCache } from '../../createIdCache';
+import { currentPortalsCache as portals } from '../setCurrentPortalsCache';
 import { isEntry, type Entry } from '../../createEntry';
-import type { IdCache } from '../../createIdCache';
-import type { Portals } from '../types';
 
-export function remove(
-  portals: Portals,
-  config: {
-    portalElement: HTMLElement | (() => HTMLElement);
-    entryId: string;
-    idCache: IdCache;
-  }
-): boolean {
-  const { entryId, idCache } = config;
-  const portalElement = getPortalElement(config.portalElement);
+export function remove(getPortalElement: () => HTMLElement, entryId: string): boolean {
+  const portalElement = getPortalElement();
   const portalId = portalElement.id;
 
   if (!portals[portalId] || (entryId !== '*' && !portals[portalId][entryId])) {
@@ -27,10 +17,14 @@ export function remove(
     }
 
     const entryElement = document.querySelector(`#${entryId}`);
-    if (entryElement) entryElement.remove();
-    idCache.removeId(ELEMENTS_SCOPE, entryId);
 
-    delete portals[portalId][entryId];
+    if (entryElement) {
+      setTimeout(() => {
+        entryElement.remove();
+        idCache.removeId(ELEMENTS_SCOPE, entryId);
+        delete portals[portalId][entryId];
+      }, 16);
+    }
 
     return true;
   }

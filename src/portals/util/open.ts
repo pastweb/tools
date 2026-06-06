@@ -1,23 +1,11 @@
-import { getPortalElement } from './getPortalElement';
-import { ELEMENTS_SCOPE } from '../constants';
+import { ELEMENTS_SCOPE, currentIdCache as idCache } from '../../createIdCache';
+import { currentPortalsCache as portals } from '../setCurrentPortalsCache';
 import type { Entry } from '../../createEntry';
-import type { IdCache } from '../../createIdCache';
-import type { Portals } from '../types';
 
-export function open(
-  portals: Portals,
-  config: {
-    portalElement: HTMLElement | (() => HTMLElement);
-    entry?: Entry<any>;
-    idCache: IdCache;
-  }
-): string | false {
-  const { entry, idCache } = config;
-  const portalElement = getPortalElement(config.portalElement);
+export function open(getPortalElement: () => HTMLElement, entry?: Entry<any>): string | false {
+  const portalElement = getPortalElement();
   
-  if (!portalElement) {
-    return false;
-  }
+  if (!portalElement) return false;
 
   const portalId = portalElement.id;
 
@@ -40,7 +28,7 @@ export function open(
       },
     });
   }
-  
+
   portals[portalId][entryId] = entry || true;
 
   if (entry) entry.emit('mount');

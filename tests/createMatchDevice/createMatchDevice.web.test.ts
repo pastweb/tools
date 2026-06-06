@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { createMatchDevice, UA_MOBILE_DEFAULT_RE, type MatchDevicesResult } from '../../src';
-import { setUserAgent, MatchMedia } from './util';
+import { setUserAgent, MatchMedia } from '../utils';
 import { testUA, devicesConfig } from './constants';
 
 let matchMedia: MatchMedia;

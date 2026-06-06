@@ -3,8 +3,8 @@ import { setAsPortalHandler } from '../setAsPortalHandler';
 import type { Portal, PortalHandler } from '../types';
 
 export function handlerConstructor(
+  getPortalElement: () => HTMLElement,
   portal: Portal,
-  hasEntry: boolean,
   component: any,
   props?: Record<string, any> | (() => Record<string, any>),
   defaults?: Record<string, any>,
@@ -13,8 +13,8 @@ export function handlerConstructor(
 
   const handler = reactive<PortalHandler>({
     id: false,
+    getPortalElement,
     portal,
-    hasEntry,
     open: openPortal,
     update: updatePortal,
     close: closePortal,

@@ -1,5 +1,5 @@
 export interface IdCache {
-  getId: (scopeName: string, prefix?: string) => string;
-  removeId: (scopeName: string, id: string) => void;
-  has: (scopeName: string, id: string) => boolean;
+  getId: (scopeName: symbol, prefix?: string) => string;
+  removeId: (scopeName: symbol, id: string) => void;
+  has: (scopeName: symbol, id: string) => boolean;
 };
