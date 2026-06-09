@@ -48,9 +48,6 @@ export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig, Devi
 export { createMatchScheme, createMatchSchemeAsyncStore } from './createMatchScheme';
 export type { SchemeOptions, MatchScheme, ColorSchemeInfo, ColorSchemeAsyncStore } from './createMatchScheme';
 
-export { createMediatorContext, getContext, setContext } from './createMediatorContext';
-export type { Context, Extras, MediatorFunction, Props } from './createMediatorContext';
-
 export { createMicroStore, createMicroStoreCollector } from './createMicroStore';
 export type { MicroStore, UseMicroStore, Selector, MicroStoreConfig, MicroStoreCollectorOptions, CollectedStore } from './createMicroStore';
 
@@ -97,6 +94,16 @@ export { getFullElementSize } from './getFullElementSize';
 export type { FullElementSize, Attribute } from './getFullElementSize';
 
 export { getType } from './getType';
+
+export { GLOBAL_CONTEXT_TYPE, globalContext, isGlobalContext, setAsGlobalContext } from './globalContext';
+export type {
+  ContextUtils,
+  GlobalContext,
+  MediatorFunction,
+  MediatorContextFunction,
+  Props,
+} from './globalContext';
+
 export { hashID } from './hashID';
 export { isDateYoungerOf } from './isDateYoungerOf';
 export { isObject } from './isObject';

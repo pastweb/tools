@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Set of tools for web application development",
   "author": "Domenico Pasto",
   "license": "MIT",
@@ -219,6 +219,10 @@
       "import": "./dist/createIdCache/createIdCache.mjs",
       "require": "./dist/createIdCache/createIdCache.cjs"
     },
+    "./createIdCache/setCurrentIdCache": {
+      "import": "./dist/createIdCache/setCurrentIdCache.mjs",
+      "require": "./dist/createIdCache/setCurrentIdCache.cjs"
+    },
     "./createIdCache/types": {
       "import": "./dist/createIdCache/types.mjs",
       "require": "./dist/createIdCache/types.cjs"
@@ -286,6 +290,18 @@
     "./createMatchScheme/types": {
       "import": "./dist/createMatchScheme/types.mjs",
       "require": "./dist/createMatchScheme/types.cjs"
+    },
+    "./createMediatorContext": {
+      "import": "./dist/createMediatorContext/index.mjs",
+      "require": "./dist/createMediatorContext/index.cjs"
+    },
+    "./createMediatorContext/createMediatorContext": {
+      "import": "./dist/createMediatorContext/createMediatorContext.mjs",
+      "require": "./dist/createMediatorContext/createMediatorContext.cjs"
+    },
+    "./createMediatorContext/types": {
+      "import": "./dist/createMediatorContext/types.mjs",
+      "require": "./dist/createMediatorContext/types.cjs"
     },
     "./createMicroStore": {
       "import": "./dist/createMicroStore/index.mjs",
@@ -547,6 +563,10 @@
       "import": "./dist/portals/setAsPortalHandler.mjs",
       "require": "./dist/portals/setAsPortalHandler.cjs"
     },
+    "./portals/setCurrentPortalsCache": {
+      "import": "./dist/portals/setCurrentPortalsCache.mjs",
+      "require": "./dist/portals/setCurrentPortalsCache.cjs"
+    },
     "./portals/types": {
       "import": "./dist/portals/types.mjs",
       "require": "./dist/portals/types.cjs"
@@ -562,10 +582,6 @@
     "./portals/util/close": {
       "import": "./dist/portals/util/close.mjs",
       "require": "./dist/portals/util/close.cjs"
-    },
-    "./portals/util/getPortalElement": {
-      "import": "./dist/portals/util/getPortalElement.mjs",
-      "require": "./dist/portals/util/getPortalElement.cjs"
     },
     "./portals/util/open": {
       "import": "./dist/portals/util/open.mjs",
@@ -618,6 +634,30 @@
     "./select/select": {
       "import": "./dist/select/select.mjs",
       "require": "./dist/select/select.cjs"
+    },
+    "./setReadOnly": {
+      "import": "./dist/setReadOnly/index.mjs",
+      "require": "./dist/setReadOnly/index.cjs"
+    },
+    "./setReadOnly/setReadOnly": {
+      "import": "./dist/setReadOnly/setReadOnly.mjs",
+      "require": "./dist/setReadOnly/setReadOnly.cjs"
+    },
+    "./setSymbolKey": {
+      "import": "./dist/setSymbolKey/index.mjs",
+      "require": "./dist/setSymbolKey/index.cjs"
+    },
+    "./setSymbolKey/constants": {
+      "import": "./dist/setSymbolKey/constants.mjs",
+      "require": "./dist/setSymbolKey/constants.cjs"
+    },
+    "./setSymbolKey/setSymbolKey": {
+      "import": "./dist/setSymbolKey/setSymbolKey.mjs",
+      "require": "./dist/setSymbolKey/setSymbolKey.cjs"
+    },
+    "./setSymbolKey/types": {
+      "import": "./dist/setSymbolKey/types.mjs",
+      "require": "./dist/setSymbolKey/types.cjs"
     },
     "./throttle": {
       "import": "./dist/throttle/index.mjs",

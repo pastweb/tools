@@ -63,9 +63,7 @@ $ yarn add -S @pastweb/tools
   - [ref](#ref)
   - [effect](#effect)
   - [computed](#computed)
-  - [createMediatorContext](#createMediatorContext)
-    - [getContext](#getContext)
-    - [setContext](#setContext)
+  - [GlobalContext](#globalcontext)
   - [createMicroStore](#createmicrostore)
   - [createMircoStoreCollector](#createmicrostorecollector)
 - [String functions](#string-functions)
@@ -2603,76 +2601,99 @@ count.value = 3; // Logs: "Doubled is: 6"
 
 ---
 
-### `createMediatorContext`
+## Global Context
 
-A `mediator` is a function used to export the component logic outside, rendering the logic portable for different front end frameworks. The `mediator` function get two parameters `props: Record<string, any>` and `extras: Record<string, any>`, and returns a mediator object with a rective `state` and other properties as example the functions to the attached to the listeners (onclick, onchange...).
-The `createMediatorContext` is used inside a specific framework function, called `useMediator` in order to makes availble the component context inside the `mediator` function using the `getContext` and `setContext` functions.
+The **Global Context** is a powerful and widely adopted concept in modern frontend frameworks. It enables dependency injection and state sharing between components without requiring deep prop drilling, while also allowing values to be updated and automatically reflected in descendant components.
 
-> #### Syntax
-```typescript
-function createMediatorContext<T>(mediator: MediatorFunction<T>, props: Props = {}, extras: Extras = {}, context: Context): any & T
-```
+Although different frameworks implement this concept in various ways, we can identify two primary patterns:
 
-#### `getContext`
+### 1. Context API Pattern
+Used by React and React-like libraries:
+- [React Context API](https://react.dev/reference/react/createContext)
+- [Preact Context](https://preactjs.com/guide/v10/context/)
+- [SolidJS Context](https://docs.solidjs.com/concepts/context)
 
-This function allow to retrive a context value from the component context inside the `mediator` function and must be called in the `mediator` function body.
+### 2. Global Properties Pattern
+Used by:
+- [Vue.js `app.config.globalProperties`](https://vuejs.org/api/application.html#app-config-globalproperties)
+- [Svelte Context](https://svelte.dev/docs/svelte/context)
 
-```typescript
-function getContext<T = any>(key: string): T | undefined
-```
-**Parameters**
-* `key`: `string`
-  * the key string used in the context objet to get the value
+> **Note**: How you can see in `svelte` documentation the `Context APIs` similar to the `react` implementation has been intoduced from the version `5.40+`.
+
+A third approach — the **Service pattern** — is used in frameworks like [Angular](https://angular.dev/guide/di/creating-and-using-services) and [Ember](https://guides.emberjs.com/release/services/). While it can serve similar purposes, it was not specifically designed for component tree context sharing.
+
+### Why We Chose the Vue-inspired Approach
+
+To provide a consistent and flexible solution across frameworks, we adopted an approach inspired by Vue’s global properties, while extending it to better support modern needs.
+
+This design decision allows us to achieve the following goals:
+
+1. **Unified API** — A single, clear, and consistent mechanism across all frameworks.
+2. **Full Context Capabilities** — Support for both dependency injection and reactive value updates down the component tree.
+3. **Cross-Framework Compatibility** — Common interfaces that work seamlessly regardless of the underlying framework.
+4. **Mediator Integration** — Full support for accessing and modifying global context from within mediators.
+
+> **Note**: We do not specify the implementation details here. For every framework there will be a dedicated package with the correct strategy and the relative documentation for its usage.
+
+This approach combines the best aspects of existing solutions while providing greater flexibility and a cleaner developer experience.
+
+Below the utilities used for the `Context API pattern` in order to help the implementation for this approach.
+
+**Constants and Utilities**
+* `GLOBAL_CONTEXT_TYPE`: `symbol`
+  * Symbol used to identify a global context object.
+* `globalContext`: `GlobalContext = Record<string | symbol, any>`
+  * Reactive global context object as for the `Context API` needs a value to be initialised.
+* `function isGlobalContext(target: any): boolean`
+  * Checks if the given target is a valid global context object.
+* `function setAsGlobalContext(target: GlobalContext): void`
+  * Marks the given target object as a Global Context by attaching the `GLOBAL_CONTEXT_TYPE` symbol.
+
+**Types**
+* `ContextUtils`: `interface ContextUtils {
+  getContext: <T>(key: string | symbol) => T | undefined;
+  setContext: <T>(key: string | symbol, value: T) => void;
+};`,
+  - The context utils funcction object to be passed as second parameter to the mediater context function.
+* `GlobalContext`: `type GlobalContext = Record<string | symbol, any>;`
+  - The generic global context reactive Object.
+* `MediatorFunction`: `type MediatorFunction<T = any> = (props: Props) => any & T;`
+  - The mediator function described [below](#mediator) which contains the component logic.
+* `MediatorContextFunction`: `type MediatorContextFunction<T = any> = (props: Props, ctxUtils: ContextUtils) => any & T;`
+  - Pretty much the same `MediatorFunction`, this type is used in side the implementation of the `useMediator` framework hook fuction for a better typescript integration.
+* `Props`: `type Props = any & object;`
+  - The generic props object passed to the `MediatorFunction`.
+* `Mediator`: `type Mediator<State extends {} = {}> = { state?: State; } & object;`
+  The mediator object returned from the `MediatorFunction`.
+
+### `Mediator`
+
+A `mediator` is a function used to export the component logic outside, rendering the logic portable to different front end frameworks. The `mediator` function get two parameters `props` and `ctxUtils` described above, and returns a mediator object with a rective `state` and other properties as example the functions to the attached to the listeners (onclick, onchange...).
 
 **Example:**
 ```typescript
 import { reactive, getContext, effect } from '@pastweb/tools';
 
-function myMediator(props, extras) {
+function myMediator(props, { getContext, setContext }) {
   const state = reactive({ value: 'initialValue' });
   
   const ctx = getContext('contextKey');
-  // assuming the context value is a rective object
+  // the context object is a rective object
   effect(() => {
     state.value = ctx.value;
   });
 
   function onClick() {
-    console.log('state value:', state.value);
+    setContext('contextKey', 'newValue');
   }
 
   return { state, onClick };
 }
 ```
 
-#### `setContext`
-
-This function allow to set a value to the context object of a component from inside the `mediator` function and must be called in the `mediator` function body.
-
-```typescript
-function setContext<T = any>(key: string, value: T): void
-```
-
-**Parameters**
-* `key`: `string`
-  * the key string used in the context objet to get the value
-* `value`: `T`
-  * the value which will be set to the context object for the specified `key`.
-
-**Example:**
-```typescript
-import { reactive, setContext, effect } from '@pastweb/tools';
-
-function myMediator(props, extras) {
-  const state = reactive({ value: 'initialValue' });
-  
-  setContext('contextKey', 'contextValue');
-  // ...
-}
-```
+The example above is written just for documentation purpose and shows the generic structure of a mediator function and how is it possible adds effects to the intenal `state`, `props` and how to interanct with the `Global Context`.
 
 ---
-
 
 ### `createMicroStore`
 
