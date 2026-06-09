@@ -99,6 +99,7 @@ export { GLOBAL_CONTEXT_TYPE, globalContext, isGlobalContext, setAsGlobalContext
 export type {
   ContextUtils,
   GlobalContext,
+  Mediator,
   MediatorFunction,
   MediatorContextFunction,
   Props,

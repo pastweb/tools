@@ -291,18 +291,6 @@
       "import": "./dist/createMatchScheme/types.mjs",
       "require": "./dist/createMatchScheme/types.cjs"
     },
-    "./createMediatorContext": {
-      "import": "./dist/createMediatorContext/index.mjs",
-      "require": "./dist/createMediatorContext/index.cjs"
-    },
-    "./createMediatorContext/createMediatorContext": {
-      "import": "./dist/createMediatorContext/createMediatorContext.mjs",
-      "require": "./dist/createMediatorContext/createMediatorContext.cjs"
-    },
-    "./createMediatorContext/types": {
-      "import": "./dist/createMediatorContext/types.mjs",
-      "require": "./dist/createMediatorContext/types.cjs"
-    },
     "./createMicroStore": {
       "import": "./dist/createMicroStore/index.mjs",
       "require": "./dist/createMicroStore/index.cjs"
@@ -442,6 +430,26 @@
     "./getType/getType": {
       "import": "./dist/getType/getType.mjs",
       "require": "./dist/getType/getType.cjs"
+    },
+    "./globalContext": {
+      "import": "./dist/globalContext/index.mjs",
+      "require": "./dist/globalContext/index.cjs"
+    },
+    "./globalContext/constants": {
+      "import": "./dist/globalContext/constants.mjs",
+      "require": "./dist/globalContext/constants.cjs"
+    },
+    "./globalContext/isGlobalContext": {
+      "import": "./dist/globalContext/isGlobalContext.mjs",
+      "require": "./dist/globalContext/isGlobalContext.cjs"
+    },
+    "./globalContext/setAsGlobalContext": {
+      "import": "./dist/globalContext/setAsGlobalContext.mjs",
+      "require": "./dist/globalContext/setAsGlobalContext.cjs"
+    },
+    "./globalContext/types": {
+      "import": "./dist/globalContext/types.mjs",
+      "require": "./dist/globalContext/types.cjs"
     },
     "./hashID": {
       "import": "./dist/hashID/index.mjs",

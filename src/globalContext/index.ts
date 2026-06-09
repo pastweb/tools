@@ -5,6 +5,7 @@ export { setAsGlobalContext } from './setAsGlobalContext';
 export type {
   ContextUtils,
   GlobalContext,
+  Mediator,
   MediatorFunction,
   MediatorContextFunction,
   Props,
