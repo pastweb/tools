@@ -2601,7 +2601,7 @@ count.value = 3; // Logs: "Doubled is: 6"
 
 ---
 
-## Global Context
+## GlobalContext
 
 The **Global Context** is a powerful and widely adopted concept in modern frontend frameworks. It enables dependency injection and state sharing between components without requiring deep prop drilling, while also allowing values to be updated and automatically reflected in descendant components.
 
@@ -2642,7 +2642,7 @@ Below the utilities used for the `Context API pattern` in order to help the impl
 **Constants and Utilities**
 * `GLOBAL_CONTEXT_TYPE`: `symbol`
   * Symbol used to identify a global context object.
-* `globalContext`: `GlobalContext = Record<string | symbol, any>`
+* `globalContext`: `GlobalContext = Record<string, any>`
   * Reactive global context object as for the `Context API` needs a value to be initialised.
 * `function isGlobalContext(target: any): boolean`
   * Checks if the given target is a valid global context object.
@@ -2651,8 +2651,8 @@ Below the utilities used for the `Context API pattern` in order to help the impl
 
 **Types**
 * `ContextUtils`: `interface ContextUtils {
-  getContext: <T>(key: string | symbol) => T | undefined;
-  setContext: <T>(key: string | symbol, value: T) => void;
+  getContext: <T>(key: string) => T | undefined;
+  setContext: <T>(key: string, value: T) => void;
 };`,
   - The context utils funcction object to be passed as second parameter to the mediater context function.
 * `GlobalContext`: `type GlobalContext = Record<string | symbol, any>;`
