@@ -4,8 +4,8 @@ import { throttle } from '../../src';
 // Tell Vitest to mock all timeout functions
 vi.useFakeTimers();
 
-describe('throttle', () => {
-  it('execute just once', () => {
+describe('given the throttle function', () => {
+  it('given throttled, when called 100x then advance 1000, then original called once', () => {
     const func = vi.fn();
     const throttledFunc = throttle(func, 1000);
 
@@ -23,7 +23,7 @@ describe('throttle', () => {
     expect(func).toBeCalledTimes(1);
   });
 
-  it('execute twice', () => {
+  it('given throttled, when burst advance2000 burst, then called twice', () => {
     const func = vi.fn();
     const throttledFunc = throttle(func, 1000);
 
@@ -45,7 +45,7 @@ describe('throttle', () => {
     expect(func).toBeCalledTimes(2);
   });
 
-  it('execute not be executed the second time', () => {
+  it('given throttled burst, cancel, advance, burst, then called once (second prevented by cancel)', () => {
     const func = vi.fn();
     const throttledFunc = throttle(func, 1000);
 
@@ -68,7 +68,7 @@ describe('throttle', () => {
     expect(func).toBeCalledTimes(1);
   });
 
-  it('execute to be executed the third time', () => {
+  it('given throttled burst cancel advance burst flush advance burst, then called twice total', () => {
     const func = vi.fn();
     const throttledFunc = throttle(func, 1000);
 

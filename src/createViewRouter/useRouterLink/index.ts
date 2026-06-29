@@ -1,0 +1,1 @@
+export { useRouterLink } from './useRouterLink';

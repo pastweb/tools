@@ -8,7 +8,7 @@ const appearanceMq = {
   dark: '(prefers-color-scheme: dark)',
 };
 
-describe('MatchMedia Mock', () => {
+describe('given the MatchMedia mock utility', () => {
   beforeAll(() => {
     matchMedia = new MatchMedia();
   });
@@ -17,8 +17,8 @@ describe('MatchMedia Mock', () => {
     matchMedia.clear();
   });
 
-  describe('Adding Listeners', () => {
-    test('adds a new listener function for media query', () => {
+  describe('given adding listeners', () => {
+    test('given mql for light, when addEventListener change twice, then getListeners(light) length 2', () => {
       const firstListener = vi.fn();
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
@@ -29,7 +29,7 @@ describe('MatchMedia Mock', () => {
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(2);
     });
 
-    test("does not add a listener function for a media query if the event name is not 'change'", () => {
+    test('given mql, when addEventListener with non-change event, then getListeners length 0', () => {
       const listener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
@@ -40,7 +40,7 @@ describe('MatchMedia Mock', () => {
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(0);
     });
 
-    test('does not add the same listener function twice for media query', () => {
+    test('given mql, when add same listener twice for change, then listeners length 1', () => {
       const listener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
@@ -51,8 +51,8 @@ describe('MatchMedia Mock', () => {
     });
   });
 
-  describe('Removing Listeners', () => {
-    test('removes a listener function previously added for media query', () => {
+  describe('given removing listeners', () => {
+    test('given two listeners added, when remove both, then getListeners length 0', () => {
       const firstListener = vi.fn();
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
@@ -68,7 +68,7 @@ describe('MatchMedia Mock', () => {
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(0);
     });
 
-    test("does not remove a listener function for a media query if the event name is not 'change'", () => {
+    test('given add non-change, when remove non-change, then listeners length still 1', () => {
       const listener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
 
@@ -80,7 +80,7 @@ describe('MatchMedia Mock', () => {
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(1);
     });
 
-    test('does not remove a listener function for unkwown media query', () => {
+    test('given listener not added, when remove on unknown/dark, then getMediaQueries does not contain it (noop)', () => {
       const listener = vi.fn();
 
       expect(matchMedia.getMediaQueries()).not.toContain(listener);
@@ -88,7 +88,7 @@ describe('MatchMedia Mock', () => {
       expect(matchMedia.getMediaQueries()).not.toContain(listener);
     });
 
-    test('does not remove the same listener function twice for media query', () => {
+    test('given two added, when remove first twice, then length 1 and still contains the second', () => {
       const firstListener = vi.fn();
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
@@ -106,8 +106,8 @@ describe('MatchMedia Mock', () => {
     });
   });
 
-  describe('Calling Listeners', () => {
-    test('throws an error when an applicable media query is not a string', () => {
+  describe('given calling listeners', () => {
+    test('given useMediaQuery(true) non string, then it throws', () => {
       expect(() => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -115,13 +115,13 @@ describe('MatchMedia Mock', () => {
       }).toThrow();
     });
 
-    test('performs a one-time instant check when applying a media query, but before adding listener functions', () => {
+    test('given useMediaQuery(light), then window.matchMedia(light).matches is truthy (instant check)', () => {
       matchMedia.useMediaQuery(appearanceMq.light);
 
       expect(window.matchMedia(appearanceMq.light).matches).toBeTruthy();
     });
 
-    test('calls listener functions when applying a media query with previously registered listeners', () => {
+    test('given listeners registered for light that check matches, when useMediaQuery(light), then each listener called once', () => {
       const firstListener = vi.fn();
       const secondListener = vi.fn();
 
@@ -137,8 +137,8 @@ describe('MatchMedia Mock', () => {
     });
   });
 
-  describe('Clearing and destroying', () => {
-    test('clears all registered media queries and their listeners', () => {
+  describe('given clearing and destroying', () => {
+    test('given registered, when clear, then mediaQueries and listeners lengths 0', () => {
       const firstListener = vi.fn();
       const secondListener = vi.fn();
       const mql = window.matchMedia(appearanceMq.light);
@@ -155,7 +155,7 @@ describe('MatchMedia Mock', () => {
       expect(matchMedia.getListeners(appearanceMq.light)).toHaveLength(0);
     });
 
-    test('destroys the implementation of window.matchMedia', () => {
+    test('when destroy, then window.matchMedia is undefined (and restores mock after)', () => {
       matchMedia.destroy();
 
       expect(window.matchMedia).toBeUndefined();

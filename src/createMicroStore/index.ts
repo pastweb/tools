@@ -6,6 +6,7 @@ export type {
   UseMicroStore,
   Selector,
   MicroStoreConfig,
+  MicroStoreActionsContext,
   MicroStoreCollectorOptions,
   CollectedStore,
 } from './types';

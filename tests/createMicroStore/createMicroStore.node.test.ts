@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { reactive, computed, effect } from '../../src/reactivity';
-import { createMicroStore, type MicroStore } from '../../src/createMicroStore';
+import { createMicroStore, type MicroStore, type MicroStoreActionsContext } from '../../src/createMicroStore';
 
-describe('createMicroStore', () => {
+describe('given the createMicroStore factory', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should create a store with full state and actions', () => {
+  it('given a name and selector setup with state+actions, when useStore(), then the store instance has state values and action fns', () => {
     const useStore = createMicroStore('test', select => ({
       state: { count: 0, name: 'test' },
       actions: {
@@ -30,7 +30,7 @@ describe('createMicroStore', () => {
     expect(typeof store.setName).toBe('function');
   });
 
-  it('should support selectors and return readonly selected values', () => {
+  it('given store with nested state, when useStore with selector for name and for count, then state holds the selected primitive and actions still present', () => {
     const useStore = createMicroStore('test', select => ({
       state: {
         user: {
@@ -55,7 +55,7 @@ describe('createMicroStore', () => {
     expect(typeof nameStore.increment).toBe('function');
   });
 
-  it('should throw when trying to mutate state directly', () => {
+  it('given a store, when attempting direct mutation or delete on state, then it throws the cannot mutate/delete error', () => {
     const useStore = createMicroStore('test', select => ({
       state: {
         count: 0,
@@ -81,7 +81,7 @@ describe('createMicroStore', () => {
     }).toThrow(/Cannot delete properties/);
   });
 
-  it('should reflect mutations from actions to full state and selectors', () => {
+  it('given counter store with nested, when calling actions increment/reset, then both full store state and selected inner state reflect the changes', () => {
     const useStore = createMicroStore('counter', select => ({
       state: {
         count: 0,
@@ -115,7 +115,7 @@ describe('createMicroStore', () => {
     expect(countStore.state.value).toBe(0);
   });
 
-  it('should work with effect for reactivity', async () => {
+  it('given store with increment action, when effect tracks state.count and action called, then effectValue updates after tick', async () => {
     const useStore = createMicroStore('test', select => ({
       state: {
         count: 0,
@@ -143,7 +143,7 @@ describe('createMicroStore', () => {
     expect(effectValue).toBe(1);
   });
 
-  it('should throw error if action name is "state"', () => {
+  it('given attempt to create store with reserved "state" action name, when createMicroStore, then it throws "Action name \\"state\\" is reserved"', () => {
     expect(() => {
       createMicroStore('bad', () => ({
         state: { count: 0 },
@@ -155,7 +155,7 @@ describe('createMicroStore', () => {
     }).toThrow(/Action name "state" is reserved/);
   });
 
-  it('should support nested objects in state and selectors', () => {
+  it('given user store with deep nested and list, when use selectors and call actions, then deep state and list update correctly and selected reflect', () => {
     const useStore = createMicroStore('user', select => ({
       state: {
         user: {
@@ -192,7 +192,40 @@ describe('createMicroStore', () => {
     expect(listStore.state).toEqual([1, 2, 3, 4]);
   });
 
-  it('should make selected primitive values readonly', () => {
+  it('given actions using this.state, when called, then they mutate the reactive state correctly', () => {
+    const useStore = createMicroStore('this-state', select => ({
+      state: {
+        count: 0,
+        name: 'test',
+      },
+      actions: {
+        increment(this: MicroStoreActionsContext<{ count: number; name: string }>, by = 1) {
+          this.state.count += by;
+        },
+        setName(this: MicroStoreActionsContext<{ count: number; name: string }>, name: string) {
+          this.state.name = name;
+        },
+        reset() {
+          const state = select(s => s);
+          state.count = 0;
+        },
+      },
+    }));
+
+    const store = useStore();
+
+    store.increment(3);
+    expect(store.state.count).toBe(3);
+
+    store.setName('updated');
+    expect(store.state.name).toBe('updated');
+
+    store.reset();
+    expect(store.state.count).toBe(0);
+    expect(store.state.name).toBe('updated');
+  });
+
+  it('given store selecting full, when access state.text and attempt mutation, then throws cannot mutate', () => {
     const useStore = createMicroStore('test', select => ({
       state: {
         text: 'hello',

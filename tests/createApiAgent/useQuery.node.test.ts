@@ -1,74 +1,147 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createApiAgent, useQuery } from '../../src/createApiAgent';
+import { createApiAgent, createQueryCache, useQuery } from '../../src/api';
 import { ref } from '../../src/reactivity';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 
-// Force SSR mode
-vi.mock('../isSSR', () => ({
-  isSSR: true,
+// Force server mode
+vi.mock('../../src/envs', () => ({
+  isServer: true,
 }));
 
-describe('useQuery (SSR)', () => {
+describe('given useQuery and createApiAgent with shared queryCache in SSR (node) environment, when using agents with queryCache option for collection and dehydrate, then prefetch functions are registered, calling dehydrate() on the cache executes them and returns a cache snapshot, and cache is shared across agents without blocking', () => {
+  let mock: MockAdapter;
+
   beforeEach(() => {
     vi.useFakeTimers();
-
-    // Mock Atomics
-    vi.spyOn(Atomics, 'wait').mockReturnValue('ok');
-    vi.spyOn(Atomics, 'store').mockImplementation(() => 1n);
-    vi.spyOn(Atomics, 'notify').mockImplementation(() => 1);
+    mock = new MockAdapter(axios);
   });
 
   afterEach(() => {
+    mock.reset();
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
-  it('should call initSharedBuffer and Atomics when SSRWait = true', async () => {
-    const fn = vi.fn().mockResolvedValue({ data: { id: 1 } });
+  it('given a shared queryCache and agent created with it, when agent.get is called in SSR, then dehydrate registers a prefetch fn and no immediate network call occurs until the fn is executed', async () => {
+    const cache = createQueryCache();
+    const agent = createApiAgent({ queryCache: cache });
+    const url = '/ssr-data';
+    const responseData = { hello: 'ssr' };
+    mock.onGet(url).reply(200, responseData);
 
-    const query = useQuery({ fn, immediate: true, SSRWait: true });
+    // In SSR with cache, get returns placeholder immediately and registers
+    const res = await agent.get(url);
+    expect(res.data).toBeUndefined(); // placeholder
+    expect(agent.cache.has(url)).toBe(false); // not yet populated
 
-    await vi.runAllTimersAsync();
+    // dehydrate() executes the registered prefetches and returns serialized cache snapshot
+    const snapshot = await agent.cache.dehydrate();
+    expect(typeof snapshot).toBe('string');
 
-    expect(Atomics.store).toHaveBeenCalled();
-    expect(Atomics.notify).toHaveBeenCalled();
+    expect(mock.history.get.length).toBe(1);
+    expect(agent.cache.has(url)).toBe(true);
+    const cached = agent.cache.get(url);
+    expect(cached?.response.data).toEqual(responseData);
   });
 
-  it('should resolve data correctly in SSR environment', async () => {
-    const responseData = { id: 42, name: 'SSR Test' };
-    
-    const fn = vi.fn().mockResolvedValue({
-      data: responseData,
-      pagination: null,
-      onData: vi.fn(),
-    });
+  it('given useQuery calling an agent.get fn (with shared queryCache) in SSR, when immediate query runs, then fn executes (registers prefetch), query states update, and dehydrate on cache executes and returns snapshot', async () => {
+    const cache = createQueryCache();
+    const agent = createApiAgent({ queryCache: cache });
+    const url = '/ssr-query';
+    const responseData = { from: 'query' };
+    mock.onGet(url).reply(200, responseData);
 
-    const query = useQuery({
-      fn,
-      immediate: true,
-      SSRWait: true,
-    });
+    const fn = () => agent.get(url);
+    const query = useQuery({ fn, immediate: true });
 
+    // On create, effect triggers fetch which for SSR registers
     await vi.runAllTimersAsync();
 
-    expect(query.data).toEqual(responseData);
+    // Placeholder path in SSR: the fn receives a response whose .data is undefined; hook assigns it
+    expect(query.data).toBeUndefined();
     expect(query.isPending).toBe(false);
     expect(query.isFetching).toBe(false);
-    expect(query.isError).toBe(false);
-    expect(query.error).toBe(null);
+
+    // dehydrate executes registered work
+    await agent.cache.dehydrate();
+
+    // Now cache has it; subsequent use would pick up, but current query instance already settled with placeholder
+    expect(agent.cache.has(url)).toBe(true);
   });
 
-  it('should skip SharedArrayBuffer logic when SSRWait = false', async () => {
-    const fn = vi.fn().mockResolvedValue({ data: { id: 1 } });
+  it('given multiple agents sharing the same queryCache instance, when each performs gets in SSR, then dehydrate on the shared cache collects all, and execution populates shared cache', async () => {
+    const sharedCache = createQueryCache();
+    const agent1 = createApiAgent({ queryCache: sharedCache });
+    const agent2 = createApiAgent({ queryCache: sharedCache });
 
-    const query = useQuery({
-      fn,
-      immediate: true,
-      SSRWait: false,
-    });
+    const url1 = '/shared/a';
+    const url2 = '/shared/b';
+    mock.onGet(url1).reply(200, { a: 1 });
+    mock.onGet(url2).reply(200, { b: 2 });
+
+    await agent1.get(url1);
+    await agent2.get(url2);
+
+    // Use cache.dehydrate() — it executes and returns snapshot
+    const snapshot = await sharedCache.dehydrate();
+    expect(typeof snapshot).toBe('string');
+
+    expect(sharedCache.has(url1)).toBe(true);
+    expect(sharedCache.has(url2)).toBe(true);
+    // agents see it too
+    expect(agent1.cache.has(url1)).toBe(true);
+    expect(agent2.cache.has(url2)).toBe(true);
+  });
+
+  it('given useQuery with immediate false and source in SSR, when fetch is called manually, then prefetch is registered via dehydrate and no timers are scheduled', async () => {
+    const cache = createQueryCache();
+    const agent = createApiAgent({ queryCache: cache });
+    const page = ref(1);
+    const urlBase = '/paged';
+    mock.onGet(`${urlBase}?p=1`).reply(200, { p: 1 });
+
+    const fn = () => agent.get(`${urlBase}?p=${page.value}`);
+    const query = useQuery({ fn, source: page, immediate: false });
+
+    expect(query.isPending).toBe(false);
+    expect(query.isFetching).toBe(false);
+
+    // Manual fetch registers in SSR
+    await query.fetch();
+    await vi.runAllTimersAsync();
+
+    const snapshot = await agent.cache.dehydrate();
+    expect(typeof snapshot).toBe('string');
+
+    // ensure no timer side effects were attempted (fetchOnExpired not used)
+    // advancing does nothing harmful
+    vi.advanceTimersByTime(10000);
+    await vi.runAllTimersAsync();
+
+    // calling dehydrate again is harmless (still has registrations)
+    const snapshot2 = await agent.cache.dehydrate();
+    expect(typeof snapshot2).toBe('string');
+  });
+
+  it('given fetchOnExpired in SSR context, when query succeeds, then no refresh timer is ever scheduled', async () => {
+    const cache = createQueryCache();
+    const agent = createApiAgent({ queryCache: cache });
+    const url = '/expire-ssr';
+    mock.onGet(url).reply(200, { ok: true });
+
+    const fn = () => agent.get(url, { expireIn: '1s', fetchOnExpired: '1s' });
+    const query = useQuery({ fn, immediate: true });
 
     await vi.runAllTimersAsync();
 
-    expect(Atomics.store).not.toHaveBeenCalled();
-    expect(Atomics.notify).not.toHaveBeenCalled();
+    // Advance a lot; since isServer, scheduleRecall is a no-op
+    vi.advanceTimersByTime(5000);
+    await vi.runAllTimersAsync();
+
+    // only the initial registration happened; dehydrate on cache executes it
+    const snapshot = await agent.cache.dehydrate();
+    expect(typeof snapshot).toBe('string');
+    expect(agent.cache.has(url)).toBe(true);
   });
 });

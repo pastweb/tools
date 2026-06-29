@@ -1,4 +1,4 @@
-import { isSSR } from '../isSSR';
+import { isBrowser } from '../envs';
 import { ATTRIBS, EMPTY } from './constants';
 import type { Attribute, FullElementSize } from './types';
 
@@ -23,7 +23,7 @@ export function getFullElementSize(
   exclude: Attribute[] = []
 ): FullElementSize {
   if (!element) return EMPTY;
-  if (isSSR) return EMPTY;
+  if (!isBrowser) return EMPTY;
 
   const _exclude = new Set(exclude);
   const cs = window.getComputedStyle(element);

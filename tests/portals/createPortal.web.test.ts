@@ -11,12 +11,12 @@ vi.mock('../../src/portals/util', () => ({
   remove: vi.fn(() => true),
 }));
 
-describe('createPortal', () => {
+describe('given the createPortal function', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('creates a portal object with all required methods', () => {
+  it('given no arguments, when createPortal is called, then it returns a portal object with all required methods as functions', () => {
     const portal = createPortal();
 
     expect(portal).toHaveProperty('open');
@@ -32,12 +32,12 @@ describe('createPortal', () => {
     expect(typeof portal.remove).toBe('function');
   });
 
-  it('marks the portal with PORTAL symbol', () => {
+  it('given a created portal, when inspected, then it is marked with the PORTAL symbol', () => {
     const portal = createPortal();
     expect((portal as any)[PORTAL]).toBe(true);
   });
 
-  it('calls assignDefaults and open when opening a portal', () => {
+  it('given a portal, when open is called with component, props and defaults, then it calls assignDefaults and the open util', () => {
     const portal = createPortal();
     const component = vi.fn();
 
@@ -51,7 +51,7 @@ describe('createPortal', () => {
     expect(util.open).toHaveBeenCalled();
   });
 
-  it('uses entry factory when provided', () => {
+  it('given an entryFactory, when createPortal is called with it and open invoked, then it uses the entry factory to create entries and sets component and merges options', () => {
     const mockEntry = {
       setEntryComponent: vi.fn(),
       mergeOptions: vi.fn(),
@@ -77,7 +77,7 @@ describe('createPortal', () => {
     );
   });
 
-  it('passes merged props to entry factory', () => {
+  it('given createPortal with defaults and open with props, when entryFactory provided, then it calls entryFactory with merged defaults, props and extra', () => {
     const entryFactory = vi.fn(() => ({
       setEntryComponent: vi.fn(),
       mergeOptions: vi.fn(),
@@ -98,7 +98,7 @@ describe('createPortal', () => {
     );
   });
 
-  it('update, close, and remove delegate to util functions', () => {
+  it('given a portal, when update, close and remove are called, then they delegate to the corresponding util functions with correct args', () => {
     const portal = createPortal();
 
     portal.update('entry-1', { visible: false });
@@ -114,7 +114,7 @@ describe('createPortal', () => {
     expect(util.remove).toHaveBeenCalledWith(portal.getPortalElement, 'entry-3');
   });
 
-  it('calls onRemove callback when remove is called', () => {
+  it('given a portal with onRemove set, when remove is called, then it invokes the onRemove callback with the entry id', () => {
     const onRemoveMock = vi.fn();
     const portal = createPortal();
 
@@ -124,12 +124,12 @@ describe('createPortal', () => {
     expect(onRemoveMock).toHaveBeenCalledWith('entry-xyz');
   });
 
-  it('getPortalElement returns a function (placeholder)', () => {
+  it('given a created portal, when getPortalElement is accessed, then it returns a function', () => {
     const portal = createPortal();
     expect(typeof portal.getPortalElement).toBe('function');
   });
 
-  it('supports functional props in open()', () => {
+  it('given functional props in open call, when createPortal and open invoked, then it calls assignDefaults with the resolved props', () => {
     const portal = createPortal();
     const dynamicProps = vi.fn(() => ({ count: 42 }));
 
@@ -141,7 +141,7 @@ describe('createPortal', () => {
     );
   });
 
-  it('handles undefined entry factory gracefully', () => {
+  it('given undefined entry factory, when createPortal called and open invoked, then it still returns an entry id and calls the open util', () => {
     const portal = createPortal(undefined);
 
     const result = portal.open(() => 'Test', { test: true });

@@ -1,10 +1,4 @@
-export { assign } from './assign';
-export { camelize } from './camelize';
-
-export { cl, Mode } from './cl';
-export type { ClassValue, CSSModuleClasses } from './cl';
-
-export { createApiAgent, useMutation, useQuery } from './createApiAgent';
+export { createApiAgent, createQueryCache, QUERY_CACHE_CONTEXT_KEY, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryCache } from './api';
 export type {
   Agent,
   AgentOptions,
@@ -17,15 +11,37 @@ export type {
   PageNumber,
   Pagination,
   QueryConfig,
+  QueryFetchStatus,
   QueryInfo,
   QueryData,
   QueryOptions,
+  ApiSSRMode,
+  CacheOptions,
   QueryCache,
   QueryResponse,
+  QueryStatus,
+  InfiniteQueryConfig,
+  InfiniteQueryInfo,
+  InfiniteQueryInitialData,
   MutationConfig,
   MutationInfo,
   MutationOptions,
-} from './createApiAgent';
+  QueriesData,
+  QueriesInfo,
+  QueryDataFromConfig,
+  RetryDelayOption,
+  RetryOption,
+  UseQueriesConfig,
+  UseQueriesInfo,
+  UseQueriesInput,
+} from './api';
+
+export { assign } from './assign';
+export { registerAsyncTask, resolveAsyncTasks } from './ssrUtils';
+export { camelize } from './camelize';
+
+export { cl, Mode } from './cl';
+export type { ClassValue, CSSModuleClasses } from './cl';
 
 export { createAsyncMicroStore } from './createAsyncMicroStore';
 export type { MicroAsyncStore, MicroCollectorStoreOptions } from './createAsyncMicroStore';
@@ -45,11 +61,11 @@ export type { IdCache } from './createIdCache';
 export { createMatchDevice, useMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
 export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig, DevicesResult } from './createMatchDevice';
 
-export { createMatchScheme, createMatchSchemeAsyncStore } from './createMatchScheme';
+export { createMatchScheme, createMatchSchemeAsyncStore, useColorScheme } from './createMatchScheme';
 export type { SchemeOptions, MatchScheme, ColorSchemeInfo, ColorSchemeAsyncStore } from './createMatchScheme';
 
 export { createMicroStore, createMicroStoreCollector } from './createMicroStore';
-export type { MicroStore, UseMicroStore, Selector, MicroStoreConfig, MicroStoreCollectorOptions, CollectedStore } from './createMicroStore';
+export type { MicroStore, UseMicroStore, Selector, MicroStoreConfig, MicroStoreActionsContext, MicroStoreCollectorOptions, CollectedStore } from './createMicroStore';
 
 export { createStorage } from './createStorage';
 export type {
@@ -69,6 +85,13 @@ export {
   createViewRouter,
   routeDive,
   filterRoutes,
+  useLocation,
+  useRouter,
+  useNavigate,
+  usePaths,
+  useRoute,
+  useRouterLink,
+  useSearchParams,
 } from './createViewRouter';
 export type {
   ViewRouter,
@@ -95,19 +118,27 @@ export type { FullElementSize, Attribute } from './getFullElementSize';
 
 export { getType } from './getType';
 
-export { GLOBAL_CONTEXT_TYPE, globalContext, isGlobalContext, setAsGlobalContext } from './globalContext';
+export {
+  GLOBAL_CONTEXT_TYPE,
+  globalContext,
+  isGlobalContext,
+  setAsGlobalContext,
+  createMediatorContextUtils,
+  getContextUtils,
+} from './globalContext';
 export type {
   ContextUtils,
   GlobalContext,
   Mediator,
   MediatorFunction,
-  MediatorContextFunction,
   Props,
+  Extras,
 } from './globalContext';
 
-export { hashID } from './hashID';
+export { hashID, type HashIDOptions } from './hashID';
 export { isDateYoungerOf } from './isDateYoungerOf';
 export { isObject } from './isObject';
+/** @deprecated Use environment constants from './envs' instead (e.g. isServer or !isBrowser) */
 export { isSSR } from './isSSR';
 export { isType } from './isType';
 export { kebabize } from './kebabize';
@@ -141,7 +172,7 @@ export type {
   PortalsDescriptor,
 } from './portals';
 
-export { computed, effect, isRef, isReactive, ref, reactive } from './reactivity';
+export { computed, effect, isComputed, isRef, isReactive, ref, reactive } from './reactivity';
 export type { Computed, Ref, Reactive } from './reactivity';
 
 export { remove } from './remove';
@@ -150,6 +181,40 @@ export { setReadOnly } from './setReadOnly';
 
 export { DEFAULT_SYMBOL_DESCRIPTOR, setSymbolKey } from './setSymbolKey';
 
+export {
+  createSSRTracker,
+  setCurrentSSRTracker,
+  getCurrentSSRTracker,
+  clearCurrentSSRTracker,
+  reportApiSSRToTracker,
+  createDependencyFingerprint,
+} from './ssrUtils';
+export type {
+  SSRDependency,
+  SSRTracker,
+  SSRTrackerOptions,
+  SSRTrackerPhase,
+  SSRTrackerSnapshot,
+} from './ssrUtils';
+
+export { runSSRCycle } from './ssrUtils';
+export type {
+  RunSSRCycleOptions,
+  SSRCycleResult,
+  SSRCycleRenderContext,
+  SSRCycleRenderFn,
+} from './ssrUtils';
+
+export {
+  sliceDehydratedState,
+  serializeQueryKey,
+  setSSRDehydratedState,
+  getSSRDehydratedState,
+  clearSSRDehydratedState,
+} from './api/createQueryCache';
+
+export { stringToMs } from './stringToMs';
+
 export { throttle } from './throttle';
 export type { ThrottleCallback } from './throttle';
 
@@ -157,3 +222,5 @@ export { update } from './update';
 export type { UpdateOptions } from './update';
 
 export { withDefaults } from './withDefaults';
+
+export { isBrowser, isServer, isCapacitor, isNativeScript, isReactNative, isElectron, isNode, isDeno, isBun } from './envs';

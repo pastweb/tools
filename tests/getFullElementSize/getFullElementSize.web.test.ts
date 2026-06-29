@@ -8,23 +8,23 @@ testElement.style.padding = '3px';
 testElement.style.margin = '5px';
 testElement.style.border = '2px solid';
 
-describe('getFullElementSize', () => {
-  it('size should be an object', () => {
+describe('given the getFullElementSize function', () => {
+  it('given a styled test div, when getFullElementSize, then size is an object', () => {
     const size: FullElementSize = getFullElementSize(testElement);
     expect(isObject(size)).toBe(true);
   });
 
-  it('size.width should be defined', () => {
+  it('given styled div, when called, then size.width is defined', () => {
     const size: FullElementSize = getFullElementSize(testElement);
     expect(size.width).toBeDefined();
   });
 
-  it('size.height should be defined', () => {
+  it('given styled div, when called, then size.height is defined', () => {
     const size: FullElementSize = getFullElementSize(testElement);
     expect(size.height).toBeDefined();
   });
 
-  it('the element full size should be width: 54, height: 54', () => {
+  it('given the padded 40px testElement, when getFullElementSize, then width and height are 54', () => {
     const { width, height } = getFullElementSize(testElement);
     expect(width).toBe(54);
     expect(height).toBe(54);

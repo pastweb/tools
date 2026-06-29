@@ -32,7 +32,7 @@ export function throttle(fn: ThrottleCallback, timeout = 300): ThrottleCallback 
     }
   }
 
-  function throttled(...args: any[]) {
+  function throttled(this: unknown, ...args: any[]) {
     if (inThrottle || canceled) return;
 
     fn.apply(this, args);

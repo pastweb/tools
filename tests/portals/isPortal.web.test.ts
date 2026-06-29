@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { isPortal } from '../../src/portals/isPortal';
 import { createPortal } from '../../src/portals/createPortal';
 
-describe('isPortal', () => {
-  it('returns true for a valid portal created with createPortal', () => {
+describe('given the isPortal function', () => {
+  it('given a portal created with createPortal, when isPortal is called, then it returns true', () => {
     const portal = createPortal();
     expect(isPortal(portal)).toBe(true);
   });
 
-  it('returns false for non-objects', () => {
+  it('given non-object values like null, undefined, primitives or functions, when isPortal is called, then it returns false', () => {
     expect(isPortal(null)).toBe(false);
     expect(isPortal(undefined)).toBe(false);
     expect(isPortal(42)).toBe(false);
@@ -17,12 +17,12 @@ describe('isPortal', () => {
     expect(isPortal(() => {})).toBe(false);
   });
 
-  it('returns false for plain objects', () => {
+  it('given plain objects without the PORTAL symbol, when isPortal is called, then it returns false', () => {
     expect(isPortal({})).toBe(false);
     expect(isPortal({ someProp: 'value' })).toBe(false);
   });
 
-  it('returns false for objects that look similar but don\'t have the PORTAL symbol', () => {
+  it('given objects with portal-like methods but without the PORTAL symbol, when isPortal is called, then it returns false', () => {
     const fakePortal = {
       open: () => {},
       close: () => {},
@@ -33,7 +33,7 @@ describe('isPortal', () => {
     expect(isPortal(fakePortal)).toBe(false);
   });
 
-  it('returns false if PORTAL key exists but is not the correct symbol', () => {
+  it('given an object with a PORTAL-like key that is not the correct symbol, when isPortal is called, then it returns false', () => {
     const fake = {
       [Symbol()]: true,           // Wrong type (should be symbol)
       open: () => {},
@@ -42,14 +42,14 @@ describe('isPortal', () => {
     expect(isPortal(fake)).toBe(false);
   });
 
-  it('detects portal created with custom entry factory', () => {
+  it('given a portal created with a custom entry factory, when isPortal is called, then it returns true', () => {
     const entryFactory = () => ({} as any);
     const portal = createPortal(entryFactory);
 
     expect(isPortal(portal)).toBe(true);
   });
 
-  it('works correctly with multiple portals', () => {
+  it('given multiple portals created with createPortal, when isPortal is called on each, then it returns true for all', () => {
     const portal1 = createPortal();
     const portal2 = createPortal();
 
@@ -57,7 +57,7 @@ describe('isPortal', () => {
     expect(isPortal(portal2)).toBe(true);
   });
 
-  it('is robust against objects with similar property names', () => {
+  it('given objects with misleading property names like portal or isPortal, when isPortal is called, then it returns false', () => {
     const obj = {
       portal: true,
       PORTAL: true,

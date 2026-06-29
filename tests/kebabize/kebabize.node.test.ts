@@ -1,45 +1,45 @@
 import { describe, it, expect } from 'vitest';
 import { kebabize } from '../../src';
 
-describe('kebabize', () => {
+describe('given the kebabize function', () => {
   
-  it('should convert a camelCase string to kebab-case', () => {
+  it('given camelCase "myVariableName", when kebabize, then "my-variable-name"', () => {
     expect(kebabize('myVariableName')).toBe('my-variable-name');
   });
 
-  it('should convert a PascalCase string to kebab-case', () => {
+  it('given Pascal "MyVariableName", when kebabize, then "my-variable-name"', () => {
     expect(kebabize('MyVariableName')).toBe('my-variable-name');
   });
 
-  it('should handle strings with a single uppercase letter', () => {
+  it('given "A", when kebabize, then "a"', () => {
     expect(kebabize('A')).toBe('a');
   });
 
-  it('should handle strings with a single lowercase letter', () => {
+  it('given "a", when kebabize, then "a"', () => {
     expect(kebabize('a')).toBe('a');
   });
 
-  it('should handle strings that are already kebab-case', () => {
+  it('given "my-variable-name", when kebabize, then unchanged', () => {
     expect(kebabize('my-variable-name')).toBe('my-variable-name');
   });
 
-  it('should handle strings with no uppercase letters', () => {
+  it('given all lower "myvariablename", when kebabize, then unchanged', () => {
     expect(kebabize('myvariablename')).toBe('myvariablename');
   });
 
-  it('should handle strings with multiple uppercase letters in a row', () => {
+  it('given "myXMLHttpRequest", when kebabize, then "my-x-m-l-http-request"', () => {
     expect(kebabize('myXMLHttpRequest')).toBe('my-x-m-l-http-request');
   });
 
-  it('should handle strings with numbers (numbers should not be affected)', () => {
+  it('given "myVariable1Name", when kebabize, then "my-variable1-name" (nums preserved)', () => {
     expect(kebabize('myVariable1Name')).toBe('my-variable1-name');
   });
 
-  it('should handle strings that start with an uppercase letter', () => {
+  it('given starting upper (already covered), when kebabize "MyVariableName", then "my-variable-name"', () => {
     expect(kebabize('MyVariableName')).toBe('my-variable-name');
   });
 
-  it('should handle empty strings', () => {
+  it('given "", when kebabize, then ""', () => {
     expect(kebabize('')).toBe('');
   });
   

@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { assign } from '../../src/assign';
 import { isObject } from '../../src/isObject';
 
-describe('assign', () => {
-  it('"first", "second" and "third" should be an Object.', () => {
+describe('given the assign function', () => {
+  it('given an empty target object, when assign is called with the nested path "first.second.third" and an empty object value, then "first", "second" and "third" are objects', () => {
     const test: Record<string, any> = {};
 
     assign(test, 'first.second.third', {});
@@ -13,7 +13,7 @@ describe('assign', () => {
     expect(isObject(test.first.second.third)).toBe(true);
   });
 
-  it('"first", "second" shold have a single property and "third" should have not be any property.', () => {
+  it('given an empty target object, when assign is called with the nested path "first.second.third" and an empty object value, then "first" and "second" have a single property each and "third" has no properties', () => {
     const test: Record<string, any> = {};
     
     assign(test, 'first.second.third', {});
@@ -23,7 +23,7 @@ describe('assign', () => {
     expect(Object.keys(test.first.second.third).length).toBe(0);
   });
 
-  it('"first", "second" shold have a single property and "third" should have 7 properties.', () => {
+  it('given an empty target object, when assign is called with the nested path "first.second.third" and an object with 7 properties, then "first" and "second" have a single property each and "third" has 7 properties', () => {
     const test: Record<string, any> = {};
     
     assign(test, 'first.second.third', {
@@ -41,7 +41,7 @@ describe('assign', () => {
     expect(Object.keys(test.first.second.third).length).toBe(7);
   });
 
-  it('should return a new Object where "first", "second" shold have a single property and "third" should have 7 properties.', () => {
+  it('given an empty target object, when assign is called with the nested path "first.second.third", a value object with 7 properties and the returnNew flag, then it returns a new object where "first" and "second" have one property and "third" has 7', () => {
     const test: Record<string, any> = {};
     
     const result = assign(test, 'first.second.third', {

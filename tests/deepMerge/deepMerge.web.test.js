@@ -24,99 +24,99 @@ const source2 = {
   array: [1, 2]
 };
 
-describe('mergeObjects', () => {
+describe('given the deepMerge function', () => {
   const result = deepMerge(targetObj, source1);
 
-  describe('with one source', () => {
-    it('result.original sould be 1', () => {
+  describe('given one source object', () => {
+    it('given merged with source1, then result.original is 1', () => {
       expect(result.original).toBe(1);
     });
 
-    it('result.level1 sould be an object', () => {
+    it('given merged with source1, then result.level1 is an object', () => {
       expect(isObject(result.level1)).toBe(true);
     });
 
-    it('result.level1.level2 sould be an array', () => {
+    it('given merged with source1, then result.level1.level2 is an array', () => {
       expect(Array.isArray(result.level1.level2)).toBe(true);
     });
 
-    it('result.array sould be an array', () => {
+    it('given merged with source1, then result.array is an array', () => {
       expect(Array.isArray(result.array)).toBe(true);
     });
 
-    it('result.array.length should be 1', () => {
+    it('given merged with source1, then result.array.length is 1', () => {
       expect(result.array.length).toBe(1);
     });
 
-    it('result.array[0] sould be 10', () => {
+    it('given merged with source1, then result.array[0] is 10', () => {
       expect(result.array[0]).toBe(10);
     });
   });
 
-  describe('with two source', () => {
+  describe('given two source objects', () => {
     const result = deepMerge(targetObj, source1, source2);
 
-    it('result.original sould be 10', () => {
+    it('given merged with source1+source2, then result.original is 10', () => {
       expect(result.original).toBe(10);
     });
 
-    it('result.level1 should be an empty string', () => {
+    it('given merged with source1+source2, then result.level1 is an object (not empty string)', () => {
       expect(isObject(result.level1)).toBe(true);
     });
 
-    it('result.level1.level2 should be an array', () => {
+    it('given merged with source1+source2, then result.level1.level2 is an array', () => {
       expect(Array.isArray(result.level1.level2)).toBe(true);
     });
 
-    it('result.level1.level2.length should 3', () => {
+    it('given merged with source1+source2, then result.level1.level2.length is 3', () => {
       expect(result.level1.level2.length).toBe(3);
     });
 
-    it('result.level1.level2[0] should 20', () => {
+    it('given merged..., then result.level1.level2[0] is 20', () => {
       expect(result.level1.level2[0]).toBe(20);
     });
 
-    it('result.level1.level2[1] should be an Object.', () => {
+    it('given merged..., then result.level1.level2[1] is an object', () => {
       expect(isObject(result.level1.level2[1])).toBe(true);
     });
 
-    it('result.level1.level2[1] should have 3 keys.', () => {
+    it('given merged..., then result.level1.level2[1] has 3 keys', () => {
       expect(Object.keys(result.level1.level2[1]).length).toBe(3);
     });
 
-    it('result.level1.level2[1].a should be 10.', () => {
+    it('given merged..., then result.level1.level2[1].a is 10', () => {
       expect(result.level1.level2[1].a).toBe(10);
     });
 
-    it('result.level1.level2[1].b should be 2.', () => {
+    it('given merged..., then result.level1.level2[1].b is 2', () => {
       expect(result.level1.level2[1].b).toBe(2);
     });
 
-    it('result.level1.level2[1].c should be 20.', () => {
+    it('given merged..., then result.level1.level2[1].c is 20', () => {
       expect(result.level1.level2[1].c).toBe(20);
     });
 
-    it('result.level1.level2[2] should be 10.', () => {
+    it('given merged..., then result.level1.level2[2] is 10', () => {
       expect(result.level1.level2[2]).toBe(10);
     });
 
-    it('result.first should be 1', () => {
+    it('given merged..., then result.first is 1', () => {
       expect(result.first).toBe(1);
     });
 
-    it('result.second should be "two"', () => {
+    it('given merged..., then result.second is "two"', () => {
       expect(result.second).toBe('two');
     });
 
-    it('result.array should be an array', () => {
+    it('given merged..., then result.array is an array', () => {
       expect(Array.isArray(result.array)).toBe(true);
     });
 
-    it('result.array[0] should be 1', () => {
+    it('given merged..., then result.array[0] is 1', () => {
       expect(result.array[0]).toBe(1);
     });
 
-    it('result.array[1] should be 2', () => {
+    it('given merged..., then result.array[1] is 2', () => {
       expect(result.array[1]).toBe(2);
     });
   });

@@ -1,4 +1,5 @@
 export { GLOBAL_CONTEXT_TYPE, globalContext } from './constants';
+export { createMediatorContextUtils, getContextUtils } from './createMediatorContextUtils';
 export { isGlobalContext } from './isGlobalContext';
 export { setAsGlobalContext } from './setAsGlobalContext';
 
@@ -7,6 +8,6 @@ export type {
   GlobalContext,
   Mediator,
   MediatorFunction,
-  MediatorContextFunction,
   Props,
+  Extras
 } from './types';

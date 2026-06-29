@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createMatchSchemeAsyncStore } from '../../src/createMatchScheme';
 import { MatchMedia } from '../utils';
 
-describe('createMatchSchemeAsyncStore', () => {
+describe('given the createMatchSchemeAsyncStore factory', () => {
   let matchMedia: MatchMedia;
 
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe('createMatchSchemeAsyncStore', () => {
     matchMedia.destroy();
   });
 
-  it('creates a store with default options', async () => {
+  it('given no args, when createMatchSchemeAsyncStore, then returned store has matchScheme, init, setStoreReady, isReady and matchScheme is defined with init fn', async () => {
     const store = createMatchSchemeAsyncStore();
 
     expect(store).toHaveProperty('matchScheme');
@@ -25,7 +25,7 @@ describe('createMatchSchemeAsyncStore', () => {
     expect(typeof store.init).toBe('function');
   });
 
-  it('uses defaultMode "auto" by default', async () => {
+  it('given default store, when accessing matchScheme.getInfo, then mode auto, system light or dark, selected equals system', async () => {
     const store = createMatchSchemeAsyncStore();
 
     const info = store.matchScheme.getInfo();
@@ -34,7 +34,7 @@ describe('createMatchSchemeAsyncStore', () => {
     expect(info.selected).toBe(info.system);
   });
 
-  it('respects custom defaultMode and datasetName', async () => {
+  it('given options with defaultMode dark and datasetName, when create..., then matchScheme info has mode and selected dark', async () => {
     const store = createMatchSchemeAsyncStore({
       defaultMode: 'dark',
       datasetName: 'theme',
@@ -45,7 +45,7 @@ describe('createMatchSchemeAsyncStore', () => {
     expect(info.selected).toBe('dark');
   });
 
-  it('calls initStore during initialization and marks store as ready', async () => {
+  it('given initStore mock in options, when create and await isReady, then isReady true (initStore would have been used)', async () => {
     const initStoreMock = vi.fn(async () => {});
 
     const store = createMatchSchemeAsyncStore({
@@ -64,7 +64,7 @@ describe('createMatchSchemeAsyncStore', () => {
   //   expect(store2.name).toContain('ColorSchemeStore:Footer');
   // });
 
-  it('provides a functional matchScheme instance', async () => {
+  it('given store with light default, when access matchScheme, then info mode light and has setMode/onModeChange/onSysSchemeChange functions', async () => {
     const store = createMatchSchemeAsyncStore({ defaultMode: 'light' });
 
     const info = store.matchScheme.getInfo();
@@ -74,7 +74,7 @@ describe('createMatchSchemeAsyncStore', () => {
     expect(typeof store.matchScheme.onSysSchemeChange).toBe('function');
   });
 
-  it('init() is a no-op', () => {
+  it('given a store, when init() called, then it does not throw', () => {
     const store = createMatchSchemeAsyncStore();
 
     expect(() => store.init()).not.toThrow();

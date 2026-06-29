@@ -14,7 +14,6 @@
  */
 export function isDateYoungerOf(date: Date, duration: string): boolean {
   const now = new Date();
-  const diff = now.getTime() - date.getTime();
 
   const regex = /(\d+Y)?(\d+M)?(\d+D)?(\d+h)?(\d+m)?(\d+s)?/;
   const matches = duration.match(regex);

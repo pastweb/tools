@@ -1,16 +1,18 @@
 import type { IncomingMessage } from 'node:http';
-import type { RemoveListener } from '../createEventEmitter';
 import type { BrowserHistory, HashHistory, MemoryHistory } from 'history';
+
+export type NodeRequest = IncomingMessage;
 
 export type View = any | (() => Promise<{ default: any, [prop: string]: any }>);
 
 export interface Route {
   path: string;
   redirect?: string;
+  hideInPaths?: boolean;
   view?: View;
   views?: Record<string, View>;
   children?: Route[];
-  [optionName: string]: any;
+  meta?: Record<string, any>;
 };
 
 export type FilterFunction = (value: any) => boolean;
@@ -43,6 +45,27 @@ export interface RouterOptions {
   routes: Route[];
   sensitive?: boolean;
   encode?: (str: string) => string;
+
+  /**
+   * Optional initial server request (Node IncomingMessage or compatible).
+   *
+   * When provided **in an SSR environment** (`typeof window === 'undefined'`),
+   * `createViewRouter` will automatically call `setRequest` during construction.
+   * This ensures that after `await router.ready`, `currentRoute` and `location`
+   * are already resolved to the correct values.
+   *
+   * @example
+   * ```ts
+   * // Server (Node)
+   * const router = createViewRouter({
+   *   routes,
+   *   initialRequest: req, // from http.IncomingMessage
+   * });
+   * await router.ready;
+   * console.log(router.currentRoute.path);
+   * ```
+   */
+  initialRequest?: NodeRequest;
 };
 
 export interface RouterNormalizedOptions {
@@ -57,9 +80,8 @@ export interface RouterNormalizedOptions {
   sensitive: boolean;
 };
 
-export interface RouteOptions {
+export interface RouteMetadata {
   redirect?: string;
-  params?: Record<string, any>;
   [optionName: string]: any;
 };
 
@@ -67,7 +89,7 @@ export interface ParsedRoute {
   path: string;
   regexp: RegExp;
   views: Record<string, View>;
-  options: RouteOptions;
+  meta: RouteMetadata;
   children: ParsedRoute[];
 };
 
@@ -81,7 +103,7 @@ export interface SelectedRoute {
   hash: string;
   setHash: (hash?: string) => void;
   views: Record<string, View>;
-  options: RouteOptions;
+  meta: RouteMetadata;
   child: SelectedRoute | boolean;
 };
 
@@ -102,7 +124,6 @@ export interface RouterLink {
 /*
  * Server-side types
  */
-export type NodeRequest = IncomingMessage;
 
 /**
  * Base SSR Request - Cross-runtime friendly
@@ -122,10 +143,28 @@ export interface ServerRequest {
   method: string;
   /** Request headers */
   headers: Headers;
+
+  /**
+   * Best-guess primary language from the `Accept-Language` header.
+   * Examples: "en-US", "fr", "de-DE"
+   */
+  language: string;
+
+  /**
+   * Detected operating system (with version when available) from the User-Agent string.
+   * Examples: "macOS 10.15.7", "Windows 10", "iOS 17.2", "Android 14", "Linux", "Unknown"
+   */
+  os: string;
+
+  /**
+   * User's preferred color scheme, derived from modern client hints (`Sec-CH-Prefers-Color-Scheme`)
+   * or common cookie patterns (e.g. `prefers-color-scheme=dark`).
+   */
+  colorScheme: 'light' | 'dark' | 'no-preference';
 };
 
 /**
- * Render function signature used by page-router
+ * Render function signature used by SSR router
  */
 export type RenderFunction = (request: ServerRequest) => Promise<string>;
 
@@ -141,6 +180,14 @@ export interface DocumentSettings {
   bodyAttrs?: Record<string, string>;
 };
 
+export interface RouterState {
+  location: Location;
+  currentRoute: SelectedRoute;
+  paths: Route[];
+  isResolving: boolean;
+  base: string;
+};
+
 export interface ViewRouter {
   back: () => void;
   currentRoute: SelectedRoute;
@@ -149,11 +196,10 @@ export interface ViewRouter {
   preloader: any;
   paths: Route[];
   isResolving: boolean;
+  base: string;
   setBase: (base: string) => void;
   addRoute: (route: Route) => Promise<void>;
   getRoute: (path: string) => Promise<SelectedRoute | false>;
-  onRouteChange: (fn: (route: SelectedRoute) => void) => RemoveListener;
-  onRouteAdded: (fn: (routes: Route[]) => void) => RemoveListener;
   navigate: (path: string, state?: any) => Promise<void>;
   push: (path: string, state?: any) => Promise<void>;
   replace: (path: string, state?: any) => void;
@@ -165,5 +211,24 @@ export interface ViewRouter {
   request: ServerRequest; // Expose the current server request (SSR-only)
   setDocument: (settings: DocumentSettings) => void;
   documentSettings: DocumentSettings;
-};
+  initialSetup: () => Promise<void>; // Method to perform initial setup, including processing the initial route and setting up history listeners (useful for SSR to ensure correct initial render and tests)
 
+  /**
+   * A promise that resolves once the router has performed its initial route resolution.
+   *
+   * - In the browser: resolves after the automatic initialization from `window.location`.
+   * - With `initialRequest`: resolves after automatic SSR initialization.
+   * - Otherwise (plain SSR): resolves immediately. You must call `setRequest` or `initialSetup` yourself.
+   *
+   * Use `await router.ready` before reading `currentRoute` / `location` if you need
+   * a guaranteed correct initial value (avoids the transient `EMPTY_ROUTE`).
+   *
+   * @example
+   * ```ts
+   * const router = createViewRouter({ routes });
+   * await router.ready;
+   * console.log(router.currentRoute.path); // safe to read
+   * ```
+   */
+  ready: Promise<void>;
+};

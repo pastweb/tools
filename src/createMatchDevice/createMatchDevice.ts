@@ -1,5 +1,5 @@
 import { createEventEmitter } from '../createEventEmitter';
-import { isSSR } from '../isSSR';
+import { isBrowser } from '../envs';
 import { noop } from '../noop';
 import type { MatchDevice, DeviceConfig, DevicesConfig, MatchDevicesResult } from './types';
 
@@ -16,7 +16,7 @@ export function createMatchDevice(config: DevicesConfig = {}): MatchDevice {
   let onChangeCallback: (devices: MatchDevicesResult) => void = noop;
 
   Object.entries(config).forEach(([deviceName, deviceConfig]: [string, DeviceConfig]) => {
-    const forceFalse = isSSR && !deviceConfig.userAgent ? true : false;
+    const forceFalse = !isBrowser && !deviceConfig.userAgent ? true : false;
 
     if (forceFalse) {
       devices[deviceName] = false;
@@ -27,7 +27,7 @@ export function createMatchDevice(config: DevicesConfig = {}): MatchDevice {
     const userAgent = deviceConfig.userAgent || window && window.navigator.userAgent;
     let  result = !uaTest ? false : typeof uaTest === 'function' ? uaTest(userAgent) : (uaTest as RegExp).test(userAgent);
     
-    const mql: MediaQueryList | null = !isSSR && mediaQuery ? window.matchMedia(mediaQuery) : null;
+    const mql: MediaQueryList | null = isBrowser && mediaQuery ? window.matchMedia(mediaQuery) : null;
 
     if (mql && mediaQuery) {
       mqlList.add(mql);

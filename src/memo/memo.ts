@@ -36,7 +36,7 @@ export function getKey(map:Map<any[], any>, args: any[]) {
  * @returns A memoized version of the provided function.
  */
 export function memo(func: MemoCallback) {
-  function memorized(...args: any[]) {
+  function memorized(this: unknown, ...args: any[]) {
     const cache: Map<any[], any> = (memorized as any).cache || new Map<any[], any>();
     const key = getKey(cache, args) as any[];
     (memorized as any).cache = cache;

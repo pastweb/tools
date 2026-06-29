@@ -6,7 +6,7 @@ import type { DevicesConfig, MatchDevicesResult, DevicesResult } from '../../src
 
 let matchMedia: MatchMedia;
 
-describe('useMatchDevice', () => {
+describe('given useMatchDevice hook', () => {
   beforeAll(() => {
     matchMedia = new MatchMedia();
   });
@@ -19,8 +19,8 @@ describe('useMatchDevice', () => {
     matchMedia.clear();
   });
 
-  describe('useMatchDevice - devicesConfig', () => {
-    it.each(Object.entries(devicesConfig))(`the property "isDeviceName" in devices result Object sould be true`, (device, config) => {
+  describe('given useMatchDevice with devicesConfig', () => {
+    it.each(Object.entries(devicesConfig))(`given device config "%s" with uaTest, when useMatchDevice(devicesConfig), then matches.devices[device] is true`, (device, config) => {
       const { mediaQuery, uaTest } = config;
       
       if (!mediaQuery && uaTest) {
@@ -31,7 +31,7 @@ describe('useMatchDevice', () => {
       }
     });
 
-    it.each(Object.entries(devicesConfig))(`for the device "%s" the mediaQuery should match so "isDeviceName" should be true`, (device, config) => {
+    it.each(Object.entries(devicesConfig))(`given device config "%s" with mediaQuery, when useMatchDevice after matchMedia setup, then matches.devices[device] is true`, (device, config) => {
       const { mediaQuery, uaTest } = config;
 
       if (mediaQuery && !uaTest) {

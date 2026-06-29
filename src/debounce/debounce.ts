@@ -38,7 +38,7 @@ export function debounce(fn: DebouceCallback, timeout = 300): DebouceCallback {
    *
    * @param args - The arguments to pass to the original function.
    */
-  function debouced(...args: any[]) {
+  function debouced(this: unknown, ...args: any[]) {
     clearTimeout(timer);
     toCall = () => fn.apply(this, args);
     

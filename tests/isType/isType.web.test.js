@@ -17,9 +17,9 @@ const types = {
 
 const testFunc = isType;
 
-describe('isType', () => {
+describe('given the isType function', () => {
   Object.entries(types).forEach(([key, value]) => {
-    it(`should return true for a target "${key}"`, () => {
+    it(`given key "${key}" and value of that type, when isType(key, value), then returns true`, () => {
       expect(testFunc(key, value)).toBe(true);
     });
   });

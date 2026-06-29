@@ -6,40 +6,40 @@ const functions = {
   update: vi.fn()
 };
 
-describe('Entry', () => {
+describe('given the Entry abstraction on web', () => {
   const entryElement = document.querySelector('body') as HTMLElement;
   const firstEntry = createNewEntry({ entryElement, className: 'firstEntry' });
   const { body } = document;
 
-  describe('mount', () => {
+  describe('given mount event on firstEntry', () => {
     firstEntry.emit('mount');
 
-    it('the body element should contains a single node', () => {  
+    it('when mount is emitted for firstEntry, then body contains at least one child node', () => {  
       expect(body.childNodes.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('the html node should be not null', () => {
+    it('when mount emitted, then the .firstEntry html node exists in dom', () => {
       const node = document.querySelector('.firstEntry') as HTMLElement;
       expect(node !== null).toBe(true);
     });
 
-    it('the body node element be a div', () => {
+    it('when mount emitted for firstEntry, then the element is a DIV', () => {
       const node = document.querySelector('.firstEntry') as HTMLElement;
       expect(node.tagName).toBe('DIV');
     });
 
-    it('the div element must have the class "firstEntry"', () => {
+    it('when mount emitted for firstEntry, then the div has class "firstEntry"', () => {
       const node = document.querySelector('.firstEntry') as HTMLElement;
       expect(node.className).toBe('firstEntry');
     });
 
-    it('the div element content should be equal to INITIAL_VALUE constant', () => {
+    it('when mount emitted for firstEntry, then the div innerHTML equals INITIAL_VALUE', () => {
       const node = document.querySelector('.firstEntry') as HTMLElement;
       expect(node.innerHTML).toBe(INITIAL_VALUE);
     });
   });
 
-  describe('update', () => {
+  describe('given update event on secondEntry', () => {
     const secondEntry = createNewEntry({ entryElement, className: 'secondEntry' });
     const spyEvent = vi.spyOn(functions, 'update');
     const spyMethod = vi.spyOn(secondEntry, 'update');
@@ -48,41 +48,41 @@ describe('Entry', () => {
     secondEntry.emit('mount');
     secondEntry.emit('update', 'newValue');
 
-    it('the html node should be not null', () => {
+    it('after update emit on secondEntry, then the .secondEntry html node exists', () => {
       const node = document.querySelector('.secondEntry') as HTMLElement;
       expect(node !== null).toBe(true);
     });
 
-    it('the body node element be a div', () => {
+    it('after update emit on secondEntry, then the node is a DIV', () => {
       const node = document.querySelector('.secondEntry') as HTMLElement;
       expect(node.tagName).toBe('DIV');
     });
 
-    it('the div element must have the class "secondEntry"', () => {
+    it('after update emit on secondEntry, then the div has class "secondEntry"', () => {
       const node = document.querySelector('.secondEntry') as HTMLElement;
       expect(node.className).toBe('secondEntry');
     });
 
-    it('the div element content should be equal to "newValue" constant', () => {
+    it('after update emit with newValue on secondEntry, then the div innerHTML is "newValue"', () => {
       const node = document.querySelector('.secondEntry') as HTMLElement;
       expect(node.innerHTML).toBe('newValue');
     });
 
-    it('the function update should be called', () => {
+    it('after emitting update on secondEntry, then the registered update listener function is called', () => {
       expect(spyEvent).toHaveBeenCalled();
     });
 
-    it('the method update should be called', () => {
+    it('after emitting update on secondEntry, then the spied update method on the entry is called', () => {
       expect(spyMethod).toHaveBeenCalled();
     });
   });
 
-  describe('unmount', () => {
+  describe('given unmount event on thirdEntry', () => {
     const thirdEntry = createNewEntry({ entryElement, className: 'thirdEntry' });
     thirdEntry.emit('mount');
     thirdEntry.emit('unmount');
 
-    it('the div element with the class "thirdEntry" should not exists', () => {
+    it('when unmount is emitted for thirdEntry, then the .thirdEntry div no longer exists in the document', () => {
       const node = document.querySelector('.thirdEntry');
       expect(node).toBe(null);
     });

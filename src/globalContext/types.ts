@@ -1,6 +1,7 @@
 export type GlobalContext = Record<string, any>;
 
 export type Props = any & object;
+export type Extras = any & object;
 
 export interface ContextUtils {
   getContext: <T>(key: string) => T | undefined;
@@ -9,6 +10,4 @@ export interface ContextUtils {
 
 export type Mediator<State extends {} = {}> = { state?: State; } & object;
 
-export type MediatorFunction<T = any> = (props: Props) => any & T;
-
-export type MediatorContextFunction<T = any> = (props: Props, ctxUtils: ContextUtils) => any & T;
+export type MediatorFunction<T = any> = (props: Props, extras?: Extras) => any & T;

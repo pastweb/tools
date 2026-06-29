@@ -1,10 +1,10 @@
 import { createEventEmitter } from '../createEventEmitter';
 import { deepMerge } from '../deepMerge';
 import { noop } from '../noop';
-import { isSSR } from '../isSSR';
+import { isBrowser } from '../envs';
 import { hashID } from '../hashID';
 import { ENTRY, READ_ONLY_PROPS, METHODS } from './constants';
-import { immutableProperty } from '../immutableProperty';
+import { setReadOnly } from '../setReadOnly';
 import type { Entry, EntryOptions } from './types';
 
 const ssrIds = new Set<string>();
@@ -49,7 +49,7 @@ export function createEntry<E extends Entry<O>, O extends EntryOptions>(options?
 
   setOptions(_options);
 
-  if (isSSR) {
+  if (!isBrowser) {
     const ssrId = hashID(ssrIds, { prefix: 'SSR' });
     ssrIds.add(ssrId);
     entry.ssrId = ssrId;
@@ -163,7 +163,7 @@ export function createEntry<E extends Entry<O>, O extends EntryOptions>(options?
     configurable: false,
   });
 
-  immutableProperty<Entry<O>>(entry, READ_ONLY_PROPS as Extract<keyof Entry<O>, string>[]);
+  setReadOnly<Entry<O>>(entry, READ_ONLY_PROPS as Extract<keyof Entry<O>, string>[]);
 
   return entry as E;
 }

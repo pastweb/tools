@@ -1,4 +1,4 @@
-import { immutableProperty } from '../immutableProperty';
+import { setReadOnly } from '../setReadOnly';
 import { ASYNC_STORE } from './constants';
 import type { AsyncStoreOptions } from './types';
 
@@ -75,7 +75,7 @@ export function createAsyncStore<T>(options: AsyncStoreOptions): T {
     configurable: false,
   });
 
-  immutableProperty(asyncStore, ['setStoreReady', 'isReady']);
+  setReadOnly(asyncStore, ['setStoreReady', 'isReady']);
 
   return asyncStore as T;
 }

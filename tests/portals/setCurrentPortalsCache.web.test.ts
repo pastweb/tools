@@ -2,18 +2,18 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { currentPortalsCache, setCurrentPortalsCache } from '../../src/portals/setCurrentPortalsCache';
 import type { Portals } from '../../src/portals/types';
 
-describe('currentPortalsCache & setCurrentPortalsCache', () => {
+describe('given currentPortalsCache and setCurrentPortalsCache', () => {
   beforeEach(() => {
     // Reset to initial state before each test
     setCurrentPortalsCache({});
   });
 
-  it('has an empty object as initial value', () => {
+  it('given the module is loaded, when checking currentPortalsCache before any sets, then it has an empty object as initial value', () => {
     expect(currentPortalsCache).toEqual({});
     expect(Object.keys(currentPortalsCache)).toHaveLength(0);
   });
 
-  it('sets the currentPortalsCache to the provided value', () => {
+  it('given new portals data, when setCurrentPortalsCache is called, then currentPortalsCache is set to the provided value by reference', () => {
     const newPortals: Portals = {
       modal: {
         'entry-1': true,
@@ -30,7 +30,7 @@ describe('currentPortalsCache & setCurrentPortalsCache', () => {
     expect(currentPortalsCache).toEqual(newPortals);
   });
 
-  it('overwrites previous cache when set again', () => {
+  it('given an initial cache set, when setCurrentPortalsCache is called again with different value, then it overwrites the previous cache', () => {
     const portals1: Portals = { modal: { '1': true } };
     const portals2: Portals = { drawer: { '2': true } };
 
@@ -42,7 +42,7 @@ describe('currentPortalsCache & setCurrentPortalsCache', () => {
     expect(currentPortalsCache).not.toEqual(portals1);
   });
 
-  it('assigns by reference (no deep clone)', () => {
+  it('given portals object, when setCurrentPortalsCache is called, then it assigns by reference with no deep clone', () => {
     const originalPortals: Portals = {
       modal: { 'entry-1': true },
     };
@@ -57,14 +57,14 @@ describe('currentPortalsCache & setCurrentPortalsCache', () => {
     expect(currentPortalsCache.modal['entry-2']).toBe(true);
   });
 
-  it('can set an empty object', () => {
+  it('given an empty object, when setCurrentPortalsCache is called, then currentPortalsCache becomes empty', () => {
     setCurrentPortalsCache({});
 
     expect(currentPortalsCache).toEqual({});
     expect(Object.keys(currentPortalsCache)).toHaveLength(0);
   });
 
-  it('can set complex nested portals structure', () => {
+  it('given a complex nested portals structure, when setCurrentPortalsCache is called, then it sets and allows access to the nested data', () => {
     const complexPortals: Portals = {
       modal: {
         'modal-1': { id: 'modal-1' } as any,

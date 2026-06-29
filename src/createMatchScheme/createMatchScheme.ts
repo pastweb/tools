@@ -4,19 +4,19 @@ import type { SchemeOptions, MatchScheme } from './types';
 /**
  * Creates a match scheme manager that allows setting and tracking the color scheme mode.
  *
- * @param config - Configuration options for the match scheme.
+ * @param options - Configuration options for the match scheme.
  * @returns An object with methods to manage and listen to scheme changes.
  */
-export function createMatchScheme(config: SchemeOptions = {}): MatchScheme {
-  const { defaultMode = 'auto' } = config;
+export function createMatchScheme(options: SchemeOptions = {}): MatchScheme {
+  const { defaultMode = 'auto' } = options;
   
   /**
    * Determines the dataset attribute name used for storing the color scheme.
    * Defaults to 'colorScheme' if a string is not provided.
    */
-  const datasetName: string | false = config.datasetName 
-    ? typeof config.datasetName === 'string' 
-      ? config.datasetName 
+  const datasetName: string | false = options.datasetName 
+    ? typeof options.datasetName === 'string' 
+      ? options.datasetName 
       : 'colorScheme' 
     : false;
 

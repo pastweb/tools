@@ -7,7 +7,7 @@ vi.mock('../setAsPortalHandler', () => ({
   setAsPortalHandler: vi.fn((obj) => obj),
 }));
 
-describe('handlerConstructor', () => {
+describe('given the handlerConstructor function', () => {
   let mockPortal: Portal;
   let getPortalElement: () => HTMLElement;
 
@@ -26,7 +26,7 @@ describe('handlerConstructor', () => {
     } as Portal;
   });
 
-  it('returns a PortalHandler object', () => {
+  it('given getPortalElement, mockPortal and component, when handlerConstructor is called, then it returns a PortalHandler object with all required properties', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => '<div />');
 
     expect(handler).toHaveProperty('id');
@@ -39,12 +39,12 @@ describe('handlerConstructor', () => {
     expect(handler).toHaveProperty('portal');
   });
 
-  it('marks the handler with PORTAL_HANDLER symbol', () => {
+  it('given a constructed handler, when checked with isPortalHandler, then it is marked with the PORTAL_HANDLER symbol', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
     expect(isPortalHandler(handler)).toBe(true);
   });
 
-  it('open() calls portal.open and sets the id', () => {
+  it('given a handler, when open is called, then it calls portal.open with the component and sets the handler id to the returned value', () => {
     const component = () => 'Test';
     const handler = handlerConstructor(getPortalElement, mockPortal, component);
 
@@ -55,7 +55,7 @@ describe('handlerConstructor', () => {
     expect(result).toBe('entry-123');
   });
 
-  it('update() calls portal.update with current id', () => {
+  it('given a handler with an id set, when update is called, then it calls portal.update with the current id and the provided data', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
     handler.id = 'entry-456';
 
@@ -64,7 +64,7 @@ describe('handlerConstructor', () => {
     expect(mockPortal.update).toHaveBeenCalledWith('entry-456', { visible: false, title: 'Updated' });
   });
 
-  it('update() returns false if no id is set', () => {
+  it('given a handler with no id set, when update is called, then it returns false and does not call portal.update', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
     const result = handler.update({ visible: true });
 
@@ -72,7 +72,7 @@ describe('handlerConstructor', () => {
     expect(mockPortal.update).not.toHaveBeenCalled();
   });
 
-  it('close() calls portal.close with current id', () => {
+  it('given a handler with an id set, when close is called, then it calls portal.close with the current id', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
     handler.id = 'entry-789';
 
@@ -81,7 +81,7 @@ describe('handlerConstructor', () => {
     expect(mockPortal.close).toHaveBeenCalledWith('entry-789');
   });
 
-  it('remove() calls portal.remove and resets id on success', () => {
+  it('given a handler with an id set, when remove is called and succeeds, then it calls portal.remove and resets the id to false', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
     handler.id = 'entry-999';
 
@@ -92,7 +92,7 @@ describe('handlerConstructor', () => {
     expect(handler.id).toBe(false);
   });
 
-  it('remove() does not reset id if remove fails', () => {
+  it('given a handler with an id set, when remove is called but fails, then it does not reset the id', () => {
     mockPortal.remove = vi.fn(() => false);
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
     handler.id = 'entry-111';
@@ -103,7 +103,7 @@ describe('handlerConstructor', () => {
     expect(handler.id).toBe('entry-111'); // id should remain
   });
 
-  it('onRemove calls portal.setOnRemove', () => {
+  it('given a handler, when onRemove is called with a callback, then it delegates to portal.setOnRemove', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
     const onRemoveFn = vi.fn();
 
@@ -112,7 +112,7 @@ describe('handlerConstructor', () => {
     expect(mockPortal.setOnRemove).toHaveBeenCalledWith(onRemoveFn);
   });
 
-  it('getPortalElement returns the correct element', () => {
+  it('given a handler, when getPortalElement is called, then it returns the element from the provided getPortalElement function', () => {
     const handler = handlerConstructor(getPortalElement, mockPortal, () => null);
 
     const element = handler.getPortalElement();

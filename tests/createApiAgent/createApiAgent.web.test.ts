@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { createApiAgent } from '../../src/createApiAgent';
+import { createApiAgent, createQueryCache } from '../../src/api';
 
-describe('createApiAgent', () => {
+describe('given createApiAgent factory, when instantiating and configuring an agent, then it supports request methods, caching, pagination, auth, and file operations with correct behavior', () => {
   let mock: MockAdapter;
 
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('createApiAgent', () => {
     vi.useRealTimers();
   });
 
-  it('should create an agent with default settings', async () => {
+  it('given no options provided, when createApiAgent is called, then the agent has undefined withCredentials, default headers object, and empty cache', async () => {
     const defaultHeaders = {
       common: {
         Accept: 'application/json, text/plain, */*',
@@ -39,115 +39,180 @@ describe('createApiAgent', () => {
     expect(agent.cache.getAll()).toEqual([]);
   });
 
-  it('should create an agent with custom headers and cache enabled', async () => {
+  it('given custom headers and cache enabled, when createApiAgent is called, then agentConfig.headers match the provided headers and cache starts empty', async () => {
     const headers = { 'X-Custom-Header': 'value' };
-    const agent = createApiAgent({ headers, cache: true });
+    const queryCache = createQueryCache();
+    const agent = createApiAgent({ headers, queryCache });
     expect(JSON.stringify(agent.agentConfig.headers)).toEqual(JSON.stringify(headers));
     expect(agent.cache.getAll()).toEqual([]);
   });
 
-  it('should create an agent with credentials', async () => {
+  it('given withCredentials true, when createApiAgent is called, then withCredentials is true for agentConfig, uploadConfig and downloadConfig', async () => {
     const agent = createApiAgent({ withCredentials: true });
     expect(agent.agentConfig.withCredentials).toBe(true);
     expect(agent.uploadConfig.withCredentials).toBe(true);
     expect(agent.downloadConfig.withCredentials).toBe(true);
   });
 
-  it('should set agent configuration', () => {
+  it('given a created agent, when setAgentOptions is called with config, then the agentConfig is updated accordingly', () => {
     const agent = createApiAgent();
     const config = { withCredentials: true, pagination: { defaultPageLimit: 50 } };
     agent.setAgentOptions(config);
     expect(agent.agentConfig.withCredentials).toBe(true);
   });
 
-  it('should merge agent configuration', () => {
+  it('given a created agent, when mergeAgentConfig is called with new settings, then the provided headers are merged into agentConfig', () => {
     const agent = createApiAgent();
     const newSettings = { headers: { 'X-Custom-Header': 'value' } };
     agent.mergeAgentConfig(newSettings);
     expect((agent.agentConfig.headers as Record<string, string>)['X-Custom-Header']).toEqual(newSettings.headers['X-Custom-Header']);
   });
 
-  it('should send a GET request with caching', async () => {
-    const agent = createApiAgent({ cache: true });
+  it('given an agent with cache enabled, when get is called with a structured queryKey, then data is cached under the serialized key (not the raw URL), and later failed requests return cached data', async () => {
+    const queryCache = createQueryCache();
+    const agent = createApiAgent({ queryCache });
     const url = '/test';
     const responseData = { data: 'test' };
     mock.onGet(url).reply(200, responseData);
 
-    const response1 = await agent.get(url, { queryKey: 'test-key' });
+    const qk = ['test', 'resource'];
+    const serializedKey = JSON.stringify(qk);
+
+    const response1 = await agent.get(url, { queryKey: qk });
     expect(response1.data).toEqual(responseData);
-    expect(agent.cache.has('test-key')).toBe(true);
+    expect(agent.cache.has(url)).toBe(false);
+    expect(agent.cache.has(serializedKey)).toBe(true);
 
     mock.onGet(url).reply(500); // Simulate failure
-    const response2 = await agent.get(url, { queryKey: 'test-key' });
-    expect(response2.data).toEqual(responseData); // Should return cached response
+    const response2 = await agent.get(url, { queryKey: qk });
+    expect(response2.data).toEqual(responseData); // cache hit via serialized key
   });
 
-  it('should respect expireIn for cached GET requests', async () => {
-    const agent = createApiAgent({ cache: true });
+  it('given a cached GET with expireIn, when cache timestamp is expired via timer advance, then a fresh request is made and cache updated on subsequent get', async () => {
+    const queryCache = createQueryCache();
+    const agent = createApiAgent({ queryCache });
     const url = '/test';
     const responseData = { data: 'test' };
     mock.onGet(url).reply(200, responseData);
 
     // First request: cache the response
-    const response1 = await agent.get(url, { queryKey: 'test-key', expireIn: '1s' });
+    const response1 = await agent.get(url, { expireIn: '1s' });
     expect(response1.data).toEqual(responseData);
-    expect(agent.cache.has('test-key')).toBe(true);
+    expect(agent.cache.has(url)).toBe(true);
     expect(mock.history.get.length).toBe(1);
 
-    // Modify the cache entry to simulate an older timestamp (2 seconds ago)
-    const cacheEntry = agent.cache.get('test-key');
+    // Modify the cache entry (QueryData) to simulate an older timestamp (2 seconds ago)
+    const cacheEntry = agent.cache.get(url);
     if (cacheEntry) {
-      agent.cache.set('test-key', {
-        ...cacheEntry,
-        timestamp: Date.now() - 2000, // Set timestamp to 2 seconds ago
-      });
+      cacheEntry.timestamp = Date.now() - 2000;
     }
 
-    // Advance timers by 2 seconds to ensure cache is checked after expiration
+    // Advance timers by 2 seconds to ensure cache expiration check uses wall time
     vi.advanceTimersByTime(2000);
 
-    // Second request: should make a new request because cache is stale
-    const response2 = await agent.get(url, { queryKey: 'test-key' });
-    expect(agent.cache.has('test-key')).toBe(true); // Cache is updated with new response
+    // Second request: should make a new request because cache is stale (isDateYoungerOf fails)
+    const response2 = await agent.get(url);
+    expect(agent.cache.has(url)).toBe(true); // Cache is updated with new response
     expect(mock.history.get.length).toBe(2); // New request was made
     expect(response2.data).toEqual(responseData);
   });
 
-  it('should invalidate cache with single query key', async () => {
-    const agent = createApiAgent({ cache: true });
+  it('given a cached entry, when invalidateQuery is called with that url key, then the cache entry is marked as invalid', async () => {
+    const queryCache = createQueryCache();
+    const agent = createApiAgent({ queryCache });
     const url = '/test';
     const responseData = { data: 'test' };
     mock.onGet(url).reply(200, responseData);
 
-    await agent.get(url, { queryKey: 'test-key' });
-    expect(agent.cache.has('test-key')).toBe(true);
+    await agent.get(url);
+    expect(agent.cache.has(url)).toBe(true);
 
-    agent.cache.invalidateQuery('test-key');
-    const data = agent.cache.get('test-key');
+    agent.cache.invalidateQuery(url);
+    const data = agent.cache.get(url);
     expect(data?.invalid).toBe(true);
   });
 
-  it('should invalidate cache with array of query keys as prefixes', async () => {
-    const agent = createApiAgent({ cache: true });
+  it('given cached entries, when invalidateQuery is called with an array of url prefixes, then all matching cache entries (by url) are marked invalid', async () => {
+    const queryCache = createQueryCache();
+    const agent = createApiAgent({ queryCache });
     const url1 = '/api/users/1';
     const url2 = '/api/posts/1';
     const responseData = { data: 'test' };
     mock.onGet(url1).reply(200, responseData);
     mock.onGet(url2).reply(200, responseData);
 
-    await agent.get(url1, { queryKey: 'users-1' });
-    await agent.get(url2, { queryKey: 'posts-1' });
-    expect(agent.cache.has('users-1')).toBe(true);
-    expect(agent.cache.has('posts-1')).toBe(true);
+    await agent.get(url1);
+    await agent.get(url2);
+    expect(agent.cache.has(url1)).toBe(true);
+    expect(agent.cache.has(url2)).toBe(true);
 
-    agent.cache.invalidateQuery(['users', 'posts']);
-    const data1 = agent.cache.get('users-1');
-    const data2 = agent.cache.get('posts-1');
+    // Multiple different prefixes: call invalidateQuery for each (or use a broader common prefix)
+    agent.cache.invalidateQuery('/api/users');
+    agent.cache.invalidateQuery('/api/posts');
+    const data1 = agent.cache.get(url1);
+    const data2 = agent.cache.get(url2);
     expect(data1?.invalid).toBe(true);
     expect(data2?.invalid).toBe(true);
   });
 
-  it('should handle pagination in GET response', async () => {
+  it('given a cached entry using structured queryKey, when invalidateQuery is called with matching array key, then it is marked invalid', async () => {
+    const queryCache = createQueryCache();
+    const agent = createApiAgent({ queryCache });
+    const url = '/test-structured';
+    const qk = ['resource', 'abc123'];
+    const responseData = { data: 'structured' };
+    mock.onGet(url).reply(200, responseData);
+
+    await agent.get(url, { queryKey: qk });
+    const serialized = JSON.stringify(qk);
+    expect(agent.cache.has(serialized)).toBe(true);
+
+    // Should accept the same array form used at query time
+    agent.cache.invalidateQuery(qk);
+    expect(agent.cache.get(serialized)?.invalid).toBe(true);
+  });
+
+  it('given an agent created without queryCache, when get is called using queryKey or expireIn, then console.error is emitted explaining the missing queryCache', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const agent = createApiAgent();
+    mock.onGet('/warn1').reply(200, {});
+    mock.onGet('/warn2').reply(200, {});
+
+    await agent.get('/warn1', { queryKey: ['test'] });
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('cache-related options (queryKey and/or expireIn)')
+    );
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('no `queryCache` was passed in AgentOptions')
+    );
+
+    spy.mockClear();
+
+    await agent.get('/warn2', { expireIn: '30s' });
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('cache-related options')
+    );
+
+    spy.mockRestore();
+  });
+
+  it('given an agent created with queryCache, when get is called with queryKey/expireIn, then no console.error about missing queryCache is emitted', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const queryCache = createQueryCache();
+    const agent = createApiAgent({ queryCache });
+
+    mock.onGet('/ok').reply(200, {});
+    await agent.get('/ok', { queryKey: ['ok'], expireIn: '1m' });
+
+    // The only possible errors would be unrelated; ensure our specific message wasn't logged
+    const calls = spy.mock.calls.flat();
+    expect(calls.some(c => typeof c === 'string' && c.includes('no `queryCache` was passed'))).toBe(false);
+
+    spy.mockRestore();
+  });
+
+  it('given pagination options with header, when get returns a response with Content-Range header, then the response includes a parsed pagination object', async () => {
     const agent = createApiAgent({
       headers: {
         Accept: 'application/json',
@@ -168,7 +233,7 @@ describe('createApiAgent', () => {
     expect(response.pagination).toEqual({ current: 1, of: 2, start: 0, end: 1, total: 20, size: 10 });
   });
 
-  it('should send a POST request with mutation options', async () => {
+  it('given onSuccess and onError handlers, when post succeeds, then the response is returned and onSuccess is invoked while onError is not', async () => {
     const agent = createApiAgent();
     const url = '/test';
     const data = { key: 'value' };
@@ -182,7 +247,7 @@ describe('createApiAgent', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it('should handle POST request error with mutation options', async () => {
+  it('given onSuccess and onError handlers, when post fails with 500, then promise rejects, onSuccess not called, and onError is called', async () => {
     const agent = createApiAgent();
     const url = '/test';
     const data = { key: 'value' };
@@ -195,7 +260,7 @@ describe('createApiAgent', () => {
     expect(onError).toHaveBeenCalled();
   });
 
-  it('should send a GET request without credentials if excluded', async () => {
+  it('given withCredentials true but url in exclude list, when get is called on that url, then the request succeeds and returns data', async () => {
     const url = '/test';
     const agent = createApiAgent({ withCredentials: true, exclude: [url] });
     mock.onGet(url).reply(200, { data: 'test' });
@@ -204,7 +269,7 @@ describe('createApiAgent', () => {
     expect(response.data).toEqual({ data: 'test' });
   });
 
-  it('should attach token header if onGetValidToken is provided', async () => {
+  it('given onGetValidToken returning a token header, when get is called, then the response config headers contain the Authorization token', async () => {
     const tokenHeader = { Authorization: 'Bearer token' };
     const onGetValidToken = vi.fn().mockResolvedValue(tokenHeader);
     const agent = createApiAgent({ onGetValidToken });
@@ -215,7 +280,7 @@ describe('createApiAgent', () => {
     expect(JSON.stringify(response.config.headers)).toEqual(JSON.stringify(tokenHeader));
   });
 
-  it('should handle unauthorized response', async () => {
+  it('given onUnauthorizedResponse handler, when get receives a 401 response, then the handler is called and the promise rejects', async () => {
     const onUnauthorizedResponse = vi.fn();
     const agent = createApiAgent({ onUnauthorizedResponse });
     const url = '/test';
@@ -225,13 +290,13 @@ describe('createApiAgent', () => {
     expect(onUnauthorizedResponse).toHaveBeenCalled();
   });
 
-  it('should calculate pagination offset correctly', () => {
+  it('given default pagination limit, when pageToOffset is invoked with page number and limit, then it computes the correct byte offset for pagination', () => {
     const agent = createApiAgent({ pagination: { defaultPageLimit: 10 } });
     expect(agent.pageToOffset(2, 10)).toBe(10);
     expect(agent.pageToOffset(1, 5)).toBe(0);
   });
 
-  it('should send a POST request', async () => {
+  it('given an agent, when post is called with url and data, then the response contains the expected data from server', async () => {
     const agent = createApiAgent();
     const url = '/test';
     const data = { key: 'value' };
@@ -241,7 +306,7 @@ describe('createApiAgent', () => {
     expect(response.data).toEqual({ data: 'test' });
   });
 
-  it('should handle file upload', async () => {
+  it('given an agent and FormData, when upload is called, then the server response for the upload is returned', async () => {
     const agent = createApiAgent();
     const url = '/upload';
     const data = new FormData();
@@ -251,7 +316,7 @@ describe('createApiAgent', () => {
     expect(response.data).toEqual({ data: 'uploaded' });
   });
 
-  it('should handle file download', async () => {
+  it('given a download url and filename, when download is called on agent, then blob response is received and DOM operations for download are performed', async () => {
     const agent = createApiAgent();
     const url = '/download';
     const fileName = 'file.txt';
@@ -275,7 +340,7 @@ describe('createApiAgent', () => {
     removeChildSpy.mockRestore();
   });
 
-  it('should send a GET request without ast credentials', async () => {
+  it('given withCredentials and exclude containing the url, when get is called, then the request completes successfully without credentials enforcement', async () => {
     const url = '/test';
     const agent = createApiAgent({ withCredentials: true, exclude: [ url ] });
     mock.onGet(url).reply(200, { data: 'test' });
@@ -284,7 +349,7 @@ describe('createApiAgent', () => {
     expect(response.data).toEqual({ data: 'test' });
   });
 
-  it('should attach token header if onGetValidToken is provided', async () => {
+  it('given onGetValidToken returning a token header, when get is called, then the response config headers contain the Authorization token', async () => {
     const tokenHeader = { Authorization: 'Bearer token' };
     const onGetValidToken = vi.fn().mockResolvedValue(tokenHeader);
     const agent = createApiAgent({ onGetValidToken });
@@ -295,7 +360,7 @@ describe('createApiAgent', () => {
     expect(JSON.stringify(response.config.headers)).toEqual(JSON.stringify(tokenHeader));
   });
 
-  it('should abort request if onGetValidToken returns null', async () => {
+  it('given onGetValidToken that resolves to null, when get is called, then the request uses an AbortSignal in its config', async () => {
     const onGetValidToken = vi.fn().mockResolvedValue(null);
     const agent = createApiAgent({ onGetValidToken });
     const url = '/test';

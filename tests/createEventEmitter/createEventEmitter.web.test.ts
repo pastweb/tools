@@ -24,36 +24,36 @@ function getEmitter(funcName = 'first') {
   return { emitter, subscription, spy };
 }
 
-describe('createEventEmitter', () => {
-  it('on register event the emitter should return a defined object.', () => {
+describe('given the createEventEmitter factory', () => {
+  it('given a created emitter, when on is called to register an event, then it returns a defined subscription object that is an object', () => {
     const { subscription } = getEmitter();
     expect(subscription).toBeDefined();
     expect(isObject(subscription)).toBe(true);
   });
 
-  it('the RemoveListener should contains a key and a removeListener properties.', () => {
+  it('given a subscription from on(), then the RemoveListener subscription has eventCallbackKey and removeListener properties', () => {
     const { subscription } = getEmitter();
     expect(subscription.hasOwnProperty('eventCallbackKey')).toBe(true);
     expect(subscription.hasOwnProperty('removeListener')).toBe(true);
   });
 
-  it('the "eventCallbackKey" value in the event Object should by a Symbol.', () => {
+  it('given a subscription, then its eventCallbackKey is a symbol', () => {
     const { subscription } = getEmitter();
     expect(typeof subscription.eventCallbackKey).toBe('symbol');
   });
 
-  it('the "removeListener" value in the event Object should by a function.', () => {
+  it('given a subscription, then its removeListener is a function', () => {
     const { subscription } = getEmitter();
     expect(typeof subscription.removeListener).toBe('function');
   });
 
-  it('the first function should be registered and called on the first event.', () => {
+  it('given emitter with first event registered, when emit the first event, then the registered first fn is called once', () => {
     const { emitter, spy } = getEmitter();
     emitter.emit(events.first);
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('the first function should receive the arguments present on the emit call.', () => {
+  it('given emitter with spy on first, when emit first event with args, then the fn receives the args and is called', () => {
     const { emitter, spy } = getEmitter();
     let functionArgs: any[] = [];
 
@@ -69,7 +69,7 @@ describe('createEventEmitter', () => {
     expect(functionArgs[1]).toBe(2);
   });
 
-  it('removeListener inside the event Object should works.', () => {
+  it('given a subscription, when its removeListener is called then emit, then the spy is not called again (count stays)', () => {
     const { emitter, subscription, spy } = getEmitter();
     subscription.removeListener();
     emitter.emit(events.first);
@@ -77,7 +77,7 @@ describe('createEventEmitter', () => {
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
-  it('removeListener inside emitter instance should works.', () => {
+  it('given emitter, when removeListener called on it with the key then emit, then the spy count does not increase', () => {
     const { emitter, subscription, spy } = getEmitter();
 
     emitter.removeListener(subscription.eventCallbackKey);
@@ -86,7 +86,7 @@ describe('createEventEmitter', () => {
     expect(spy).toHaveBeenCalledTimes(2);
   });
 
-  it('registering the same function the EventCallbackKey should be different', () => {
+  it('given emitter, when registering the same fn twice for same event, then the two subscriptions have different eventCallbackKey', () => {
     const { emitter, subscription } = getEmitter();
     const subscription_2: RemoveListener = emitter.on(
       events.first,
@@ -97,7 +97,7 @@ describe('createEventEmitter', () => {
     ).toBe(true);
   });
 
-  it('the function should called 4 times after the second reference has been removed.', () => {
+  it('given emitter and two subs for first, when remove second sub then emit, then spy called total 3 times (initial + after first remove + after second)', () => {
     const { emitter, spy } = getEmitter();
     const subscription_2: RemoveListener = emitter.on(
       events.first,
@@ -109,7 +109,7 @@ describe('createEventEmitter', () => {
     expect(spy).toHaveBeenCalledTimes(3);
   });
 
-  it('on register the second event, the emitter should call the second function.', () => {
+  it('given emitter with first sub, when register and emit second event, then second spy called once and first not affected beyond prior calls', () => {
     const { emitter, spy } = getEmitter();
 
     emitter.on(events.second, functions.second);

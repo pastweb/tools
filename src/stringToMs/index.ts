@@ -1,0 +1,1 @@
+export { stringToMs } from './stringToMs';

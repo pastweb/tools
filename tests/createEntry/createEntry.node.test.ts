@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createEntry } from '../../src/createEntry';
 
-describe('createEntry - SSR Features', () => {
-  it('generates ssrId in SSR environment', () => {
+describe('given createEntry for SSR features', () => {
+  it('given initData in SSR env, when createEntry is called, then it generates an ssrId string matching the SSR_ prefix pattern', () => {
     const entry = createEntry({
       initData: { title: 'Test Page' },
     });
@@ -12,19 +12,19 @@ describe('createEntry - SSR Features', () => {
     expect(entry.ssrId).toMatch(/^SSR_(\w+)/); // assuming your hashID prefix
   });
 
-  it('does not generate ssrId in client environment', () => {
+  it('when createEntry is called (in non-SSR), then ssrId may be absent or checked accordingly', () => {
     // This test may be flaky depending on test environment.
-    // We test the behavior when isSSR is false.
+    // We test the behavior when isBrowser is true.
     const entry = createEntry();
 
-    // If running in Node.js (most test runners), isSSR is likely true.
+    // If running in Node.js (most test runners), isBrowser is likely false.
     // So we mainly verify that ssrId is a string when present.
     if (entry.ssrId) {
       expect(entry.ssrId).toMatch(/^SSR_(\w+)/);
     }
   });
 
-  it('memoSSR stores render promise for later use', async () => {
+  it('given a created entry, when memoSSR is called with a promise returning fn, then ssrId is defined and getComposedSSR can be awaited', async () => {
     const entry = createEntry();
     const htmlPromise = Promise.resolve('<div>Hello SSR</div>');
 
@@ -35,7 +35,7 @@ describe('createEntry - SSR Features', () => {
     await entry.getComposedSSR();
   });
 
-  it('getComposedSSR returns composed HTML from multiple entries', async () => {
+  it('given nested memoSSR entries, when getComposedSSR is awaited on parent, then the composed HTML includes content from all nested entries', async () => {
     const entry1 = createEntry();
 
     entry1.memoSSR(() => Promise.resolve(
@@ -55,7 +55,7 @@ describe('createEntry - SSR Features', () => {
     expect(composedHTML).toContain('<main>Main Content</main>');
   });
 
-  it('getComposedSSR clears maps after execution', async () => {
+  it('given an entry with memoSSR, when getComposedSSR is called, then subsequent new entries still generate their own ssrId', async () => {
     const entry = createEntry();
     entry.memoSSR(() => Promise.resolve('<div>Test Content</div>'));
 
@@ -66,7 +66,7 @@ describe('createEntry - SSR Features', () => {
     expect(newEntry.ssrId).toBeDefined();
   });
 
-  it('handles errors in getComposedSSR', async () => {
+  it('given a memoSSR that rejects, when getComposedSSR is awaited, then it rejects with the original error', async () => {
     const entry = createEntry();
     const testError = new Error('SSR Render Failed');
 
@@ -75,7 +75,7 @@ describe('createEntry - SSR Features', () => {
     await expect(entry.getComposedSSR()).rejects.toThrow('SSR Render Failed');
   });
 
-  it('supports multiple memoSSR calls', async () => {
+  it('given multiple nested memoSSR calls in one entry, when getComposedSSR, then result contains all component contents', async () => {
     const entry1 = createEntry();
 
     entry1.memoSSR(() => Promise.resolve(`
@@ -97,7 +97,7 @@ describe('createEntry - SSR Features', () => {
     expect(result).toContain('Component 3');
   });
 
-  it('mergeOptions preserves ssrId', () => {
+  it('given an entry with ssrId, when mergeOptions is called with new initData, then ssrId remains the same while options are updated', () => {
     const entry = createEntry({
       initData: {
         userId: 123,
@@ -121,7 +121,7 @@ describe('createEntry - SSR Features', () => {
     });
   });
 
-  it('setEntryComponent updates the EntryComponent', () => {
+  it('given an entry, when setEntryComponent is called with a component, then the EntryComponent property is updated to it', () => {
     const entry = createEntry();
     const TestComponent = () => 'Test';
 
@@ -130,7 +130,7 @@ describe('createEntry - SSR Features', () => {
     expect(entry.EntryComponent).toBe(TestComponent);
   });
 
-  it('setOptions updates options correctly', () => {
+  it('given an entry, when setOptions is called, then the options are updated with the provided values', () => {
     const entry = createEntry();
 
     entry.setOptions({

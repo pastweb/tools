@@ -24,12 +24,12 @@ vi.mock('../../../src/createIdCache', () => ({
   ELEMENTS_SCOPE: 'elements',
 }));
 
-describe('generateAnchors', () => {
+describe('given the generateAnchors function', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('generates unique IDs for simple anchors', () => {
+  it('given an array of simple anchor names, when generateAnchors is called, then it generates unique IDs for each', () => {
     const anchors = ['modal', 'tooltip', 'drawer'];
 
     const result = generateAnchors(anchors);
@@ -42,7 +42,7 @@ describe('generateAnchors', () => {
     expect(result.tooltip).toMatch(/^tooltipid-\d+$/);
   });
 
-  it('handles nested dot paths correctly', () => {
+  it('given anchors with nested dot paths, when generateAnchors is called, then it correctly creates nested objects with unique IDs', () => {
     const anchors = ['modal.confirm', 'modal.cancel', 'user.profile.avatar'];
 
     const result: Record<string, any> = generateAnchors(anchors);
@@ -52,7 +52,7 @@ describe('generateAnchors', () => {
     expect(result.user.profile.avatar).toMatch(/^avatarid-\d+$/);
   });
 
-  it('removes duplicate anchors', () => {
+  it('given an anchors array containing duplicates, when generateAnchors is called, then it returns only unique anchors', () => {
     const anchors = ['modal', 'tooltip', 'modal', 'drawer', 'tooltip'];
 
     const result = generateAnchors(anchors);
@@ -61,7 +61,7 @@ describe('generateAnchors', () => {
     expect(Object.keys(result)).toEqual(expect.arrayContaining(['modal', 'tooltip', 'drawer']));
   });
 
-  it('uses provided idCache instead of default', () => {
+  it('given a custom idCache, when generateAnchors is called with it, then it uses the provided cache instead of the default', () => {
     const mockIdCache = {
       getId: vi.fn(() => 'custom-999'),
     };
@@ -72,7 +72,7 @@ describe('generateAnchors', () => {
     expect(mockIdCache.getId).toHaveBeenCalledWith(ELEMENTS_SCOPE);
   });
 
-  it('calls assign with correct parameters', () => {
+  it('given anchors with dot paths, when generateAnchors is called, then it calls assign with the correct target, path, and generated ID', () => {
     const anchors = ['modal.confirm', 'sidebar.menu'];
 
     generateAnchors(anchors);
@@ -87,12 +87,12 @@ describe('generateAnchors', () => {
     );
   });
 
-  it('returns an empty object when no anchors are provided', () => {
+  it('given an empty array or undefined anchors, when generateAnchors is called, then it returns an empty object', () => {
     expect(generateAnchors([])).toEqual({});
     expect(generateAnchors(undefined as any)).toEqual({});
   });
 
-  it('generates different IDs on each call', () => {
+  it('given the same anchors, when generateAnchors is called multiple times, then it generates different IDs each time', () => {
     const result1 = generateAnchors(['modal']);
     const result2 = generateAnchors(['modal']);
 

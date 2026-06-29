@@ -1,6 +1,7 @@
 import { debounce as _debounce, type DebouceCallback } from '../debounce';
 import { isObject } from '../isObject';
-import { targetMap, REACTIVE, REF } from './constants';
+import { setSymbolKey } from '../setSymbolKey';
+import { targetMap, REACTIVE, REF, COMPUTED } from './constants';
 import { isRef } from './isRef';
 import { isReactive } from './isReactive';
 import type { Computed, Reactive, Ref } from './types';
@@ -53,12 +54,7 @@ function trigger(target: object, key: PropertyKey) {
  * @returns A reactive proxy of the input object.
  */
 export function reactive<T extends object>(obj: T, deep = false): Reactive<T> {
-  Object.defineProperty(obj, REACTIVE, {
-    value: true,
-    enumerable: false,
-    writable: false,
-    configurable: false,
-  });
+  setSymbolKey(obj, REACTIVE);
 
   return new Proxy(obj, {
     get(target, key, receiver) {
@@ -99,33 +95,39 @@ export function ref<T>(value: T, deep = false): Ref<T> {
     }
   } : { value };
   
-  Object.defineProperty(obj, REF, {
-    value: true,
-    enumerable: false,
-    writable: false,
-    configurable: false,
-  });
+  setSymbolKey(obj, REF);
   
   return !deep ? obj : reactive(obj, deep);
 }
 
 /**
  * Creates an effect that runs when its dependencies change.
- * If there are not dependencies specified (source), the function callback is immediatelly executed registering the dependencies
- * automatically.
- * if dependencies are specified, the effect callback function will run just if any of the the dependencies changes.
- * if you want to run immediatelly the function you can pass "true" as third parameter.
- * The dependenciesrould be a function which returns the value to track of a reactive object "() => obj.a", a ref object, a reactive object itself or
- * an array of these.
- * If a reactive object is passed as dependency the function will run when any of the reactive object properties will change.
+ *
+ * If no `source` is provided, the callback is executed immediately (automatically tracking
+ * any reactive dependencies accessed inside it). When a `source` is provided, the callback
+ * only re-runs when the tracked source(s) change.
+ *
+ * The `fn` callback may be async (the returned promise is ignored; side-effects inside will run).
+ *
+ * The `source` parameter supports several forms:
+ * - A function that returns a single value or an array of values:
+ *   `effect(fn, () => dep)` or `effect(fn, () => [dep1, dep2, myComputed.prop])`.
+ *   Reactive accesses performed inside this function are tracked.
+ * - A single `ref`, `reactive` object, or `computed`.
+ * - An array of the above forms (use `() => value` wrappers for anything that is not
+ *   already a direct Ref/Reactive/Computed).
+ *
+ * Computed values are always also treated as refs (they carry the `REF` marker), so they
+ * can be passed directly as sources to `effect` or observed via their `.value`.
+ *
  * @typeParam T - The type of the source value or computed result.
- * @param fn - The effect function to run, receiving new and old values.
- * @param source - The reactive source(s) to track (function, ref, reactive object, or array of sources). Optional.
- * @param immediate - If true, the effect runs immediately. Defaults to false.
+ * @param fn - The effect function to run, receiving new and old values. May be async.
+ * @param source - The reactive source(s) to track. See description above. Optional.
+ * @param immediate - If true, the effect runs immediately upon creation (before any source changes). Defaults to false.
  */
 export function effect(
-  fn: (newVal: any | any[], oldVal: any | any[]) => void,
-  source?: (() => any) | Ref<any> | Reactive<any> | Computed<any> | Array<(() => any) | Ref<any> | Reactive<any> | Computed<any>>,
+  fn: (newVal: any | any[], oldVal: any | any[]) => void | Promise<void>,
+  source?: (() => any) | (() => any[]) | Ref<any> | Reactive<any> | Computed<any> | Array<(() => any) | Ref<any> | Reactive<any> | Computed<any>>,
   immediate = false
 ) {
   let getter: () => any = fn as () => any;
@@ -138,7 +140,7 @@ export function effect(
       source.map(s => {
         if (typeof s === 'function') return (s as () => any)();
         if (isRef(s)) return (s as { value: any }).value;
-        if (isReactive(s)) return Object.keys(s).reduce((acc, k) => ({ ...acc, [k]: (source as Record<PropertyKey, any>)[k] }), {});
+        if (isReactive(s)) return Object.keys(s).reduce((acc, k) => ({ ...acc, [k]: (s as Record<PropertyKey, any>)[k] }), {});
       });
   } else if (typeof source === 'function') {
     getter = source as () => any;
@@ -161,52 +163,191 @@ export function effect(
   function runner() {
     const newVal = getter();
 
-    const changed = Array.isArray(newVal)
-      ? newVal.some((v, i) => v !== oldVal[i])
-      : newVal !== oldVal;
+    if (source) {
+      // Only perform changed detection when a source is provided (getter is a pure value extractor,
+      // the actual effect body is the `fn` passed to effect).
+      const changed = Array.isArray(newVal)
+        ? newVal.some((v, i) => v !== oldVal[i])
+        : newVal !== oldVal;
 
-    if (changed) {
-      fn(newVal, oldVal);
-      oldVal = newVal;
+      if (changed) {
+        fn(newVal, oldVal);
+        oldVal = newVal;
+      }
     }
+    // If no source was provided, `getter()` IS the effect body (the `fn`).
+    // Calling it above already executed the (possibly async) body.
+    // We intentionally do NOT call `fn` again.
   }
 }
 
 /**
- * Creates a computed value that lazily re-evaluates when dependencies change.
- * @typeParam T - The type of the computed value.
- * @param getter - A function that computes the value.
- * @returns An object with a readonly `value` property that returns the computed value.
+ * Creates a computed value that lazily re-evaluates when its dependencies change.
+ *
+ * The `getter` may be synchronous or asynchronous (`() => T | Promise<T>`).
+ *
+ * @typeParam T - The type of the computed value (the resolved value if the getter is async).
+ * @param getter - A function that computes the value. May be async.
+ * @returns
+ *   - If the (resolved) result of the getter is an object (per `isObject`, including arrays),
+ *     returns a readonly proxy to that object. You can access properties directly
+ *     (`computedObj.prop`) and the accesses are tracked. `.value` is also available and
+ *     returns the raw object.
+ *   - For non-object results, returns the classic `{ readonly value: T }`.
+ *
+ * In all cases the returned value carries the `REF` marker, so computed results are
+ * treated as refs (usable directly as sources to `effect()`, observable via `.value`, etc.).
+ * It also carries the `COMPUTED` marker for `isComputed()`.
+ *
+ * While an async getter is pending, reading the result (via direct properties or `.value`)
+ * returns the previous (stale) value. A new computation is started on the first access
+ * after the computed is marked dirty.
  */
-export function computed<T>(getter: () => T): Computed<T> {
-  let cached: T;
+export function computed<T>(getter: () => T | Promise<T>): Computed<T> {
+  let cached: T | undefined;
   let dirty = true;
+  let computationId = 0;
 
-  // Runner re-evaluates getter whenever dependencies change
-  const runner = () => { dirty = true; };
+  const internal: any = {};
 
-  const effectWrapper = () => {
+  const runner = () => {
+    if (!dirty) {
+      dirty = true;
+      trigger(internal, 'value');
+    }
+  };
+
+  function ensureComputed() {
+    if (!dirty) return;
+
+    const id = ++computationId;
+    const prevActive = activeEffect;
     activeEffect = runner;
-    cached = getter();
-    activeEffect = null;
-    dirty = false;
-  };
 
-  const obj = {
-    get value() {
-      if (dirty) effectWrapper();
-      // track this computed so effects can depend on it
-      track({ computed: getter }, 'value');
-      return cached!;
+    const result = getter();
+    activeEffect = prevActive;
+
+    if (result && typeof (result as any).then === 'function') {
+      (result as Promise<T>).then((val) => {
+        if (id === computationId) {
+          cached = val;
+          dirty = false;
+          trigger(internal, 'value');
+        }
+      }).catch((err) => {
+        if (id === computationId) {
+          dirty = false;
+          // eslint-disable-next-line no-console
+          console.error('Error in async computed getter:', err);
+        }
+      });
+      // dirty stays true until (this or a newer) resolution
+    } else {
+      cached = result as T;
+      dirty = false;
+    }
+  }
+
+  // Unified proxy returned by computed.
+  // - Always exposes .value (the raw last-resolved result of the getter)
+  // - If the result is an object (or array), also forwards property accesses (with tracking + fresh check)
+  const proxy = new Proxy({} as any, {
+    get(target, prop, receiver) {
+      if (dirty) ensureComputed();
+      track(internal, 'value');
+
+      const current = cached as any;
+
+      if (prop === REF) {
+        return true;
+      }
+
+      if (prop === 'value') {
+        return current;
+      }
+
+      const treatAsObject = isObject(current) || Array.isArray(current);
+      if (treatAsObject && prop in current) {
+        let v = current[prop];
+        if (typeof v === 'function' && prop !== 'constructor') {
+          // Bind so array/object methods keep the correct `this` (the real current value)
+          // even if the function is extracted from the proxy.
+          v = v.bind(current);
+        }
+        return v;
+      }
+
+      return Reflect.get(target, prop, receiver);
     },
-  };
 
-  Object.defineProperty(obj, REF, {
-    value: true,
-    enumerable: false,
-    writable: false,
-    configurable: false,
+    set() {
+      // Treat as readonly
+      return false;
+    },
+
+    has(target, prop) {
+      if (prop === REF) return true;
+      const current = cached as any;
+      const treatAsObject = isObject(current) || Array.isArray(current);
+      return treatAsObject && prop in current;
+    },
+
+    ownKeys(): ArrayLike<string | symbol> {
+      const current = cached as any;
+      const treatAsObject = isObject(current) || Array.isArray(current);
+      let keys: (string | symbol)[] = treatAsObject ? (Reflect.ownKeys(current) as (string | symbol)[]) : [];
+      // include marker symbols so Object.getOwnPropertySymbols and hasOwn work for isRef/isComputed
+      if (!keys.includes(REF)) keys.push(REF);
+      if (!keys.includes(COMPUTED)) keys.push(COMPUTED);
+      return keys;
+    },
+
+    getOwnPropertyDescriptor(target, prop) {
+      if (prop === REF || prop === COMPUTED) {
+        return {
+          configurable: false,
+          enumerable: false,
+          value: true,
+          writable: false,
+        };
+      }
+      const current = cached as any;
+      const treatAsObject = isObject(current) || Array.isArray(current);
+      if (treatAsObject && prop in current) {
+        return {
+          configurable: true,
+          enumerable: true,
+          value: current[prop],
+          writable: false,
+        };
+      }
+      return undefined;
+    },
+
+    defineProperty(target, prop, descriptor) {
+      if (prop === REF || prop === COMPUTED) {
+        // allow setSymbolKey to define the marker
+        return Reflect.defineProperty(target, prop, descriptor);
+      }
+      return false;
+    },
   });
 
-  return obj;
+  // We intentionally set *both* symbols on the proxy:
+  //
+  // - REF: so that the result is recognized as a "ref" by isRef() and, more importantly,
+  //        by the effect() machinery:
+  //          } else if (isRef(source)) {
+  //            getter = () => source.value;
+  //          }
+  //        This makes computed values usable directly as sources to effect() (they are
+  //        treated as a kind of ref for dependency tracking).
+  //
+  // - COMPUTED: so that the dedicated isComputed() predicate works.
+  //
+  // In short: every computed is a ref (for the effect system), and additionally a computed.
+  setSymbolKey(proxy, REF);
+  setSymbolKey(proxy, COMPUTED);
+
+  return proxy as any as Computed<T>;
 }

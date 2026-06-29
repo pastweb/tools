@@ -28,7 +28,7 @@ vi.mock('../setCurrentPortalsCache', () => ({
   setCurrentPortalsCache: vi.fn(),
 }));
 
-describe('anchorsSetup', () => {
+describe('given the anchorsSetup function', () => {
   let mockGetEntry: any;
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('anchorsSetup', () => {
     mockGetEntry = vi.fn(() => ({}));
   });
 
-  it('creates portal functions for each anchor', () => {
+  it('given an anchors object with multiple entries, when anchorsSetup is called, then it returns portal functions for each anchor', () => {
     const anchorIds = {
       modal: 'modal-root',
       tooltip: 'tooltip-root',
@@ -53,7 +53,7 @@ describe('anchorsSetup', () => {
     expect(typeof result.tooltip).toBe('function');
   });
 
-  it('each portal function has required methods', () => {
+  it('given a single anchor, when anchorsSetup is called, then the resulting portal function has update, close, and remove methods', () => {
     const anchorIds = { modal: 'modal-root' };
     const result = anchorsSetup(mockGetEntry, anchorIds);
 
@@ -64,7 +64,7 @@ describe('anchorsSetup', () => {
     expect(typeof portalFn.remove).toBe('function');
   });
 
-  it('throws error when anchors contain nested objects', () => {
+  it('given anchors containing nested objects, when anchorsSetup is called, then it throws a portals setup error', () => {
     const invalidAnchors = {
       modal: 'modal-root',
       group: {

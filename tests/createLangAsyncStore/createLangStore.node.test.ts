@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createLangAsyncStore } from '../../src/createLangAsyncStore';
 import type { LangOptions, LangAsyncStore } from '../../src/createLangAsyncStore';
 
-describe('createLangStore', () => {
+describe('given the createLangAsyncStore factory', () => {
   let options: LangOptions;
   let store: LangAsyncStore;
 
@@ -17,10 +17,10 @@ describe('createLangStore', () => {
     store = createLangAsyncStore(options);
   });
 
-  it('should create a LangStore with the provided options', async () => {
+  it('given lang options, when createLangAsyncStore called and isReady awaited, then the store has correct options populated and i18n, with init not called yet', async () => {
     await store.isReady;
 
-    expect(store.options.storeName).toBe('LangStore');
+    expect(store.options.name).toBe('LangStore');
     expect(store.options.initLang).toBe(options.initLang);
     expect(Array.isArray(store.options.supported)).toBe(true);
     expect((store.options.supported as string[])[0]).toBe((options.supported as string[])[0]);

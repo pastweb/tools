@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { isPortalHandler } from '../../src/portals/isPortalHaldler';
 import { PORTAL_HANDLER } from '../../src/portals/constants';
 
-describe('isPortalHandler', () => {
-  it('returns true for a valid portal handler object', () => {
+describe('given the isPortalHandler function', () => {
+  it('given a valid handler object with PORTAL_HANDLER symbol, when isPortalHandler is called, then it returns true', () => {
     const validHandler = {
       [PORTAL_HANDLER]: true,
       id: 'portal-123',
@@ -18,7 +18,7 @@ describe('isPortalHandler', () => {
     expect(isPortalHandler(validHandler)).toBe(true);
   });
 
-  it('returns false for non-objects', () => {
+  it('given non-object values, when isPortalHandler is called, then it returns false', () => {
     expect(isPortalHandler(null)).toBe(false);
     expect(isPortalHandler(undefined)).toBe(false);
     expect(isPortalHandler(123)).toBe(false);
@@ -28,12 +28,12 @@ describe('isPortalHandler', () => {
     expect(isPortalHandler(() => {})).toBe(false);
   });
 
-  it('returns false for plain objects', () => {
+  it('given plain objects without the PORTAL_HANDLER symbol, when isPortalHandler is called, then it returns false', () => {
     expect(isPortalHandler({})).toBe(false);
     expect(isPortalHandler({ id: '123', open: () => {} })).toBe(false);
   });
 
-  it('returns false for objects that look similar but lack the PORTAL_HANDLER symbol', () => {
+  it('given objects with handler-like methods but without the PORTAL_HANDLER symbol, when isPortalHandler is called, then it returns false', () => {
     const fakeHandler = {
       id: 'portal-xyz',
       open: () => {},
@@ -46,7 +46,7 @@ describe('isPortalHandler', () => {
     expect(isPortalHandler(fakeHandler)).toBe(false);
   });
 
-  it('returns false if PORTAL_HANDLER key exists but is not the correct symbol', () => {
+  it('given an object with a PORTAL_HANDLER-like key that is not the correct symbol, when isPortalHandler is called, then it returns false', () => {
     const fake = {
       [Symbol()]: true,        // Wrong value type
       id: '123',
@@ -56,7 +56,7 @@ describe('isPortalHandler', () => {
     expect(isPortalHandler(fake)).toBe(false);
   });
 
-  it('is robust against objects with similarly named properties', () => {
+  it('given objects with misleading properties like PORTAL_HANDLER as plain key, when isPortalHandler is called, then it returns false', () => {
     const misleading = {
       PORTAL_HANDLER: true,
       portalHandler: true,
@@ -67,7 +67,7 @@ describe('isPortalHandler', () => {
     expect(isPortalHandler(misleading)).toBe(false);
   });
 
-  it('works correctly with multiple different handlers', () => {
+  it('given multiple valid handlers, when isPortalHandler is called, then it returns true for each', () => {
     const handler1 = { [PORTAL_HANDLER]: true, id: '1', open: () => {} };
     const handler2 = { [PORTAL_HANDLER]: true, id: '2', open: () => {} };
 
@@ -75,7 +75,7 @@ describe('isPortalHandler', () => {
     expect(isPortalHandler(handler2)).toBe(true);
   });
 
-  it('returns false for objects with other symbols', () => {
+  it('given objects with other symbols but not PORTAL_HANDLER, when isPortalHandler is called, then it returns false', () => {
     const objWithSymbol = {
       [Symbol('other')]: true,
       open: () => {},

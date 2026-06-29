@@ -16,6 +16,7 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "vitest.config.ts"],
+  "include": ["src/**/*", "vitest.config.ts", "globals.d.ts"],
+  "files": ["globals.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

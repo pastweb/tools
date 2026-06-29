@@ -3,20 +3,20 @@ import { createAsyncStore } from '../../src/createAsyncStore';
 import { normalizeAsyncQueue } from '../../src/createAsyncStore/normalizeAsyncQueue';
 import { AsyncStore } from '../../src/createAsyncStore/types';
 
-describe('normalizeAsyncQueue', () => {
+describe('given the normalizeAsyncQueue helper', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   const name = 'testStore';
 
-  it('should handle a single promise', async () => {
+  it('given a single promise, when normalizeAsyncQueue is called, then it returns an array containing that promise', async () => {
     const singlePromise = Promise.resolve('done');
     const result = normalizeAsyncQueue(singlePromise);
     expect(result).toEqual([singlePromise]);
   });
 
-  it('should handle an array of promises', async () => {
+  it('given an array of promises, when normalizeAsyncQueue is called, then it returns an array of the same promises and they resolve correctly', async () => {
     const promise1 = Promise.resolve('done1');
     const promise2 = Promise.resolve('done2');
     const [ result1, result2 ] = await Promise.all(normalizeAsyncQueue([ promise1, promise2 ]));
@@ -24,7 +24,7 @@ describe('normalizeAsyncQueue', () => {
     expect(result2).toBe('done2');
   });
 
-  it('should handle an array of functions returning promises', async () => {
+  it('given an array of functions that return promises, when normalizeAsyncQueue is called, then it returns an array of promises and they resolve to the expected values', async () => {
     const promiseFunc1 = vi.fn(() => new Promise(resolve => resolve('done1')));
     const promiseFunc2 = vi.fn(() => new Promise(resolve => resolve('done2')));
     const result = normalizeAsyncQueue([promiseFunc1, promiseFunc2]);
@@ -35,7 +35,7 @@ describe('normalizeAsyncQueue', () => {
     await expect(result[1]).resolves.toBe('done2');
   });
 
-  it('should handle an async store that is ready', async () => {
+  it('given a ready async store (isStoreReady true), when normalizeAsyncQueue is called on it, then the result is [true] and init is not called', async () => {
     const store = createAsyncStore<AsyncStore<any>>({ name });
     store.setStoreReady();
     store.init = vi.fn();
@@ -45,7 +45,7 @@ describe('normalizeAsyncQueue', () => {
     expect(store.init).not.toHaveBeenCalled();
   });
 
-  it('should handle an async store that is not ready', async () => {
+  it('given a not-ready async store, when normalizeAsyncQueue is called on it, then the result contains its isReady promise and init is called once', async () => {
     const store = createAsyncStore<AsyncStore<any>>({ name });
     store.init = vi.fn();
     
@@ -55,7 +55,7 @@ describe('normalizeAsyncQueue', () => {
     expect(store.init).toBeCalledTimes(1);
   });
 
-  it('should handle a mixed array of promises, functions, and async stores', async () => {
+  it('given a mixed array of promise, promise-fn and ready async store, when normalizeAsyncQueue is called, then it normalizes each correctly into the result array', async () => {
     const promise1 = Promise.resolve('done1');
     const promiseFunc = vi.fn(() => new Promise(resolve => resolve('done2')));
     const store = createAsyncStore<AsyncStore<any>>({ name });
@@ -73,7 +73,7 @@ describe('normalizeAsyncQueue', () => {
     await expect(result[2]).resolves.toBe(true);
   });
 
-  it('should return the same promise if input is already a promise', async () => {
+  it('given a promise input, when normalizeAsyncQueue is called, then it returns an array with the same promise instance', async () => {
     const promise = Promise.resolve('done');
     const result = normalizeAsyncQueue(promise);
     expect(result).toEqual([promise]);

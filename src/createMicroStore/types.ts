@@ -3,6 +3,14 @@ import type { Reactive } from '../reactivity';
 export type Selector<T, S> = (state: S) => T;
 
 /**
+ * Context available as `this` inside micro-store actions.
+ * Provides direct access to the mutable internal reactive state.
+ */
+export type MicroStoreActionsContext<S extends Record<string, any>> = {
+  state: Reactive<S>;
+};
+
+/**
  * Configuration returned by the setup function passed to `createMicroStore`.
  * Defines the initial state and available actions.
  */

@@ -7,7 +7,7 @@ vi.mock('./constants', () => ({
   STORE_REGISTRY: new Map(),
 }));
 
-describe('createMicroStoreCollector', () => {
+describe('given the createMicroStoreCollector', () => {
   beforeEach(() => {
     STORE_REGISTRY.clear();
     vi.clearAllMocks();
@@ -17,7 +17,7 @@ describe('createMicroStoreCollector', () => {
     STORE_REGISTRY.clear();
   });
 
-  it('should collect all registered stores', () => {
+  it('given two registered stores (counter, user), when createMicroStoreCollector with them, then collector has keys for both, registry had 2, and collector exposes fn hooks', () => {
     const counterStore = createMicroStore('counter', () => ({
       state: { count: 0 },
       actions: { increment: () => {} },
@@ -39,7 +39,7 @@ describe('createMicroStoreCollector', () => {
     expect(typeof collector.user).toBe('function');
   });
 
-  it('should clear the registry after collecting stores', () => {
+  it('given a temp registered store, when createMicroStoreCollector called, then registry size goes to 0 after', () => {
     const tempStore = createMicroStore('temp', () => ({
       state: { value: 123 },
       actions: {},
@@ -52,7 +52,7 @@ describe('createMicroStoreCollector', () => {
     expect(STORE_REGISTRY.size).toBe(0);
   });
 
-  it('should return functional store hooks', () => {
+  it('given todos store, when collector = create... then todos = collector.todos(), then todos has state and addTodo', () => {
     const todosStore = createMicroStore('todos', () => ({
       state: { items: [] },
       actions: { addTodo: (text: string) => {} },
@@ -66,7 +66,7 @@ describe('createMicroStoreCollector', () => {
     expect(Array.isArray(todos.state.items)).toBe(true);
   });
 
-  it('should handle options.stores gracefully', () => {
+  it('given auth store (single not array), when createMicroStoreCollector({stores: authStore}), then collector has auth key', () => {
     const authStore = createMicroStore('auth', () => ({
       state: { isLoggedIn: false },
       actions: {},

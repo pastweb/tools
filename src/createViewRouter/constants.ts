@@ -10,9 +10,9 @@ export const EMPTY_ROUTE = {
   hash: '',
   setHash: noop,
   views: {},
-  options: {},
+  meta: {},
   child: false,
 };
 
-export const ROUTER_CONTEXT_KEY = '$$router';
-export const ROUTE_DEPTH_CONTEXT_KEY = '$$routeDepth';
+export const ROUTER_CONTEXT_KEY = '$$ROUTER_CONTEXT_KEY';
+export const ROUTE_DEPTH_CONTEXT_KEY = '$$ROUTE_DEPTH_CONTEXT_KEY';

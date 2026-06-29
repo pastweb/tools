@@ -56,12 +56,12 @@ import type { MicroAsyncStore, MicroCollectorStoreOptions } from './types';
 export function createAsyncMicroStore(options: MicroCollectorStoreOptions): MicroAsyncStore {
   const { onInit, ...restOptions } = options;
   const store = createMicroStoreCollector(restOptions);
-  const asyncStore = createAsyncStore<MicroAsyncStore>({ 
-    ...options, 
+  const asyncStore = createAsyncStore<MicroAsyncStore>({
+    ...options,
     name: `MicroStore:${restOptions.name}`,
-    store,
     onInit: init,
   });
+  asyncStore.store = store;
 
   async function init() {
     const { onInit = noop } = asyncStore.options as MicroCollectorStoreOptions;

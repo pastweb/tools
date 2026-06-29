@@ -19,11 +19,9 @@ const types = {
 const target = 'Object';
 const testFunc = isObject;
 
-describe('isObject', () => {
+describe('given the isObject function', () => {
   Object.entries(types).forEach(([key, value]) => {
-    it(`should return ${
-      target === key ? 'true' : 'false'
-    } for a target "${target}"`, () => {
+    it(`given value of key "${key}", when isObject(value) for target Object, then returns true only for the Object case`, () => {
       expect(testFunc(value)).toBe(target === key ? true : false);
     });
   });

@@ -1,8 +1,29 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.2.2",
-  "description": "Set of tools for web application development",
+  "version": "2.3.0",
+  "description": "Production-ready, tree-shakeable utilities for modern JavaScript and TypeScript web applications.",
+  "keywords": [
+    "api-client",
+    "async",
+    "computed",
+    "effect",
+    "frontend",
+    "framework-agnostic",
+    "global-context",
+    "javascript",
+    "mediator",
+    "portals",
+    "reactivity",
+    "router",
+    "spa-router",
+    "ssr",
+    "tree-shakeable",
+    "typescript",
+    "use-query",
+    "utilities",
+    "web"
+  ],
   "author": "Domenico Pasto",
   "license": "MIT",
   "homepage": "https://github.com/pastweb/tools#readme",
@@ -30,6 +51,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
+    "@toon-format/toon": "^2.3.0",
     "@types/node": "^25.6.2",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
     "@vitest/ui": "^4.1.6",
@@ -52,6 +74,7 @@
     "vitest-localstorage-mock": "^0.1.2"
   },
   "peerDependencies": {
+    "@toon-format/toon": "*",
     "axios": "*",
     "clsx": "*",
     "history": "*",
@@ -70,6 +93,274 @@
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./api": {
+      "import": "./dist/api/index.mjs",
+      "require": "./dist/api/index.cjs"
+    },
+    "./api/createApiAgent": {
+      "import": "./dist/api/createApiAgent/index.mjs",
+      "require": "./dist/api/createApiAgent/index.cjs"
+    },
+    "./api/createApiAgent/createApiAgent": {
+      "import": "./dist/api/createApiAgent/createApiAgent.mjs",
+      "require": "./dist/api/createApiAgent/createApiAgent.cjs"
+    },
+    "./api/createApiAgent/types": {
+      "import": "./dist/api/createApiAgent/types.mjs",
+      "require": "./dist/api/createApiAgent/types.cjs"
+    },
+    "./api/createApiAgent/utils": {
+      "import": "./dist/api/createApiAgent/utils/index.mjs",
+      "require": "./dist/api/createApiAgent/utils/index.cjs"
+    },
+    "./api/createApiAgent/utils/appendHeaderValue": {
+      "import": "./dist/api/createApiAgent/utils/appendHeaderValue.mjs",
+      "require": "./dist/api/createApiAgent/utils/appendHeaderValue.cjs"
+    },
+    "./api/createApiAgent/utils/deleteMethod": {
+      "import": "./dist/api/createApiAgent/utils/deleteMethod.mjs",
+      "require": "./dist/api/createApiAgent/utils/deleteMethod.cjs"
+    },
+    "./api/createApiAgent/utils/download": {
+      "import": "./dist/api/createApiAgent/utils/download.mjs",
+      "require": "./dist/api/createApiAgent/utils/download.cjs"
+    },
+    "./api/createApiAgent/utils/errorResponseInterceptor": {
+      "import": "./dist/api/createApiAgent/utils/errorResponseInterceptor.mjs",
+      "require": "./dist/api/createApiAgent/utils/errorResponseInterceptor.cjs"
+    },
+    "./api/createApiAgent/utils/getHeader": {
+      "import": "./dist/api/createApiAgent/utils/getHeader.mjs",
+      "require": "./dist/api/createApiAgent/utils/getHeader.cjs"
+    },
+    "./api/createApiAgent/utils/getMethod": {
+      "import": "./dist/api/createApiAgent/utils/getMethod.mjs",
+      "require": "./dist/api/createApiAgent/utils/getMethod.cjs"
+    },
+    "./api/createApiAgent/utils/isExcluded": {
+      "import": "./dist/api/createApiAgent/utils/isExcluded.mjs",
+      "require": "./dist/api/createApiAgent/utils/isExcluded.cjs"
+    },
+    "./api/createApiAgent/utils/mergeAgentConfig": {
+      "import": "./dist/api/createApiAgent/utils/mergeAgentConfig.mjs",
+      "require": "./dist/api/createApiAgent/utils/mergeAgentConfig.cjs"
+    },
+    "./api/createApiAgent/utils/offsetToPage": {
+      "import": "./dist/api/createApiAgent/utils/offsetToPage.mjs",
+      "require": "./dist/api/createApiAgent/utils/offsetToPage.cjs"
+    },
+    "./api/createApiAgent/utils/parseContentRange": {
+      "import": "./dist/api/createApiAgent/utils/parseContentRange.mjs",
+      "require": "./dist/api/createApiAgent/utils/parseContentRange.cjs"
+    },
+    "./api/createApiAgent/utils/patchMethod": {
+      "import": "./dist/api/createApiAgent/utils/patchMethod.mjs",
+      "require": "./dist/api/createApiAgent/utils/patchMethod.cjs"
+    },
+    "./api/createApiAgent/utils/postMethod": {
+      "import": "./dist/api/createApiAgent/utils/postMethod.mjs",
+      "require": "./dist/api/createApiAgent/utils/postMethod.cjs"
+    },
+    "./api/createApiAgent/utils/putMethod": {
+      "import": "./dist/api/createApiAgent/utils/putMethod.mjs",
+      "require": "./dist/api/createApiAgent/utils/putMethod.cjs"
+    },
+    "./api/createApiAgent/utils/requestInterceptor": {
+      "import": "./dist/api/createApiAgent/utils/requestInterceptor.mjs",
+      "require": "./dist/api/createApiAgent/utils/requestInterceptor.cjs"
+    },
+    "./api/createApiAgent/utils/setAgentOptions": {
+      "import": "./dist/api/createApiAgent/utils/setAgentOptions.mjs",
+      "require": "./dist/api/createApiAgent/utils/setAgentOptions.cjs"
+    },
+    "./api/createApiAgent/utils/successResponseInterceptor": {
+      "import": "./dist/api/createApiAgent/utils/successResponseInterceptor.mjs",
+      "require": "./dist/api/createApiAgent/utils/successResponseInterceptor.cjs"
+    },
+    "./api/createApiAgent/utils/upload": {
+      "import": "./dist/api/createApiAgent/utils/upload.mjs",
+      "require": "./dist/api/createApiAgent/utils/upload.cjs"
+    },
+    "./api/createApiAgent/utils/withToonAcceptHeader": {
+      "import": "./dist/api/createApiAgent/utils/withToonAcceptHeader.mjs",
+      "require": "./dist/api/createApiAgent/utils/withToonAcceptHeader.cjs"
+    },
+    "./api/createQueryCache": {
+      "import": "./dist/api/createQueryCache/index.mjs",
+      "require": "./dist/api/createQueryCache/index.cjs"
+    },
+    "./api/createQueryCache/constnts": {
+      "import": "./dist/api/createQueryCache/constnts.mjs",
+      "require": "./dist/api/createQueryCache/constnts.cjs"
+    },
+    "./api/createQueryCache/createQueryCache": {
+      "import": "./dist/api/createQueryCache/createQueryCache.mjs",
+      "require": "./dist/api/createQueryCache/createQueryCache.cjs"
+    },
+    "./api/createQueryCache/types": {
+      "import": "./dist/api/createQueryCache/types.mjs",
+      "require": "./dist/api/createQueryCache/types.cjs"
+    },
+    "./api/createQueryCache/utils": {
+      "import": "./dist/api/createQueryCache/utils/index.mjs",
+      "require": "./dist/api/createQueryCache/utils/index.cjs"
+    },
+    "./api/createQueryCache/utils/clearRefreshTimer": {
+      "import": "./dist/api/createQueryCache/utils/clearRefreshTimer.mjs",
+      "require": "./dist/api/createQueryCache/utils/clearRefreshTimer.cjs"
+    },
+    "./api/createQueryCache/utils/dehydrate": {
+      "import": "./dist/api/createQueryCache/utils/dehydrate.mjs",
+      "require": "./dist/api/createQueryCache/utils/dehydrate.cjs"
+    },
+    "./api/createQueryCache/utils/escapeRegExp": {
+      "import": "./dist/api/createQueryCache/utils/escapeRegExp.mjs",
+      "require": "./dist/api/createQueryCache/utils/escapeRegExp.cjs"
+    },
+    "./api/createQueryCache/utils/getQuery": {
+      "import": "./dist/api/createQueryCache/utils/getQuery.mjs",
+      "require": "./dist/api/createQueryCache/utils/getQuery.cjs"
+    },
+    "./api/createQueryCache/utils/getSerializableConfig": {
+      "import": "./dist/api/createQueryCache/utils/getSerializableConfig.mjs",
+      "require": "./dist/api/createQueryCache/utils/getSerializableConfig.cjs"
+    },
+    "./api/createQueryCache/utils/handleInvalidation": {
+      "import": "./dist/api/createQueryCache/utils/handleInvalidation.mjs",
+      "require": "./dist/api/createQueryCache/utils/handleInvalidation.cjs"
+    },
+    "./api/createQueryCache/utils/hydrate": {
+      "import": "./dist/api/createQueryCache/utils/hydrate.mjs",
+      "require": "./dist/api/createQueryCache/utils/hydrate.cjs"
+    },
+    "./api/createQueryCache/utils/invalidateQueries": {
+      "import": "./dist/api/createQueryCache/utils/invalidateQueries.mjs",
+      "require": "./dist/api/createQueryCache/utils/invalidateQueries.cjs"
+    },
+    "./api/createQueryCache/utils/invalidateQuery": {
+      "import": "./dist/api/createQueryCache/utils/invalidateQuery.mjs",
+      "require": "./dist/api/createQueryCache/utils/invalidateQuery.cjs"
+    },
+    "./api/createQueryCache/utils/isEntryExpired": {
+      "import": "./dist/api/createQueryCache/utils/isEntryExpired.mjs",
+      "require": "./dist/api/createQueryCache/utils/isEntryExpired.cjs"
+    },
+    "./api/createQueryCache/utils/resetForSSR": {
+      "import": "./dist/api/createQueryCache/utils/resetForSSR.mjs",
+      "require": "./dist/api/createQueryCache/utils/resetForSSR.cjs"
+    },
+    "./api/createQueryCache/utils/runRecallCheckers": {
+      "import": "./dist/api/createQueryCache/utils/runRecallCheckers.mjs",
+      "require": "./dist/api/createQueryCache/utils/runRecallCheckers.cjs"
+    },
+    "./api/createQueryCache/utils/saveDataCallback": {
+      "import": "./dist/api/createQueryCache/utils/saveDataCallback.mjs",
+      "require": "./dist/api/createQueryCache/utils/saveDataCallback.cjs"
+    },
+    "./api/createQueryCache/utils/saveQuery": {
+      "import": "./dist/api/createQueryCache/utils/saveQuery.mjs",
+      "require": "./dist/api/createQueryCache/utils/saveQuery.cjs"
+    },
+    "./api/createQueryCache/utils/scheduleRecall": {
+      "import": "./dist/api/createQueryCache/utils/scheduleRecall.mjs",
+      "require": "./dist/api/createQueryCache/utils/scheduleRecall.cjs"
+    },
+    "./api/createQueryCache/utils/serializeQueryKey": {
+      "import": "./dist/api/createQueryCache/utils/serializeQueryKey.mjs",
+      "require": "./dist/api/createQueryCache/utils/serializeQueryKey.cjs"
+    },
+    "./api/createQueryCache/utils/setCache": {
+      "import": "./dist/api/createQueryCache/utils/setCache.mjs",
+      "require": "./dist/api/createQueryCache/utils/setCache.cjs"
+    },
+    "./api/createQueryCache/utils/sliceDehydratedState": {
+      "import": "./dist/api/createQueryCache/utils/sliceDehydratedState.mjs",
+      "require": "./dist/api/createQueryCache/utils/sliceDehydratedState.cjs"
+    },
+    "./api/createQueryCache/utils/ssrDehydratedState": {
+      "import": "./dist/api/createQueryCache/utils/ssrDehydratedState.mjs",
+      "require": "./dist/api/createQueryCache/utils/ssrDehydratedState.cjs"
+    },
+    "./api/hooks": {
+      "import": "./dist/api/hooks/index.mjs",
+      "require": "./dist/api/hooks/index.cjs"
+    },
+    "./api/hooks/types": {
+      "import": "./dist/api/hooks/types.mjs",
+      "require": "./dist/api/hooks/types.cjs"
+    },
+    "./api/hooks/useInfiniteQuery": {
+      "import": "./dist/api/hooks/useInfiniteQuery/index.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/index.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/types": {
+      "import": "./dist/api/hooks/useInfiniteQuery/types.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/types.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/useInfiniteQuery": {
+      "import": "./dist/api/hooks/useInfiniteQuery/useInfiniteQuery.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/useInfiniteQuery.cjs"
+    },
+    "./api/hooks/useMutation": {
+      "import": "./dist/api/hooks/useMutation/index.mjs",
+      "require": "./dist/api/hooks/useMutation/index.cjs"
+    },
+    "./api/hooks/useMutation/types": {
+      "import": "./dist/api/hooks/useMutation/types.mjs",
+      "require": "./dist/api/hooks/useMutation/types.cjs"
+    },
+    "./api/hooks/useMutation/useMutation": {
+      "import": "./dist/api/hooks/useMutation/useMutation.mjs",
+      "require": "./dist/api/hooks/useMutation/useMutation.cjs"
+    },
+    "./api/hooks/useQueries": {
+      "import": "./dist/api/hooks/useQueries/index.mjs",
+      "require": "./dist/api/hooks/useQueries/index.cjs"
+    },
+    "./api/hooks/useQueries/types": {
+      "import": "./dist/api/hooks/useQueries/types.mjs",
+      "require": "./dist/api/hooks/useQueries/types.cjs"
+    },
+    "./api/hooks/useQueries/useQueries": {
+      "import": "./dist/api/hooks/useQueries/useQueries.mjs",
+      "require": "./dist/api/hooks/useQueries/useQueries.cjs"
+    },
+    "./api/hooks/useQuery": {
+      "import": "./dist/api/hooks/useQuery/index.mjs",
+      "require": "./dist/api/hooks/useQuery/index.cjs"
+    },
+    "./api/hooks/useQuery/types": {
+      "import": "./dist/api/hooks/useQuery/types.mjs",
+      "require": "./dist/api/hooks/useQuery/types.cjs"
+    },
+    "./api/hooks/useQuery/useQuery": {
+      "import": "./dist/api/hooks/useQuery/useQuery.mjs",
+      "require": "./dist/api/hooks/useQuery/useQuery.cjs"
+    },
+    "./api/hooks/useQueryCache": {
+      "import": "./dist/api/hooks/useQueryCache.mjs",
+      "require": "./dist/api/hooks/useQueryCache.cjs"
+    },
+    "./api/hooks/utils": {
+      "import": "./dist/api/hooks/utils/index.mjs",
+      "require": "./dist/api/hooks/utils/index.cjs"
+    },
+    "./api/hooks/utils/getRetryDelay": {
+      "import": "./dist/api/hooks/utils/getRetryDelay.mjs",
+      "require": "./dist/api/hooks/utils/getRetryDelay.cjs"
+    },
+    "./api/hooks/utils/runWithRetry": {
+      "import": "./dist/api/hooks/utils/runWithRetry.mjs",
+      "require": "./dist/api/hooks/utils/runWithRetry.cjs"
+    },
+    "./api/hooks/utils/shouldRetry": {
+      "import": "./dist/api/hooks/utils/shouldRetry.mjs",
+      "require": "./dist/api/hooks/utils/shouldRetry.cjs"
+    },
+    "./api/hooks/utils/wait": {
+      "import": "./dist/api/hooks/utils/wait.mjs",
+      "require": "./dist/api/hooks/utils/wait.cjs"
     },
     "./assign": {
       "import": "./dist/assign/index.mjs",
@@ -118,26 +409,6 @@
     "./colorFilter/Solver": {
       "import": "./dist/colorFilter/Solver.mjs",
       "require": "./dist/colorFilter/Solver.cjs"
-    },
-    "./createApiAgent": {
-      "import": "./dist/createApiAgent/index.mjs",
-      "require": "./dist/createApiAgent/index.cjs"
-    },
-    "./createApiAgent/createApiAgent": {
-      "import": "./dist/createApiAgent/createApiAgent.mjs",
-      "require": "./dist/createApiAgent/createApiAgent.cjs"
-    },
-    "./createApiAgent/types": {
-      "import": "./dist/createApiAgent/types.mjs",
-      "require": "./dist/createApiAgent/types.cjs"
-    },
-    "./createApiAgent/useMutation": {
-      "import": "./dist/createApiAgent/useMutation.mjs",
-      "require": "./dist/createApiAgent/useMutation.cjs"
-    },
-    "./createApiAgent/useQuery": {
-      "import": "./dist/createApiAgent/useQuery.mjs",
-      "require": "./dist/createApiAgent/useQuery.cjs"
     },
     "./createAsyncMicroStore": {
       "import": "./dist/createAsyncMicroStore/index.mjs",
@@ -291,6 +562,10 @@
       "import": "./dist/createMatchScheme/types.mjs",
       "require": "./dist/createMatchScheme/types.cjs"
     },
+    "./createMatchScheme/useColorScheme": {
+      "import": "./dist/createMatchScheme/useColorScheme.mjs",
+      "require": "./dist/createMatchScheme/useColorScheme.cjs"
+    },
     "./createMicroStore": {
       "import": "./dist/createMicroStore/index.mjs",
       "require": "./dist/createMicroStore/index.cjs"
@@ -343,49 +618,105 @@
       "import": "./dist/createViewRouter/types.mjs",
       "require": "./dist/createViewRouter/types.cjs"
     },
-    "./createViewRouter/util": {
-      "import": "./dist/createViewRouter/util/index.mjs",
-      "require": "./dist/createViewRouter/util/index.cjs"
+    "./createViewRouter/useLocation": {
+      "import": "./dist/createViewRouter/useLocation/index.mjs",
+      "require": "./dist/createViewRouter/useLocation/index.cjs"
     },
-    "./createViewRouter/util/filterRoutes": {
-      "import": "./dist/createViewRouter/util/filterRoutes.mjs",
-      "require": "./dist/createViewRouter/util/filterRoutes.cjs"
+    "./createViewRouter/useLocation/useLocation": {
+      "import": "./dist/createViewRouter/useLocation/useLocation.mjs",
+      "require": "./dist/createViewRouter/useLocation/useLocation.cjs"
     },
-    "./createViewRouter/util/getLocation": {
-      "import": "./dist/createViewRouter/util/getLocation.mjs",
-      "require": "./dist/createViewRouter/util/getLocation.cjs"
+    "./createViewRouter/useNavigate": {
+      "import": "./dist/createViewRouter/useNavigate/index.mjs",
+      "require": "./dist/createViewRouter/useNavigate/index.cjs"
     },
-    "./createViewRouter/util/normalizeOptions": {
-      "import": "./dist/createViewRouter/util/normalizeOptions.mjs",
-      "require": "./dist/createViewRouter/util/normalizeOptions.cjs"
+    "./createViewRouter/useNavigate/useNavigate": {
+      "import": "./dist/createViewRouter/useNavigate/useNavigate.mjs",
+      "require": "./dist/createViewRouter/useNavigate/useNavigate.cjs"
     },
-    "./createViewRouter/util/normalizePath": {
-      "import": "./dist/createViewRouter/util/normalizePath.mjs",
-      "require": "./dist/createViewRouter/util/normalizePath.cjs"
+    "./createViewRouter/usePaths": {
+      "import": "./dist/createViewRouter/usePaths/index.mjs",
+      "require": "./dist/createViewRouter/usePaths/index.cjs"
     },
-    "./createViewRouter/util/normalizeRoute": {
-      "import": "./dist/createViewRouter/util/normalizeRoute.mjs",
-      "require": "./dist/createViewRouter/util/normalizeRoute.cjs"
+    "./createViewRouter/usePaths/usePaths": {
+      "import": "./dist/createViewRouter/usePaths/usePaths.mjs",
+      "require": "./dist/createViewRouter/usePaths/usePaths.cjs"
     },
-    "./createViewRouter/util/normalizeRouteParamValue": {
-      "import": "./dist/createViewRouter/util/normalizeRouteParamValue.mjs",
-      "require": "./dist/createViewRouter/util/normalizeRouteParamValue.cjs"
+    "./createViewRouter/useRoute": {
+      "import": "./dist/createViewRouter/useRoute/index.mjs",
+      "require": "./dist/createViewRouter/useRoute/index.cjs"
     },
-    "./createViewRouter/util/normalizeServerRequest": {
-      "import": "./dist/createViewRouter/util/normalizeServerRequest.mjs",
-      "require": "./dist/createViewRouter/util/normalizeServerRequest.cjs"
+    "./createViewRouter/useRoute/useRoute": {
+      "import": "./dist/createViewRouter/useRoute/useRoute.mjs",
+      "require": "./dist/createViewRouter/useRoute/useRoute.cjs"
     },
-    "./createViewRouter/util/pathMatch": {
-      "import": "./dist/createViewRouter/util/pathMatch.mjs",
-      "require": "./dist/createViewRouter/util/pathMatch.cjs"
+    "./createViewRouter/useRouter": {
+      "import": "./dist/createViewRouter/useRouter/index.mjs",
+      "require": "./dist/createViewRouter/useRouter/index.cjs"
     },
-    "./createViewRouter/util/pathToRegExp": {
-      "import": "./dist/createViewRouter/util/pathToRegExp.mjs",
-      "require": "./dist/createViewRouter/util/pathToRegExp.cjs"
+    "./createViewRouter/useRouter/useRouter": {
+      "import": "./dist/createViewRouter/useRouter/useRouter.mjs",
+      "require": "./dist/createViewRouter/useRouter/useRouter.cjs"
     },
-    "./createViewRouter/util/routeDive": {
-      "import": "./dist/createViewRouter/util/routeDive.mjs",
-      "require": "./dist/createViewRouter/util/routeDive.cjs"
+    "./createViewRouter/useRouterLink": {
+      "import": "./dist/createViewRouter/useRouterLink/index.mjs",
+      "require": "./dist/createViewRouter/useRouterLink/index.cjs"
+    },
+    "./createViewRouter/useRouterLink/useRouterLink": {
+      "import": "./dist/createViewRouter/useRouterLink/useRouterLink.mjs",
+      "require": "./dist/createViewRouter/useRouterLink/useRouterLink.cjs"
+    },
+    "./createViewRouter/useSearchParams": {
+      "import": "./dist/createViewRouter/useSearchParams/index.mjs",
+      "require": "./dist/createViewRouter/useSearchParams/index.cjs"
+    },
+    "./createViewRouter/useSearchParams/useSearchParams": {
+      "import": "./dist/createViewRouter/useSearchParams/useSearchParams.mjs",
+      "require": "./dist/createViewRouter/useSearchParams/useSearchParams.cjs"
+    },
+    "./createViewRouter/utils": {
+      "import": "./dist/createViewRouter/utils/index.mjs",
+      "require": "./dist/createViewRouter/utils/index.cjs"
+    },
+    "./createViewRouter/utils/filterRoutes": {
+      "import": "./dist/createViewRouter/utils/filterRoutes.mjs",
+      "require": "./dist/createViewRouter/utils/filterRoutes.cjs"
+    },
+    "./createViewRouter/utils/getLocation": {
+      "import": "./dist/createViewRouter/utils/getLocation.mjs",
+      "require": "./dist/createViewRouter/utils/getLocation.cjs"
+    },
+    "./createViewRouter/utils/normalizeOptions": {
+      "import": "./dist/createViewRouter/utils/normalizeOptions.mjs",
+      "require": "./dist/createViewRouter/utils/normalizeOptions.cjs"
+    },
+    "./createViewRouter/utils/normalizePath": {
+      "import": "./dist/createViewRouter/utils/normalizePath.mjs",
+      "require": "./dist/createViewRouter/utils/normalizePath.cjs"
+    },
+    "./createViewRouter/utils/normalizeRoute": {
+      "import": "./dist/createViewRouter/utils/normalizeRoute.mjs",
+      "require": "./dist/createViewRouter/utils/normalizeRoute.cjs"
+    },
+    "./createViewRouter/utils/normalizeRouteParamValue": {
+      "import": "./dist/createViewRouter/utils/normalizeRouteParamValue.mjs",
+      "require": "./dist/createViewRouter/utils/normalizeRouteParamValue.cjs"
+    },
+    "./createViewRouter/utils/normalizeServerRequest": {
+      "import": "./dist/createViewRouter/utils/normalizeServerRequest.mjs",
+      "require": "./dist/createViewRouter/utils/normalizeServerRequest.cjs"
+    },
+    "./createViewRouter/utils/pathMatch": {
+      "import": "./dist/createViewRouter/utils/pathMatch.mjs",
+      "require": "./dist/createViewRouter/utils/pathMatch.cjs"
+    },
+    "./createViewRouter/utils/pathToRegExp": {
+      "import": "./dist/createViewRouter/utils/pathToRegExp.mjs",
+      "require": "./dist/createViewRouter/utils/pathToRegExp.cjs"
+    },
+    "./createViewRouter/utils/routeDive": {
+      "import": "./dist/createViewRouter/utils/routeDive.mjs",
+      "require": "./dist/createViewRouter/utils/routeDive.cjs"
     },
     "./debounce": {
       "import": "./dist/debounce/index.mjs",
@@ -406,6 +737,10 @@
     "./deepMerge/deepMerge": {
       "import": "./dist/deepMerge/deepMerge.mjs",
       "require": "./dist/deepMerge/deepMerge.cjs"
+    },
+    "./envs": {
+      "import": "./dist/envs.mjs",
+      "require": "./dist/envs.cjs"
     },
     "./getFullElementSize": {
       "import": "./dist/getFullElementSize/index.mjs",
@@ -439,6 +774,10 @@
       "import": "./dist/globalContext/constants.mjs",
       "require": "./dist/globalContext/constants.cjs"
     },
+    "./globalContext/createMediatorContextUtils": {
+      "import": "./dist/globalContext/createMediatorContextUtils.mjs",
+      "require": "./dist/globalContext/createMediatorContextUtils.cjs"
+    },
     "./globalContext/isGlobalContext": {
       "import": "./dist/globalContext/isGlobalContext.mjs",
       "require": "./dist/globalContext/isGlobalContext.cjs"
@@ -470,14 +809,6 @@
     "./hashID/types": {
       "import": "./dist/hashID/types.mjs",
       "require": "./dist/hashID/types.cjs"
-    },
-    "./immutableProperty": {
-      "import": "./dist/immutableProperty/index.mjs",
-      "require": "./dist/immutableProperty/index.cjs"
-    },
-    "./immutableProperty/immutableProperty": {
-      "import": "./dist/immutableProperty/immutableProperty.mjs",
-      "require": "./dist/immutableProperty/immutableProperty.cjs"
     },
     "./isDateYoungerOf": {
       "import": "./dist/isDateYoungerOf/index.mjs",
@@ -611,6 +942,10 @@
       "import": "./dist/reactivity/constants.mjs",
       "require": "./dist/reactivity/constants.cjs"
     },
+    "./reactivity/isComputed": {
+      "import": "./dist/reactivity/isComputed.mjs",
+      "require": "./dist/reactivity/isComputed.cjs"
+    },
     "./reactivity/isReactive": {
       "import": "./dist/reactivity/isReactive.mjs",
       "require": "./dist/reactivity/isReactive.cjs"
@@ -666,6 +1001,58 @@
     "./setSymbolKey/types": {
       "import": "./dist/setSymbolKey/types.mjs",
       "require": "./dist/setSymbolKey/types.cjs"
+    },
+    "./ssrUtils": {
+      "import": "./dist/ssrUtils/index.mjs",
+      "require": "./dist/ssrUtils/index.cjs"
+    },
+    "./ssrUtils/asyncTasks": {
+      "import": "./dist/ssrUtils/asyncTasks/index.mjs",
+      "require": "./dist/ssrUtils/asyncTasks/index.cjs"
+    },
+    "./ssrUtils/asyncTasks/asyncTasks": {
+      "import": "./dist/ssrUtils/asyncTasks/asyncTasks.mjs",
+      "require": "./dist/ssrUtils/asyncTasks/asyncTasks.cjs"
+    },
+    "./ssrUtils/runSSRCycle": {
+      "import": "./dist/ssrUtils/runSSRCycle/index.mjs",
+      "require": "./dist/ssrUtils/runSSRCycle/index.cjs"
+    },
+    "./ssrUtils/runSSRCycle/runSSRCycle": {
+      "import": "./dist/ssrUtils/runSSRCycle/runSSRCycle.mjs",
+      "require": "./dist/ssrUtils/runSSRCycle/runSSRCycle.cjs"
+    },
+    "./ssrUtils/runSSRCycle/types": {
+      "import": "./dist/ssrUtils/runSSRCycle/types.mjs",
+      "require": "./dist/ssrUtils/runSSRCycle/types.cjs"
+    },
+    "./ssrUtils/ssrTracker": {
+      "import": "./dist/ssrUtils/ssrTracker/index.mjs",
+      "require": "./dist/ssrUtils/ssrTracker/index.cjs"
+    },
+    "./ssrUtils/ssrTracker/fingerprint": {
+      "import": "./dist/ssrUtils/ssrTracker/fingerprint.mjs",
+      "require": "./dist/ssrUtils/ssrTracker/fingerprint.cjs"
+    },
+    "./ssrUtils/ssrTracker/reportApiSSR": {
+      "import": "./dist/ssrUtils/ssrTracker/reportApiSSR.mjs",
+      "require": "./dist/ssrUtils/ssrTracker/reportApiSSR.cjs"
+    },
+    "./ssrUtils/ssrTracker/ssrTracker": {
+      "import": "./dist/ssrUtils/ssrTracker/ssrTracker.mjs",
+      "require": "./dist/ssrUtils/ssrTracker/ssrTracker.cjs"
+    },
+    "./ssrUtils/ssrTracker/types": {
+      "import": "./dist/ssrUtils/ssrTracker/types.mjs",
+      "require": "./dist/ssrUtils/ssrTracker/types.cjs"
+    },
+    "./stringToMs": {
+      "import": "./dist/stringToMs/index.mjs",
+      "require": "./dist/stringToMs/index.cjs"
+    },
+    "./stringToMs/stringToMs": {
+      "import": "./dist/stringToMs/stringToMs.mjs",
+      "require": "./dist/stringToMs/stringToMs.cjs"
     },
     "./throttle": {
       "import": "./dist/throttle/index.mjs",

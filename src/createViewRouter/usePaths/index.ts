@@ -1,0 +1,1 @@
+export { usePaths } from './usePaths';

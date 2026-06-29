@@ -1,4 +1,4 @@
-import { isSSR } from '../isSSR';
+import { isBrowser } from '../envs';
 import { createAsyncStore } from '../createAsyncStore';
 import i18n, { type Callback, type TFunction } from 'i18next';
 import { languageDetector, translationImport } from './plugins';
@@ -21,7 +21,7 @@ import type { LangAsyncStore, LangOptions } from './types';
  * langStore.changeLanguage('fr');
  */
 export function createLangAsyncStore(options: LangOptions): LangAsyncStore {
-  const store = createAsyncStore<LangAsyncStore>({ ...options, storeName: 'LangStore' });
+  const store = createAsyncStore<LangAsyncStore>({ ...options, name: 'LangStore' });
 
   store.i18n = i18n.createInstance();
   store.init = noop;
@@ -51,7 +51,7 @@ export function createLangAsyncStore(options: LangOptions): LangAsyncStore {
   let currentLanguage: string = '';
   
   const _use = [
-    ...!initOptions.lng && !isSSR ? [
+    ...!initOptions.lng && isBrowser ? [
       languageDetector(store.supported, (lang) => {
         currentLanguage = lang;
       }, initLang)

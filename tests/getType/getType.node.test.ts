@@ -17,12 +17,16 @@ const types = [
   { type: 'Symbol', value: Symbol() },
   { type: 'String', value: '' },
   { type: 'Number', value: 0 },
-  { type: 'Boolean', value: false }
+  { type: 'Number', value: NaN },
+  { type: 'Boolean', value: false },
+  { type: 'Undefined', value: undefined },
+  { type: 'Null', value: null },
+  { type: 'BigInt', value: BigInt(0) }
 ];
 
-describe('getType', () => {
+describe('given the getType function', () => {
   types.forEach(({ type, value }) => {
-    it(`for the target "${type}" the type should be correct`, () => {
+    it(`given a value of type "${type}", when getType called, then it returns the correct "${type}"`, () => {
       expect(getType(value)).toBe(type);
     });
   });

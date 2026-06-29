@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createMatchScheme } from '../../src/createMatchScheme';
 import { MatchMedia } from '../utils';
 
-describe('createMatchScheme', () => {
+describe('given the createMatchScheme factory', () => {
   let matchMedia: MatchMedia;
 
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe('createMatchScheme', () => {
     matchMedia.destroy();
   });
 
-  it('creates a match scheme with default options', () => {
+  it('given no options, when createMatchScheme called, then getInfo returns default auto mode with system and selected strings', () => {
     const scheme = createMatchScheme();
 
     expect(scheme.getInfo()).toEqual({
@@ -24,7 +24,7 @@ describe('createMatchScheme', () => {
     });
   });
 
-  it('respects custom defaultMode', () => {
+  it('given defaultMode dark, when createMatchScheme, then getInfo has mode and selected as dark', () => {
     const scheme = createMatchScheme({ defaultMode: 'dark' });
     const info = scheme.getInfo();
 
@@ -32,7 +32,7 @@ describe('createMatchScheme', () => {
     expect(info.selected).toBe('dark');
   });
 
-  it('updates selected mode when setMode is called', () => {
+  it('given scheme with auto, when setMode dark then light, then getInfo reflects the selected mode each time', () => {
     const scheme = createMatchScheme({ defaultMode: 'auto' });
 
     scheme.setMode('dark');
@@ -43,7 +43,7 @@ describe('createMatchScheme', () => {
     expect(scheme.getInfo().selected).toBe('light');
   });
 
-  it('emits modeChange event when setMode is called', () => {
+  it('given scheme and listener via onModeChange, when setMode dark, then listener called with "dark"', () => {
     const scheme = createMatchScheme();
     const listener = vi.fn();
 
@@ -82,7 +82,7 @@ describe('createMatchScheme', () => {
   //   expect(sysListener).toHaveBeenCalledWith('dark');
   // });
 
-  it('applies color scheme using dataset when datasetName is provided', () => {
+  it('given scheme with default dark and datasetName, when created and setMode light, then root dataset.theme updates to dark then light', () => {
     const root = document.documentElement;
     const scheme = createMatchScheme({
       defaultMode: 'dark',
@@ -95,7 +95,7 @@ describe('createMatchScheme', () => {
     expect(root.dataset.theme).toBe('light');
   });
 
-  it('applies color scheme using className when datasetName is not defined', () => {
+  it('given scheme default dark no datasetName, when created and setMode light, then root className contains dark then light (no dark)', () => {
     const root = document.documentElement;
     const scheme = createMatchScheme({ defaultMode: 'dark' });
 
@@ -106,7 +106,7 @@ describe('createMatchScheme', () => {
     expect(root.className).not.toContain('dark');
   });
 
-  it('returns correct info object', () => {
+  it('given scheme with default dark, when getInfo, then it matches expected with mode dark and selected dark', () => {
     const scheme = createMatchScheme({ defaultMode: 'dark' });
     const info = scheme.getInfo();
 

@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 import { createStorage } from '../../src/createStorage';
 
-describe('createStorage', () => {
+describe('given the createStorage factory', () => {
   beforeEach(() => {
     localStorage.clear();
     indexedDB = new IDBFactory();
   });
 
-  it('should create a localStorage with defaultSettings', async () => {
+  it('given localStorage type and defaultSettings strings, when create and await ready, then localStorage has the parsed default values', async () => {
     const defaultSettings = {
       first: 'this is the first value',
       second: 'this is the second value',
@@ -26,7 +26,7 @@ describe('createStorage', () => {
     expect(JSON.parse(store.second)).toBe(defaultSettings.second);
   });
 
-  it('should create a localStorage with number defaultSettings', async () => {
+  it('given localStorage with number defaults, when create/ready/get, then values match and storage has parsed numbers', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,
@@ -49,7 +49,7 @@ describe('createStorage', () => {
     expect(second).toBe(defaultSettings.second);
   });
 
-  it('should return "first + 1" whiuot modify the storage', async () => {
+  it('given localStorage with onGet for first that returns value+1, when get first/second, then first is +1 but storage not mutated for first, second unchanged', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,
@@ -76,7 +76,7 @@ describe('createStorage', () => {
     expect(second).toBe(defaultSettings.second);
   });
 
-  it('should modify the value of "first" onGet the value', async () => {
+  it('given a stored value for key "first", when onGet hook is provided and get is called, then the hook can modify/return a transformed value', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,
@@ -106,7 +106,7 @@ describe('createStorage', () => {
     expect(second).toBe(defaultSettings.second);
   });
 
-  it('should modify the value of "first" in localStorage onRemove "second"', async () => {
+  it('given localStorage with onRemove for second that sets first to second value, when remove second, then storage first updated, second gone, get first returns the onRemove value', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,
@@ -133,7 +133,7 @@ describe('createStorage', () => {
     expect(first).toBe(defaultSettings.second);
   });
 
-  it('should create a indexedDB with defaultSettings', async () => {
+  it('given indexedDB default (no type), when create/ready, then db "storage" exists with object store and defaults stored', async () => {
     const defaultSettings = {
       first: 'this is the first value',
       second: 'this is the second value',
@@ -173,7 +173,7 @@ describe('createStorage', () => {
     expect(store.second).toBe(defaultSettings.second);
   });
 
-  it('should create a db with number defaultSettings', async () => {
+  it('given indexedDB with number defaults, when create/ready/get, then stored and get return the numbers', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,
@@ -210,7 +210,7 @@ describe('createStorage', () => {
     expect(second).toBe(defaultSettings.second);
   });
 
-  it('should return "first + 1" whiuot modify the db storage', async () => {
+  it('given indexedDB with onGet +1 no mutate for first, when get, then db not changed for first, returned +1, second ok', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,
@@ -253,7 +253,7 @@ describe('createStorage', () => {
     expect(second).toBe(defaultSettings.second);
   });
 
-  it('should modify the value of "first" onGet the value', async () => {
+  it('given indexedDB with onGet that sets+returns +1 for first, when get first/second, then db store and returns are +1 for first', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,
@@ -299,7 +299,7 @@ describe('createStorage', () => {
     expect(second).toBe(defaultSettings.second);
   });
 
-  it('should modify the value of "first" in indexedDB onRemove "second"', async () => {
+  it('given indexedDB with onRemove second that sets first, when remove second, then db first updated, second undefined, get first is the set value', async () => {
     const defaultSettings = {
       first: 1,
       second: 2,

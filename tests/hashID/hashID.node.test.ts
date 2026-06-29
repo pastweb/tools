@@ -1,28 +1,28 @@
 import { describe, it, expect } from 'vitest';
 import { hashID } from '../../src';
 
-describe('hashID', () => {
-  it('should be a function', () => {
+describe('given the hashID function', () => {
+  it('when typeof hashID, then it is "function"', () => {
     expect(typeof hashID).toBe('function');
   });
 
-  it('should generates a string 8 char long.', () => {
+  it('when hashID() default, then length is 8', () => {
     expect(hashID().length).toBe(8);
   });
 
-  it('should generates a string 6 char long.', () => {
+  it('given {idLength:6}, when hashID(null, opts), then length 6', () => {
     expect(hashID(null, { idLength: 6 }).length).toBe(6);
   });
 
-  it('should generates a string with "_" as first char.', () => {
+  it('when hashID(), then first char is "_"', () => {
     expect(hashID().indexOf('_')).toBe(0);
   });
 
-  it('should generate an ID string with "PREFIX" as prefix.', () => {
+  it('given {prefix:"PREFIX"}, when hashID, then starts with "PREFIX"', () => {
     expect(hashID(null, { prefix: 'PREFIX' }).indexOf('PREFIX')).toBe(0);
   });
 
-  it('the id shuold be not in the cache.', () => {
+  it('given a cache array populated by calling hashID(cache) 500 times, when check includes(hashID(cache)), then false (unique)', () => {
     const cache: string[] = [];
 
     for(let i = 0; i < 500; i++) {

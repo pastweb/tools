@@ -5,7 +5,7 @@ import { testUA, devicesConfig } from './constants';
 
 let matchMedia: MatchMedia;
 
-describe('createMatchDevice - web', () => {
+describe('given createMatchDevice on web', () => {
   beforeAll(() => {
     matchMedia = new MatchMedia();
   });
@@ -18,9 +18,9 @@ describe('createMatchDevice - web', () => {
     matchMedia.clear();
   });
 
-  describe('defaultUaRegExp', () => {
+  describe('given defaultUaRegExp tests', () => {
     it.each(testUA)
-      (`the uaRegex test function should return true for "%s"`, (ua: string) => {
+      (`given ua string "%s", when matched against UA_MOBILE_DEFAULT_RE, then it matches`, (ua: string) => {
         expect(ua).toMatch(UA_MOBILE_DEFAULT_RE);
       });
   });
@@ -36,8 +36,8 @@ describe('createMatchDevice - web', () => {
   //   });
   // });
 
-  describe('devicesConfig', () => {
-    it.each(Object.entries(devicesConfig))(`the property "isDeviceName" in devices result Object sould be true`, (device, config) => {
+  describe('given devicesConfig for createMatchDevice', () => {
+    it.each(Object.entries(devicesConfig))(`given device config for "%s" using uaTest, when createMatchDevice(devicesConfig) getDevices, then devices[device] is true`, (device, config) => {
       const { mediaQuery, uaTest } = config;
       
       if (!mediaQuery && uaTest) {
@@ -48,7 +48,7 @@ describe('createMatchDevice - web', () => {
       }
     });
 
-    it.each(Object.entries(devicesConfig))(`for the device "%s" the mediaQuery should match so "isDeviceName" should be true`, (device, config) => {
+    it.each(Object.entries(devicesConfig))(`given device config for "%s" using mediaQuery, when createMatchDevice and getDevices after setting media, then devices[device] is true`, (device, config) => {
       const { mediaQuery, uaTest } = config;
 
       if (mediaQuery && !uaTest) {
@@ -59,7 +59,7 @@ describe('createMatchDevice - web', () => {
       }
     });
 
-    it.each(Object.entries(devicesConfig))(`for the device "%s" the mediaQuery listener should be called.`, (device, config) => {
+    it.each(Object.entries(devicesConfig))(`given device config for "%s" using mediaQuery, when onChange registered and media used, then the onChange listener is called once`, (device, config) => {
       const { mediaQuery, uaTest } = config;
 
       if (mediaQuery && !uaTest) {

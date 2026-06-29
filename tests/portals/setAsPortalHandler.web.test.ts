@@ -3,8 +3,8 @@ import { setAsPortalHandler } from '../../src/portals/setAsPortalHandler';
 import { PORTAL_HANDLER } from '../../src/portals/constants';
 import type { PortalHandler } from '../../src/portals/types';
 
-describe('setAsPortalHandler', () => {
-  it('adds the PORTAL_HANDLER symbol to a valid object and returns it as PortalHandler', () => {
+describe('given the setAsPortalHandler function', () => {
+  it('given a target object, when setAsPortalHandler is called, then it adds the PORTAL_HANDLER symbol and returns the object as PortalHandler', () => {
     const target = {
       id: 'portal-123',
       open: () => {},
@@ -20,7 +20,7 @@ describe('setAsPortalHandler', () => {
     expect(result).toHaveProperty('id');
   });
 
-  it('makes the PORTAL_HANDLER property non-enumerable, non-writable, and non-configurable', () => {
+  it('given a target, when setAsPortalHandler is called, then the PORTAL_HANDLER property is non-enumerable, non-writable and non-configurable', () => {
     const target = { open: () => {} };
 
     const result = setAsPortalHandler(target) as PortalHandler;
@@ -34,7 +34,7 @@ describe('setAsPortalHandler', () => {
     expect(descriptor?.configurable).toBe(false);
   });
 
-  it('does not overwrite existing PORTAL_HANDLER if already present', () => {
+  it('given an object that already has PORTAL_HANDLER, when setAsPortalHandler is called, then it does not overwrite and returns the same', () => {
     const target = {
       [PORTAL_HANDLER]: true,
       open: () => {},
@@ -46,7 +46,7 @@ describe('setAsPortalHandler', () => {
     expect((result as any)[PORTAL_HANDLER]).toBe(true);
   });
 
-  it('works with objects that already have other properties', () => {
+  it('given an object with other properties like id and title, when setAsPortalHandler is called, then it adds the symbol while preserving other props', () => {
     const target = {
       id: 'test-portal',
       title: 'Modal',
@@ -60,7 +60,7 @@ describe('setAsPortalHandler', () => {
     expect((result as any)[PORTAL_HANDLER]).toBe(true);
   });
 
-  it('returns the same object reference (mutation)', () => {
+  it('given any object, when setAsPortalHandler is called, then it returns the exact same object reference (mutates in place)', () => {
     const original = { open: () => {} };
     const result = setAsPortalHandler(original);
 

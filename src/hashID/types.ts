@@ -1,4 +1,4 @@
-export type Config = {
+export type HashIDOptions = {
   alphabet?: string;
   prefix?: string;
   idLength?: number;

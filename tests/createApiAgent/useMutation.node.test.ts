@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import MockAdapter from 'axios-mock-adapter';
-import { createApiAgent, useMutation } from '../../src/createApiAgent';
+import { createApiAgent, useMutation } from '../../src/api';
 import type { AxiosResponse } from 'axios';
 
-describe('useMutation with createApiAgent', () => {
+describe('given useMutation integrated with createApiAgent, when executing mutations with various options, then state management, lifecycle hooks, error handling, and isolation work as expected', () => {
   let mock: MockAdapter;
   let agent: ReturnType<typeof createApiAgent>;
 
@@ -21,7 +21,7 @@ describe('useMutation with createApiAgent', () => {
     vi.useRealTimers();
   });
 
-  it('should initialize with correct default state', () => {
+  it('given only a mutation fn, when useMutation is called, then isPending, isMutating, isError are false, data and error are null, and isPlaceholderData is false', () => {
     const fn = vi.fn().mockResolvedValue({ data: { id: 1 } } as AxiosResponse);
     const mutation = useMutation({ fn });
 
@@ -33,7 +33,7 @@ describe('useMutation with createApiAgent', () => {
     expect(mutation.isPlaceholderData).toBe(false);
   });
 
-  it('should initialize with initialData and isPlaceholderData true', () => {
+  it('given initialData along with fn, when useMutation is called, then data matches initialData, isPlaceholderData is true, and pending/mutating states are false', () => {
     const initialData = { id: 0 };
     const fn = vi.fn().mockResolvedValue({ data: { id: 1 } } as AxiosResponse);
     const mutation = useMutation({ fn, initialData });
@@ -44,7 +44,7 @@ describe('useMutation with createApiAgent', () => {
     expect(mutation.isMutating).toBe(false);
   });
 
-  it('should execute mutation with arguments and update state', async () => {
+  it('given a fn that posts data via agent, when mutate is invoked with payload, then isPending and isMutating become false, data is set to response, no error, placeholder false, and correct request was recorded', async () => {
     const responseData = { id: 1, name: 'test' };
     mock.onPost('/test').reply(200, responseData, { 'content-type': 'application/json' });
 
@@ -68,7 +68,7 @@ describe('useMutation with createApiAgent', () => {
     expect(mock.history.post[0].data).toBe(JSON.stringify({ name: 'test' }));
   });
 
-  it('should handle mutation error and call onError', async () => {
+  it('given a failing post and onError callback, when mutate runs, then isError is true with error status 500, pending and mutating false, data null, and onError was invoked with the error', async () => {
     const error = new Error('Server error');
     mock.onPost('/test').reply(500, { message: 'Server error' });
 
@@ -93,7 +93,7 @@ describe('useMutation with createApiAgent', () => {
     expect(mock.history.post.length).toBe(1);
   });
 
-  it('should call lifecycle hooks in correct order', async () => {
+  it('given onMutate, onSuccess and onError handlers, when a successful mutate occurs, then onMutate is called first with args, onSuccess next with args, onError never called, and final data is set', async () => {
     const responseData = { id: 1 };
     mock.onPost('/test').reply(200, responseData, { 'content-type': 'application/json' });
 
@@ -117,7 +117,7 @@ describe('useMutation with createApiAgent', () => {
     expect(mock.history.post[0].data).toBe(JSON.stringify(args));
   });
 
-  it('should maintain isolation between multiple mutations', async () => {
+  it('given two independent useMutation instances for different urls, when each is mutated, then each holds its own response data, requests are isolated per url, and re-mutating one does not affect the other', async () => {
     const responseData1 = { id: 1 };
     const responseData2 = { id: 2 };
     mock
@@ -156,7 +156,7 @@ describe('useMutation with createApiAgent', () => {
     expect(mock.history.post.length).toBe(3);
   });
 
-  it('should handle initialData and update isPlaceholderData after mutation', async () => {
+  it('given initialData on mutation setup, when mutate completes with real data, then data is updated to server response and isPlaceholderData is set to false', async () => {
     const initialData = { placeholder: true };
     const responseData = { id: 1 };
     mock.onPost('/test').reply(200, responseData, { 'content-type': 'application/json' });
@@ -175,7 +175,7 @@ describe('useMutation with createApiAgent', () => {
     expect(mutation.isPlaceholderData).toBe(false);
   });
 
-  it('should call onError and onSuccess in correct order on error', async () => {
+  it('given onMutate, onSuccess, onError for failing request, when mutate is called, then onMutate called, onError called with error, onSuccess also called with args, and request count is one', async () => {
     mock.onPost('/test').reply(500, { message: 'Server error' });
 
     const onMutate = vi.fn().mockResolvedValue(undefined);

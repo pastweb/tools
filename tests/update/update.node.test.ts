@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { update } from '../../src';
 
-describe('update', () => {
-  it('should update properties in the target object', () => {
+describe('given the update function', () => {
+  it('given target {a:1,b:2} toUpdate {a:10}, when update, then target becomes {a:10,b:2}', () => {
     const target = { a: 1, b: 2 };
     const toUpdate = { a: 10 };
     
@@ -11,7 +11,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 10, b: 2 });
   });
 
-  it('should perform a deep update for nested objects', () => {
+  it('given nested target and toUpdate, when update, then deep merge updates only the leaf', () => {
     const target = { a: 1, b: { c: 2 } };
     const toUpdate = { b: { c: 20 } };
     
@@ -20,7 +20,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 1, b: { c: 20 } });
   });
 
-  it('should perform a shallow update when shallow option is true', () => {
+  it('given nested with shallow:true, when update partial nested, then replaces the nested (shallow)', () => {
     const target = { a: 1, b: { c: 2, d: 3 } };
     const toUpdate = { b: { c: 20 } };
     
@@ -29,7 +29,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 1, b: { c: 20 } });
   });
 
-  it('should exclude specified properties from the update', () => {
+  it('given exclude "a", when update, then a not updated, b is', () => {
     const target = { a: 1, b: 2 };
     const toUpdate = { a: 10, b: 20 };
     
@@ -38,7 +38,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 1, b: 20 });
   });
 
-  it('should handle multiple properties in the exclude option', () => {
+  it('given exclude ["a","c"], when update, then a,c unchanged b updated', () => {
     const target = { a: 1, b: 2, c: 3 };
     const toUpdate = { a: 10, b: 20, c: 30 };
     
@@ -47,7 +47,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 1, b: 20, c: 3 });
   });
 
-  it('should not update if the new value is the same as the existing value', () => {
+  it('given same value in toUpdate for nested, when update, then no change to target', () => {
     const target = { a: 1, b: { c: 2 } };
     const toUpdate = { b: { c: 2 } };
     
@@ -56,7 +56,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 1, b: { c: 2 } });
   });
 
-  it('should handle empty toUpdate object', () => {
+  it('given empty toUpdate, when update, then target unchanged', () => {
     const target = { a: 1, b: 2 };
     
     update(target, {});
@@ -64,7 +64,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 1, b: 2 });
   });
 
-  it('should handle non-object values gracefully', () => {
+  it('given toUpdate null, when update, then target unchanged (graceful)', () => {
     const target = { a: 1, b: 2 };
     
     update(target, null as any); // Pass null to simulate invalid input
@@ -72,7 +72,7 @@ describe('update', () => {
     expect(target).toEqual({ a: 1, b: 2 });
   });
 
-  it('should update deeply nested properties', () => {
+  it('given deep 3 levels toUpdate, when update, then deep leaf updated', () => {
     const target = { a: 1, b: { c: { d: 4 } } };
     const toUpdate = { b: { c: { d: 40 } } };
     

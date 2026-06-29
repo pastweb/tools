@@ -1,7 +1,13 @@
 import { reactive, type Reactive } from '../reactivity';
 import { createReadonlyState } from './createReadonlyState';
 import { STORE_REGISTRY } from './constants';
-import type { MicroStoreConfig, UseMicroStore, Selector, MicroStore } from './types';
+import type {
+  MicroStoreConfig,
+  UseMicroStore,
+  Selector,
+  MicroStore,
+  MicroStoreActionsContext,
+} from './types';
 
 /**
  * Creates a lightweight reactive micro-store with selector support and readonly state.
@@ -20,17 +26,19 @@ import type { MicroStoreConfig, UseMicroStore, Selector, MicroStore } from './ty
  *     name: 'My Counter'
  *   },
  *   actions: {
- *     increment: (by = 1) => {
- *       const state = select(s => s);          // Get full state
- *       state.count += by;        // Internal mutation (allowed)
+ *     increment(by = 1) {
+ *       this.state.count += by;    // Access state via `this`
  *     },
- *     decrement: (by = 1) => {
- *       const state = select(s => s);
- *       state.count -= by;
+ *     decrement(by = 1) {
+ *       this.state.count -= by;
  *     },
- *     setName: (newName: string) => {
+ *     setName(newName: string) {
+ *       this.state.name = newName;
+ *     },
+ *     // Alternatively, use the setup `select` helper:
+ *     reset() {
  *       const state = select(s => s);
- *       state.name = newName;
+ *       state.count = 0;
  *     },
  *   },
  * }));
@@ -89,7 +97,19 @@ export function createMicroStore<
 
   // Initialize deeply reactive state (mutable internally)
   reactiveState = reactive({ ...initialState }, true);
-  actions = initialActions;
+
+  const actionsContext: MicroStoreActionsContext<S> = {
+    get state() {
+      return reactiveState;
+    },
+  };
+
+  actions = Object.fromEntries(
+    Object.entries(initialActions).map(([key, action]) => [
+      key,
+      (...args: any[]) => action.call(actionsContext, ...args),
+    ])
+  ) as A;
 
   // Main store function
   function useMicroStore<T>(selector?: Selector<T, S>): any {

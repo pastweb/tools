@@ -1,31 +1,57 @@
 # @pastweb/tools
 
-Contains a collection of utility functions to help with various common tasks in JavaScript and TypeScript application development.
-Below you will find descriptions of each function along with examples of how to use them.
+A collection of **production-ready**, **tree-shakeable** utility functions for common tasks in modern JavaScript and TypeScript applications.
 
-* Production ready
-* Treeshake optimised
+## Features
+
+- **Broad coverage** — Async operations, browser utilities, a full reactivity system, client-side routing, DOM helpers, object utilities, string transforms, SCSS tools, and more.
+- **Lightweight & optimized** — Fully tree-shakeable with minimal dependencies.
+- **TypeScript-first** — Excellent type definitions, generics, and editor support out of the box.
+- **Framework-agnostic** — Works in any environment. Includes first-class support for mediator patterns and global context (useful in React, Vue, Svelte, Solid, etc.).
+- **Well documented** — Every utility comes with clear syntax, parameters, return types, real-world examples, use cases, notes, and edge cases.
+- **Modern architecture** — Built around reactivity (`reactive`, `ref`, `computed`, `effect`), async-first stores, unique ID generation, and clean separation of concerns.
 
 ## Installation
+
 ```bash
-$ npm i -S @pastweb/tools
+npm i -S @pastweb/tools
+# or
+pnpm i -S @pastweb/tools
+# or
+yarn add -S @pastweb/tools
 ```
-```bash
-$ pnpm i -S @pastweb/tools
-```
-```bash
-$ yarn add -S @pastweb/tools
-```
+
+## Documentation Overview
+
+The documentation is organized into the following major categories. Each section provides complete TypeScript definitions, practical examples, real-world use cases, and notes on edge cases.
+
+- **Async functions** — Tools for working with promises, API clients (`createApiAgent`, `useQuery`, `useMutation`), async stores, event emitters, debouncing, and throttling.
+- **Browser functions** — Client-side utilities including device detection, color scheme management, persistent storage, and the complete routing system.
+- **Date and Time** — Helpers for comparing dates and converting duration strings to milliseconds.
+- **Element functions** — DOM and UI utilities (class name composition, portals, anchor generation, element sizing).
+- **Object functions** — General-purpose object utilities (deep merging, property assignment, type checking, immutability helpers, and more).
+- **Reactivity** — A complete reactivity system (`reactive`, `ref`, `computed`, `effect`) together with supporting utilities and the Global Context pattern.
+- **Routing** — The full `createViewRouter` solution, including route definition, matching, navigation, and mediator hooks for framework integration.
+- **SSR utilities (experimental)** — Server-render coordination helpers (`registerAsyncTask`, `resolveAsyncTasks`, `runSSRCycle`, and SSR tracker utilities).
+- **String functions** — String transformation utilities (camelCase, kebab-case, friendly ID generation).
+- **Styles** — SCSS mixins and tools for responsive design, theming, and layout utilities.
+- **Utility functions** — General-purpose helpers (memoization, SSR detection, no-op, and similar tools).
+
+This project is distributed under the MIT licence.
+
 
 ## Summary
 
 - [Async functions](#async-functions)
   - [createApiAgent](#createapiagent)
-    - [useQuery](#usequery)
+    - [createQueryCache](#createquerycache)
     - [useMutation](#usemutation)
+    - [useInfiniteQuery](#useinfinitequery)
+    - [useQueries](#usequeries)
+    - [useQuery](#usequery)
+  - [createAsyncMicroStore](#createasyncmicrostore)
   - [createAsyncStore](#createasyncstore)
     - [normalizeAsyncQueue](#normalizeasyncqueue)
-  - [createAsyncMicroSrote](#createasyncmicrostore)
   - [createEventEmitter](#createeventemitter)
   - [createLangAsyncStore](#createlangasyncstore)
   - [createMatchSchemeAsyncStore](#creatematchschemeasyncstore)
@@ -34,13 +60,11 @@ $ yarn add -S @pastweb/tools
 - [Browser functions](#browser-functions)
   - [createMatchDevice](#creatematchdevice)
   - [createMatchScheme](#creatematchscheme)
+    - [useColorScheme](#usecolorscheme)
   - [createStorage](#createStorage)
-  - [createViewRouter](#createviewrouter)
-    - [Route Object](#route-object)
-    - [filterRoutes](#filterroutes)
-    - [routeDive](#routedive)
 - [Date and Time](#date-and-time)
   - [isDateYoungerOf](#isdateyoungerof)
+  - [stringToMs](#stringtoms)
 - [Element functions](#element-functions)
   - [cl](#cl)
   - [createEntry](#createentry)
@@ -56,63 +80,91 @@ $ yarn add -S @pastweb/tools
   - [isType](#istype)
   - [remove](#remove)
   - [select](#select)
+  - [setReadOnly](#setreadonly)
+  - [setSymbolKey](#setsymbolkey)
   - [update](#update)
   - [withDefaults](#withdefaults)
 - [Reactivity](#reactivity)
+  - [computed](#computed)
+  - [createMicroStore](#createmicrostore)
+  - [createMicroStoreCollector](#createmicrostorecollector)
+  - [effect](#effect)
+  - [Global Context](#global-context)
+  - [isRef / isReactive / isComputed](#isref-isreactive-iscomputed) (utilities)
   - [reactive](#reactive)
   - [ref](#ref)
-  - [effect](#effect)
-  - [computed](#computed)
-  - [GlobalContext](#globalcontext)
-  - [createMicroStore](#createmicrostore)
-  - [createMircoStoreCollector](#createmicrostorecollector)
+- [Routing](#routing)
+  - [createViewRouter](#createviewrouter)
+    - [filterRoutes](#filterroutes)
+    - [Route Object](#route-object)
+    - [routeDive](#routedive)
+    - [Router mediator hooks](#router-mediator-hooks)
+      - [useLocation](#uselocation)
+      - [useNavigate](#usenavigate)
+      - [usePaths](#usepaths)
+      - [useRoute](#useroute)
+      - [useRouter](#userouter)
+      - [useRouterLink](#userouterlink)
+    - [useSearchParams](#usesearchparams)
+- [SSR utilities (experimental)](#ssr-utilities-experimental)
+  - [registerAsyncTask / resolveAsyncTasks](#registerasynctask--resolveasynctasks)
+  - [runSSRCycle](#runssrcycle)
+  - [SSR tracker (`createSSRTracker`)](#ssr-tracker-createssrtracker)
 - [String functions](#string-functions)
   - [camelize](#camelize)
   - [createIdCache](#createidcache)
   - [hashID](#hashid)
   - [kebabize](#kebabize)
+- [Styles](#styles)
+  - [colorFilter](#colorfilter)
+  - [flex-layout](#flex-layout)
+  - [Responsiveness mixins](#responsiveness-mixins)
+  - [setup](#setup)
 - [Utility functions](#utility-functions)
+  - [isSSR](#isssr) (deprecated - use envs constants)
+  - [Environment detection constants (envs)](#environment-detection-constants-envs)
   - [memo](#memo)
   - [noop](#noop)
-  - [isSSR](#isssr)
-- [Styles](#styles)
-  - [setup](#setup)
-  - [colorFilter](#colorfilter)
-  - [Responsiveness mixins](#responsiveness-mixins)
-  - [flex-layout](#flex-layout)
 
 ---
 ## Async functions
 
 ### `createApiAgent`
 
-Creates an API agent with customizable settings for HTTP requests.
+Creates a configured Axios-based API client ("agent") with optional caching,
+pagination support, request interceptors for auth, and SSR-friendly query collection.
+
+All functions and types have comprehensive TSDoc (including internal types).
 
 > #### Syntax
 ```typescript
-function createApiAgent(settings?: AgentSettings): Agent;
+function createApiAgent(options?: AgentOptions): Agent;
 ```
 Parameters
-* `settings`: `AgentSettings` _(optional)_ The settings for the API agent.
+* `options`: `AgentOptions` _(optional)_ The options for the API agent.
+  * `cache`: `boolean` _(optional)_ (default: false)
+    * @deprecated Use `queryCache` instead.
+  * `queryCache`: `QueryCache` _(optional)_
+    * Pass `createQueryCache()` to enable caching for GETs + SSR support (dehydrate/hydrate).
+    * This is the recommended way. The agent will use the provided instance for caching.
+  * `headers`: `Record<string, any>` _(optional)_ (default: {})
+    * Default headers to include on every request.
   * `withCredentials`: `boolean` _(optional)_ (default: false)
     * Indicates whether cross-site Access-Control requests should be made using credentials.
-  * `headers`: `Record<string, any>` _(optional)_ (default: {})
-    * Custom headers to be sent with each request.
+  * `pagination`: `boolean | PaginationConfig` _(optional)_ (default: `true`)
+    * Enables pagination parsing from Content-Range header.
   * `exclude`: `string | RegExp | Array<string | RegExp>` _(optional)_
-    * URLs or patterns to exclude from request intercepting.
-  * `onGetValidToken`: `() => Promise<Record<string, any>>` _(optional)_
+    * URLs or patterns to exclude from request interception.
+  * `onGetValidToken`: `() => ValidTokenResponse | Promise<ValidTokenResponse>` _(optional)_
     * Function to get a valid token for authorization.
-  * `onUnauthorizedResponse`: `() => void` _(optional)_
+  * `onUnauthorizedResponse`: `() => void | Promise<void>` _(optional)_
     * Callback for unauthorized responses.
-  * `pagination`: `boolean | Pagination` _(optional)_ (default: `true`)
-    * Enables pagination parsing. If `true`, uses default settings (`{ defaultPageLimit: 100, header: 'Content-Range' }`).
-      If an object, allows custom `defaultPageLimit` and `header`.
-  * `cache`: `boolean` _(optional)_ (default: `false`)
-    * Enables response caching for GET requests.
 
 Returns
 * `Agent`
   * The configured API agent.
+
+See the source TSDoc (now present on all functions and types, including in `types.ts`) for full details on methods like `get`, `dehydrate`/`hydrate` (on `QueryCache`), etc.
 
 Methods
 * `setAgentOptions(options: AgentOptions): void`
@@ -126,9 +178,14 @@ Methods
 * `pageToOffset(page?: PageNumber, limit?: PageLimit): number`
   * Converts a page number to an offset for pagination.
 * `delete<T = any>(url: string, options: MutationOptions): Promise<AxiosResponse<T>>`
-  * Sends a DELETE request. Supports `AxiosRequestConfig` and `onSuccess`/`onError` callbacks  if `cache = true` in the `AgentOptions`.
+  * Sends a DELETE request. Supports `AxiosRequestConfig` and `onSuccess`/`onError` callbacks when a `queryCache` is provided on the agent.
 * `get<T = any>(url: string, options: QueryOptions): Promise<AxiosResponse<T>>`
-  * Sends a GET request. Supports `AxiosRequestConfig` and caching with `queryKey` and `expireIn` if `cache = true` in the `AgentOptions`.
+  * Sends a GET request. Supports `AxiosRequestConfig` and caching with `queryKey` (array or string), `expireIn`, and cache lifecycle options when a `queryCache` is provided on the agent.
+    Present `queryKey` → its serialized value is the cache key. Omitted → URL is the cache key.
+    `select` projects `response.data` for the current caller without changing the raw cached response.
+    `ssrMode` and `ssrRevalitate` report hybrid SSR behavior to the active SSR tracker when rendering on the server.
+    `toon: true` adds `text/toon` to the request `Accept` header; `text/toon` responses are decoded into JavaScript values with `@toon-format/toon`.
+    Using these without `queryCache` will log a `console.error`.
 * `patch<T = any>(url: string, data?: unknown, options: MutationOptions): Promise<AxiosResponse<T>>`
   * Sends a PATCH request.
 * `post<T = any>(url: string, data?: unknown, options: MutationOptions): Promise<AxiosResponse<T>>`
@@ -141,7 +198,11 @@ Methods
   * Downloads a file using a GET request and triggers a download in the browser.
 
 Cache
-When cache: `true` is set, GET requests are cached using a `queryKey` (defaults to the URL). The cache supports:
+Caching is enabled by passing a `queryCache` to `createApiAgent({ queryCache })` (the old `cache: true` boolean is deprecated). GET responses are stored under a key that is either:
+- the serialized `queryKey` you provide (array recommended: `['users', id]`, or legacy string), or
+- the full request URL when no `queryKey` is given.
+
+The cache supports:
 * `get(key: string): QueryData`
   * Retrieves a cached response.
 * `getAll(): [string, QueryData][]`
@@ -152,10 +213,60 @@ When cache: `true` is set, GET requests are cached using a `queryKey` (defaults 
   * Sets a cache entry with a response, timestamp, and expiration.
 * `delete(key: string): boolean`
   * Removes a cache entry.
-* `invalidateQuery(queryKey?: string | string[]): void`
-  * Invalidates cache entries by key or prefix.
+* `invalidateQuery(queryKey?: unknown | unknown[]): void`
+  * Invalidates cache entries by key or prefix. Accepts the same value you passed as `queryKey` (string, array, or URL). Works for both URL keys and structured queryKeys.
 
-Cache entries expire based on the `expireIn` option (e.g., `'1s'`, `'5m'`) using the [`isDateYoungerOf`](#isdateyoungerof) utility.
+Cache entries (when a `queryCache` is enabled) expire based on the `expireIn` option (e.g., `'1s'`, `'5m'`) using the [`isDateYoungerOf`](#isdateyoungerof) utility. Using `expireIn` or `queryKey` without enabling `queryCache` on the agent will log a console error.
+
+**GET options** (passed to `agent.get` via `QueryOptions`):
+
+| Option | Type | Behavior |
+|--------|------|----------|
+| `select` | `(data, response) => any` | Projects `response.data` for the current `agent.get` call. The cache stores the raw response; `onData` updates are projected with the same selector. |
+| `toon` | `boolean` | Adds `text/toon` to the GET request `Accept` header. If the server responds with `content-type` containing `text/toon`, the response body is decoded with `@toon-format/toon`. |
+| `fetchOnExpired` | `true \| string` | Replaces the former `callOnExpired`. `true` = passive (refetch on next `get` only if stale). `string` = active timer that auto-refetches when `expireIn` is exceeded. |
+| `fetchOnInvalidate` | `true \| string` | After `invalidateQuery`, immediately refetch (`true`) or wait the duration string before refetching. |
+| `removeOnExpired` | `boolean` | Remove the entry when `expireIn` is exceeded (instead of refetching). |
+| `removeOnInvalidate` | `boolean` | Remove the entry immediately when invalidated. |
+| `ssrMode` | `'auto' \| 'static' \| 'dynamic' \| 'no-store'` | Server-rendering mode for hybrid static/dynamic pages. `dynamic` and `no-store` mark the active SSR tracker dynamic. |
+| `ssrRevalitate` | `string \| false` | Static page revalidation hint for SSR dependencies. Strings are converted to milliseconds with `stringToMs`; `false` disables time-based revalidation. |
+
+```typescript
+// Select a view of a wrapped API response while keeping the raw response in the cache.
+// Example API response:
+// {
+//   items: [{ id: 1, name: 'Ada' }],
+//   meta: { total: 1 }
+// }
+const usersResponse = await agent.get('/api/users', {
+  queryKey: ['users'],
+  select: data => data.items,
+});
+console.log(usersResponse.data); // [{ id: 1, name: 'Ada' }]
+
+// Another caller can reuse the same cache entry and select a different view.
+const usersTotalResponse = await agent.get('/api/users', {
+  queryKey: ['users'],
+  select: data => data.meta.total,
+});
+console.log(usersTotalResponse.data); // 1
+
+// Auto-refetch 1s after expiration window
+await agent.get('/api/users', { expireIn: '5m', fetchOnExpired: '1s' });
+
+// Passive: only refetch on next get if stale
+await agent.get('/api/users', { expireIn: '5m', fetchOnExpired: true });
+
+// Refetch immediately after invalidation
+await agent.get('/api/users', { expireIn: '5m', fetchOnInvalidate: true });
+agent.cache.invalidateQuery('/api/users');
+
+// Drop stale entries instead of refetching
+await agent.get('/api/users', { expireIn: '5m', removeOnExpired: true });
+
+// Request TOON and receive decoded JavaScript data when the server returns text/toon
+await agent.get('/api/users', { toon: true });
+```
 
 Pagination
 When `pagination` is enabled, the `successResponseInterceptor` processes responses with a `Content-Range` header (e.g., `0-1/20` where `0-1` is start and end index adn `20` is the items total number).
@@ -207,17 +318,74 @@ apiAgent.upload('/api/upload', formData, (event) => {
 // Downloading a file
 apiAgent.download('/api/download', 'file.txt');
 
-// Cached GET Request
-const agent = createApiAgent({ cache: true });
-await agent.get('/api/users', { queryKey: 'users', expireIn: '5m' });
-await agent.get('/api/users', { queryKey: 'users' }); // Returns cached response
+// Cached GET Request using structured queryKey (array) — the recommended form.
+// The key stored in cache will be JSON.stringify(['users', 123]) i.e. '["users",123]'
+const queryCache = createQueryCache();
+const agent = createApiAgent({ queryCache });
+await agent.get('/api/users/123', { queryKey: ['users', 123], expireIn: '5m' });
+const same = await agent.get('/api/users/123', { queryKey: ['users', 123] }); // cache hit
+
+// URL-only key (no queryKey) — cache key becomes the literal URL string
+await agent.get('/api/users?status=active');
+
+// Invalidate using the same queryKey shape you used when fetching (recommended)
+agent.cache.invalidateQuery(['users', 123]);
+
+// Or using a URL key / prefix (still fully supported)
+agent.cache.invalidateQuery('/api/users');
+
+// You can also pass the serialized string form if you prefer
+agent.cache.invalidateQuery(JSON.stringify(['users', 123]));
+
 
 // Paginated GET Request
 const agent = createApiAgent({ pagination: { defaultPageLimit: 10, header: 'Content-Range' } });
 const response = await agent.get('/api/users?offset0&limit=10');
 // Response: { data: [...], info: { start: 0, end: 9, total: 50, size: 10, current: 1, of: 5 } }
 ```
----
+----
+
+### `createQueryCache`
+
+Creates a reusable `QueryCache` instance that can be passed to one or more `createApiAgent({ queryCache })` calls. Primarily useful to share cache state (and registered SSR prefetch functions) across agents, e.g. in SSR entry points for coordinated data collection before render.
+
+> #### Syntax
+```typescript
+function createQueryCache(options?: CacheOptions): QueryCache
+```
+
+`CacheOptions`:
+* `refetchOnWindowFocus?: boolean` _(default: `false`)_ — When `true` and running in a browser, re-runs every registered expiration `checker` in the cache when the window/tab regains focus.
+* `refetchOnReconnect?: boolean` _(default: `false`)_ — When `true` and running in a browser, re-runs every registered expiration `checker` when the browser fires the `online` event.
+
+The returned cache has:
+- `get(key)`, `has(key)`, `set(...)` (internal), `delete`, `invalidateQuery(key?)`, `invalidateQueries(keys)`, `getAll()`, `dehydrate()`, `hydrate(data)`, `resetForSSR()` (see above for hybrid key support)
+
+Cache keys are either serialized `queryKey` values (when you pass `queryKey: [...]` to get/useQuery) or raw URLs. `invalidateQuery` matches against whatever keys are stored (prefix rules apply to the final string keys). `invalidateQueries` accepts an array of keys and delegates to `invalidateQuery` for each one.
+
+`dehydrate()` executes any prefetch functions registered during SSR "dry runs", populates the cache, and returns a JSON string snapshot.
+
+`hydrate(json)` can be used to restore the cache from a string previously returned by `dehydrate()`.
+
+Example (SSR collection sketch):
+```ts
+import { createApiAgent, createQueryCache } from '@pastweb/tools';
+
+const queryCache = createQueryCache();
+const api = createApiAgent({ queryCache });
+// ... later during collection pass, renders call useQuery which trigger agent.get that register
+const snapshot = await queryCache.dehydrate();
+// snapshot is JSON — write it to .pastweb/ssr-manifest.json etc.
+
+queryCache.hydrate(savedSnapshot); // restore before real render
+```
+
+Use `queryCache.resetForSSR()` at the start of each SSR request (or rely on `runSSRCycle`, which calls it automatically) to avoid cross-request cache leakage.
+
+For partial hydration, use `sliceDehydratedState(snapshot, queryKeys)` to extract island-scoped cache JSON before client `hydrateRoot`.
+
+See `AgentOptions.queryCache` and `QueryCache` for details. (`dehydrate()` is exposed on `QueryCache`.)
+----
 ### `useQuery`
 Creates a reactive query Object that fetches data using the provided function and updates based on reactive dependencies
 > #### Syntax
@@ -233,15 +401,20 @@ Parameters
     If `true` or a `Ref` with `value: true`, runs the query immediately. If a `Ref<boolean>`, triggers the query when `value` becomes `true`.
   * `initialData?: T` _(optional)_
     Initial data to set before the first fetch. Sets isPlaceholderData to true until a fetch completes.
-  * `SSRWait` _(optional)_ (default: `true`)
-    If run in server side block the thread until the `fn: () => Promise<AxiosResponse<T>>` is solved or generate an error.
+  * `retry?: boolean | number | ((failureCount: number, error: unknown) => boolean)` _(optional)_ (default: `false`)
+    Retries failed query executions. `true` retries up to 3 times, a number retries that many times, and a function decides per failure.
+  * `retryDelay?: number | string | ((failureCount: number, error: unknown) => number)` _(optional)_ (default: `0`)
+    Delay before each retry. Numbers are milliseconds, strings use `stringToMs` duration syntax such as `'1s'`, and functions return milliseconds.
 
 Returns
 * `QueryInfo<T>` A reactive object with query state and methods.
+  * `status: 'pending' | 'success' | 'error'` Query lifecycle status.
+  * `fetchStatus: 'idle' | 'fetching'` Transport activity status.
+  * `responseStatus: number | null` HTTP status from the last successful response or Axios error response.
   * `data: T | null` The response data or `initialData`.
   * `pagination: Page<any>['pagination'] | null` Pagination info if available
-  * `isPending: boolean` True during initial fetch or refetch.
-  * `isLoading: boolean` Alias for `isPending`.
+  * `isPending: boolean` True while no successful real response has been received yet. A disabled query can be pending while idle.
+  * `isLoading: boolean` True only during the first fetch (`status === 'pending' && fetchStatus === 'fetching'`).
   * `isFetching: boolean` True during any fetch.
   * `isError: boolean` True if an error occurred.
   * `error: any` The error object, if any.
@@ -250,13 +423,20 @@ Returns
 
 The `useQuery` function creates a reactive query that automatically fetches data when initialized (if `immediate` is `true`) or when reactive dependencies in `source` or `immediate` (if a `Ref`) change. It integrates with `createApiAgent` to handle reactive `AxiosResponse` objects, ensuring `data` updates with new responses or cache changes. The `source` parameter is required to track reactive variables used in `fn` (e.g., `page.value` in the `URL`).
 
+When using `agent.get` inside `fn`, pass `select` in `QueryOptions` to project the response data for that query without changing the raw cached response. This is useful when an API returns wrapper objects but the consuming view only needs one nested value.
+
+For SSR scenarios, create a `queryCache` via `createQueryCache()` and pass it as the `queryCache` option when creating agents (`createApiAgent({ queryCache })`). Agents and `useQuery` calls during a collection (dry) render will register prefetch functions. Call `dehydrate()` on the `queryCache` to execute the registered prefetches and obtain a JSON cache snapshot before the final render pass. See also `createQueryCache`.
+
+(Note: `agent.cache` and the `cache: true` option are deprecated.)
+
 Example:
 ```typescript
-import { createApiAgent, createQuery, ref } from '@pastweb/tools';
+import { createApiAgent, useQuery, ref } from '@pastweb/tools';
 
-// Create an API agent
+// Create an API agent with caching
+const queryCache = createQueryCache();
 const agent = createApiAgent({
-  cache: true,
+  queryCache,
   pagination: true,
 });
 
@@ -266,7 +446,8 @@ const query = useQuery({
 });
 
 console.log(query.data); // Initially null, updates to { data: [...], info: {...} }
-console.log(query.isPending); // true during fetch, then false
+console.log(query.isLoading); // true during the first fetch, then false
+console.log(query.responseStatus); // HTTP status after a response, e.g. 200
 
 // Query with reactive dependency
 const page = ref(1);
@@ -285,6 +466,160 @@ const controlledQuery = useQuery({
 });
 
 immediate.value = true; // Triggers fetch
+
+// With structured queryKey (recommended when using caching).
+// The same key must be passed inside the agent.get call for the cache layer to use it.
+// Internally the array is serialized (e.g. '["user",42]') and used as the storage key.
+const userId = ref(42);
+const userQuery = useQuery({
+  fn: () => agent.get(`/api/users/${userId.value}`, {
+    queryKey: ['user', userId.value],
+    expireIn: '2m',
+    select: data => data.user,
+  }),
+  source: userId,
+});
+
+// You can still omit queryKey entirely — the full URL (incl. querystring) becomes the cache key.
+const listQuery = useQuery({
+  fn: () => agent.get('/api/posts?published=true'),
+  // cache key will be exactly "/api/posts?published=true"
+});
+
+// Retry failed requests. This retries twice after the first failed attempt.
+const resilientUsersQuery = useQuery({
+  fn: () => agent.get('/api/users', { queryKey: ['users'] }),
+  retry: 2,
+  retryDelay: 500,
+});
+
+// Retry can also be conditional.
+const conditionalRetryQuery = useQuery({
+  fn: () => agent.get('/api/admin'),
+  retry: (failureCount, error: any) => {
+    return failureCount < 2 && error?.response?.status !== 401;
+  },
+  retryDelay: '1s',
+});
+
+// Manual invalidation - pass the same queryKey you used (array or string/URL)
+agent.cache.invalidateQuery(['user', 42]);
+```
+
+---
+### `useInfiniteQuery`
+Creates a reactive infinite query for paginated or cursor-based lists.
+> #### Syntax
+```typescript
+function useInfiniteQuery<TPage, TPageParam = unknown>(
+  config: InfiniteQueryConfig<TPage, TPageParam>
+): InfiniteQueryInfo<TPage, TPageParam>
+```
+
+Parameters
+* `initialPageParam` The first page/cursor param.
+* `fn(pageParam)` Fetches one page and returns an agent `QueryResponse`.
+* `getNextPageParam` Optional function returning the next page param. Return `undefined`, `null`, or `false` to stop.
+* `getPreviousPageParam` Optional function returning the previous page param. Return `undefined`, `null`, or `false` to stop.
+* `source`, `immediate`, `initialData`, `retry`, `retryDelay` follow the same ideas as `useQuery`.
+
+Returns
+* `pages` / `data` Ordered page data.
+* `pageParams` Params used for each page.
+* `status`, `fetchStatus`, `responseStatus` Query lifecycle, transport, and HTTP status.
+* `isPending`, `isLoading`, `isFetching`, `isFetchingNextPage`, `isFetchingPreviousPage`, `isError`.
+* `hasNextPage` True when another page param is available.
+* `hasPreviousPage` True when a previous page param is available.
+* `fetch()` Resets to the first page.
+* `fetchNextPage()` Appends the next page.
+* `fetchPreviousPage()` Prepends the previous page.
+
+Example:
+```typescript
+import { createApiAgent, useInfiniteQuery } from '@pastweb/tools';
+
+const agent = createApiAgent({ pagination: true });
+
+const posts = useInfiniteQuery({
+  initialPageParam: 1,
+  fn: page => agent.get(`/api/posts?_page=${page}&_limit=20`, {
+    queryKey: ['posts', page],
+  }),
+});
+
+await posts.fetchNextPage();
+await posts.fetchPreviousPage();
+
+console.log(posts.pages);
+console.log(posts.hasNextPage);
+console.log(posts.hasPreviousPage);
+```
+
+If page param resolvers are omitted, `useInfiniteQuery` uses the `pagination` object attached by `createApiAgent` when available. For cursor APIs, pass custom resolvers:
+
+```typescript
+const feed = useInfiniteQuery({
+  initialPageParam: 'first',
+  fn: cursor => agent.get(`/api/feed?cursor=${cursor}`),
+  getNextPageParam: lastPage => lastPage.data.nextCursor,
+  getPreviousPageParam: firstPage => firstPage.data.previousCursor,
+});
+```
+
+---
+### `useQueries`
+Creates multiple `useQuery` instances and returns a reactive aggregate object.
+> #### Syntax
+```typescript
+function useQueries<T extends readonly QueryConfig<any>[]>(
+  config: { queries: T } | T
+): UseQueriesInfo<T>
+```
+
+Returns
+* `queries` Child `QueryInfo` objects in input order.
+* `data` Current child query data in input order.
+* `status` Aggregate lifecycle status (`error` wins, then `pending`, then `success`).
+* `fetchStatus` Aggregate fetch status (`fetching` if any child is fetching).
+* `responseStatuses` Current child HTTP response statuses in input order.
+* `isPending` True when at least one child query has not produced its first successful real response.
+* `isLoading` True when at least one child query is loading its first response.
+* `isFetching` True when at least one child query is fetching.
+* `isError` True when at least one child query is in an error state.
+* `errors` Current child query errors in input order.
+* `isPlaceholderData` True when at least one child query is using placeholder data.
+* `fetch()` Manually triggers all child queries.
+
+Example:
+```typescript
+import { createApiAgent, ref, useQueries } from '@pastweb/tools';
+
+const agent = createApiAgent();
+const page = ref(1);
+
+const dashboard = useQueries({
+  queries: [
+    {
+      fn: () => agent.get('/api/users', {
+        queryKey: ['users'],
+        select: data => data.items,
+      }),
+      retry: 2,
+    },
+    {
+      fn: () => agent.get(`/api/posts?page=${page.value}`, {
+        queryKey: ['posts', page.value],
+      }),
+      source: page,
+    },
+  ],
+});
+
+console.log(dashboard.isFetching);
+console.log(dashboard.data[0]); // users
+console.log(dashboard.data[1]); // posts for current page
+
+await dashboard.fetch(); // refetches all child queries
 ```
 
 ---
@@ -307,7 +642,11 @@ Parameters
 * `onError?: (...args: any[]) => Promise<void> | void` _(optional)_ (default: `noop`)
   Called if the mutation fails, with the error object.
 * `initialData?: T` _(optional)_ (default: `null`)
-  Initial data to set before the first mutation. Sets `isPlaceholderData` to t`rue` until a mutation completes.
+  Initial data to set before the first mutation. Sets `isPlaceholderData` to `true` until a mutation completes.
+* `retry?: boolean | number | ((failureCount: number, error: unknown) => boolean)` _(optional)_ (default: `false`)
+  Retries failed mutation executions. `true` retries up to 3 times, a number retries that many times, and a function decides per failure.
+* `retryDelay?: number | string | ((failureCount: number, error: unknown) => number)` _(optional)_ (default: `0`)
+  Delay before each retry. Numbers are milliseconds, strings use `stringToMs` duration syntax such as `'1s'`, and functions return milliseconds.
 
 Returns
 * `MutationInfo<T>` A reactive object with mutation state and methods.
@@ -340,7 +679,7 @@ console.log(mutation.data); // { id: 1, name: 'John' }
 console.log(mutation.isMutating); // false
 
 // Mutation with lifecycle hooks
-const createUser = createMutation({
+const createUser = useMutation({
   fn: (data: any) => agent.post('/api/users', data),
   onMutate: async (data) => {
     console.log('Starting mutation with:', data);
@@ -354,6 +693,15 @@ const createUser = createMutation({
 });
 
 await createUser.mutate({ name: 'Jane' });
+
+// Mutation with retry support
+const saveUser = useMutation({
+  fn: (data: any) => agent.post('/api/users', data),
+  retry: 2,
+  retryDelay: 500,
+});
+
+await saveUser.mutate({ name: 'Grace' });
 
 // Mutation with initialData
 const updateUser = useMutation({
@@ -429,7 +777,8 @@ Throws
 
 **Example:**
 ```typescript
-import { normalizeAsyncQueue } from '@pastweb/tools';
+import { createAsyncStore, normalizeAsyncQueue } from '@pastweb/tools';
+import type { AsyncStore } from '@pastweb/tools';
 
 // Single promise
 const singlePromise = Promise.resolve('done');
@@ -441,13 +790,24 @@ const promise2 = () => Promise.resolve('done');
 normalizeAsyncQueue([promise1, promise2]); // [promise1, promise2()]
 
 // Async store
-const asyncStore = {
-  $$asyncStore: true,
-  isStoreReady: false,
-  isReady: new Promise(resolve => resolve(true)),
-  init: () => { asyncStore.isStoreReady = true; }
-};
-normalizeAsyncQueue(asyncStore); // [asyncStore.isReady]
+const asyncStore = createAsyncStore<AsyncStore<any>>({
+  name: 'UserSessionStore',
+  async onInit() {
+    await fetch('/api/session');
+    asyncStore.setStoreReady();
+  },
+});
+
+// Because asyncStore is not ready yet, normalizeAsyncQueue calls asyncStore.init()
+// and returns asyncStore.isReady in the normalized promise list.
+const queue = normalizeAsyncQueue([
+  Promise.resolve('config-loaded'),
+  () => fetch('/api/profile'),
+  asyncStore,
+]);
+
+await Promise.all(queue);
+console.log(asyncStore.isStoreReady); // true
 ```
 Remarks
 The `normalizeAsyncQueue` function is designed to handle various asynchronous operations and normalize them into a uniform array of promises. This is particularly useful when dealing with mixed asynchronous workflows, ensuring that all operations can be awaited in a consistent manner.
@@ -458,6 +818,131 @@ This function supports:
 * Asynchronous stores
 
 If an asynchronous store is passed in, the function will check if the store is ready. If it is not, the `init` method of the store will be called to prepare it.
+
+## SSR utilities (experimental)
+
+All SSR coordination helpers are experimental and grouped under `ssrUtils`:
+
+```typescript
+import {
+  createSSRTracker,
+  registerAsyncTask,
+  resolveAsyncTasks,
+  runSSRCycle,
+} from '@pastweb/tools/ssrUtils';
+```
+
+They are also re-exported from the package root for convenience.
+
+---
+### `registerAsyncTask` / `resolveAsyncTasks`
+
+Utility for registering and later resolving asynchronous work during SSR.
+
+These helpers are designed so that code running during the initial (collection) render pass can declare async work that should happen afterwards. The resolution step uses an iterative loop so that work discovered while executing earlier tasks (e.g. from nested async components) is also handled.
+
+> #### Syntax
+```typescript
+function registerAsyncTask(fn: () => Promise<any>): void;
+async function resolveAsyncTasks(): Promise<void>;
+```
+
+`registerAsyncTask` only has effect on the server. The provided function is queued and will be executed when `resolveAsyncTasks` is called.
+
+`resolveAsyncTasks` drains the queue iteratively. Any errors thrown by individual tasks are caught, logged, and do not prevent the remaining tasks from running.
+
+**Example:**
+```typescript
+import { registerAsyncTask, resolveAsyncTasks } from '@pastweb/tools/ssrUtils';
+
+// During a server-side collection / dry render
+registerAsyncTask(async () => {
+  const data = await fetchCriticalData();
+  // side effects or store the result for later use
+});
+
+// Later, after the collection render
+await resolveAsyncTasks();
+```
+
+This pattern is useful when you need to discover asynchronous work (such as data loading inside components) during render, then wait for it in a second phase without making the component function itself asynchronous.
+
+`runSSRCycle` calls `resolveAsyncTasks` between two collection renders — see below.
+
+---
+### `runSSRCycle`
+
+Framework-agnostic SSR orchestrator for SSR router and other SSR entry points. Runs the full collection → prefetch → render cycle with SSR tracker integration and hybrid static downgrade.
+
+> #### Syntax
+```typescript
+function runSSRCycle(options: RunSSRCycleOptions): Promise<SSRCycleResult>
+```
+
+**Phase order:** collect #1 → `resolveAsyncTasks` → collect #2 → `dehydrate` → `hydrate` → final render → (optional) dynamic downgrade rerender.
+
+**Key options:**
+* `render` — async function receiving `{ isStatic, phase, apiDehydratedState }`.
+* `queryCache` — shared cache; `resetForSSR()` runs before collection by default.
+* `resolveAsyncTasks` — loads async components registered during collection.
+* `shouldAttemptStatic` — pre-classify static intent; tracker may force downgrade.
+* `onStaticProven` / `onDynamicDowngrade` — hooks for SSR router manifest writes.
+
+**Example:**
+```typescript
+import { createQueryCache } from '@pastweb/tools';
+import { runSSRCycle, resolveAsyncTasks } from '@pastweb/tools/ssrUtils';
+
+const queryCache = createQueryCache();
+
+const { html, snapshot, fingerprint, downgraded } = await runSSRCycle({
+  route: '/shop',
+  queryCache,
+  resolveAsyncTasks,
+  shouldAttemptStatic: true,
+  render: async ({ isStatic, phase, apiDehydratedState }) => {
+    return pageRender({ router, isStatic, phase, apiDehydratedState });
+  },
+  onStaticProven: ({ html, snapshot, fingerprint }) => {
+    writeStaticHtml(html);
+    persistManifest({ fingerprint, snapshot });
+  },
+});
+```
+
+See `../PLAN.md` and `QUERY.md` for hybrid render + partial hydration architecture.
+
+---
+### SSR tracker (`createSSRTracker`)
+
+Standalone server-side tracker for hybrid render decisions. Installed during `runSSRCycle`; `agent.get({ ssrMode })` reports via `reportApiSSRToTracker`.
+
+> #### Syntax
+```typescript
+function createSSRTracker(options?: SSRTrackerOptions): SSRTracker
+function setCurrentSSRTracker(tracker?: SSRTracker): void
+function getCurrentSSRTracker(): SSRTracker | undefined
+function clearCurrentSSRTracker(): void
+function reportApiSSRToTracker(url: string, options?: { queryKey?; ssrMode?; ssrRevalitate? }): void
+function createDependencyFingerprint(snapshot: SSRTrackerSnapshot): string
+```
+
+**`agent.get` SSR option (`ApiSSRMode`):** `'auto' | 'static' | 'dynamic' | 'no-store'`
+
+```typescript
+await agent.get('/api/posts', {
+  queryKey: ['posts'],
+  ssrMode: 'static',
+  ssrRevalitate: '5m',
+});
+```
+
+- `static` / `auto` → registers a static-safe API dependency on the tracker.
+- `dynamic` / `no-store` → marks the render as dynamic (blocks static HTML persistence).
+
+Use `createDependencyFingerprint(tracker.snapshot())` to key persisted `apiCache` entries in SSR router.
+
+**Partial hydration:** combine `sliceDehydratedState(snapshot, islandQueryKeys)` with framework `Island` components — hydrate the slice before island `hydrateRoot`.
 
 ---
 ### `createAsyncMicroStore`
@@ -738,7 +1223,7 @@ Creates a utility for detecting and managing device types based on user agent st
 The `createMatchDevice` function is designed to help detect device types based on user agent strings and media queries. This utility is particularly useful for responsive design and ensuring that your application behaves differently depending on the device being used.
 
 * Device Detection: The utility supports both user agent string matching and media query matching to determine device types.
-* Server-Side Rendering (SSR): If server-side rendering is detected (isSSR), user agent-based detection is used, and media query-based detection is skipped.
+* Server-Side Rendering (SSR): If server-side rendering is detected (use `isServer` from the envs constants; `isSSR` is deprecated), user agent-based detection is used, and media query-based detection is skipped.
 * Dynamic Updates: The utility can respond to changes in media query matches, allowing dynamic updates to the device state.
 * Event Emitter: The underlying event emitter allows you to listen for specific device match changes, enabling reactive design and behavior changes.
 
@@ -807,7 +1292,7 @@ Here is the **Markdown documentation** in the same style as the "isType" functio
 
 > #### Syntax 
 ```ts
-function createMatchScheme(config?: SchemeOptions): MatchScheme;
+function createMatchScheme(options?: SchemeOptions): MatchScheme;
 ```
 
 ## Description  
@@ -817,7 +1302,7 @@ It detects system preferences, provides methods to update the mode, and notifies
 
 ## Parameters  
 
-### `config` (optional)  
+### `options` (optional)  
 **Type:** `SchemeOptions`  
 An object containing configuration options for the match scheme.
 
@@ -930,6 +1415,50 @@ scheme.setMode('light');
 
 ---
 
+### `useColorScheme`
+
+> #### Syntax 
+```ts
+function useColorScheme(options?: SchemeOptions, matchScheme?: MatchScheme): [ColorSchemeInfo, (mode: string) => void];
+```
+
+## Description  
+
+Hook that returns a reactive `[ColorSchemeInfo, setMode]` tuple. It uses the library's reactivity primitives so the info stays up-to-date when the scheme changes (observable via `effect` or `computed`). 
+
+If `matchScheme` is provided it is used directly; otherwise `createMatchScheme(options)` is called internally to create one.
+
+## Parameters  
+
+### `options` (optional)  
+**Type:** `SchemeOptions`  
+Same options as `createMatchScheme` (used only when no `matchScheme` is passed).
+
+### `matchScheme` (optional)  
+**Type:** `MatchScheme`  
+An existing `MatchScheme` instance. If omitted, one is created for you.
+
+## Returns  
+
+**Type:** `[ColorSchemeInfo, (mode: string) => void]`  
+A tuple where:
+- The first element is a reactive `ColorSchemeInfo` (its properties update automatically).
+- The second element is the `setMode` function (delegated to the underlying scheme).
+
+**Example:**  
+```ts
+const [scheme, setMode] = useColorScheme({ defaultMode: 'auto' });
+
+effect(() => {
+  console.log('Selected color scheme:', scheme.selected);
+});
+
+setMode('dark');
+// scheme.selected will now be 'dark' (and effects re-run)
+```
+
+---
+
 ### `createStorage`
 
 Creates a versatile storage utility that supports both IndexedDB and localStorage.
@@ -1021,311 +1550,6 @@ const storage = createStorage({
  await storage.remove('theme');
 ```
 ---
-### `createViewRouter`
-
-The `createViewRouter` function is a core utility for managing routing in a single-page application (SPA).
-It provides the ability to define routes, navigate between them, and react to route changes within the application.
-The `ViewRouter` [history](https://github.com/browserstate/history.js) library covering the most common
-functionalities implemented in other router UI Frameworks like [react-router](https://reactrouter.com/en/main) or [vue-router](https://router.vuejs.org/).
-The goal of this implementation is to obtain a consistant set of API and terminology cross framework.
-
-> #### Syntax
-```typescript
-function createViewRouter(options: RouterOptions): ViewRouter;
-```
-
-Parameters
-* `options`: `RouterOptions`
-  * An object containing configuration options for the router. The available options include:
-  * `base`: `string` _(optional)_
-    * The base path for all routes.
-  * `debug`: `boolean` _(optional)_
-    * If true, enables debug logging for the router.
-  * `history`: `History` _(optional)_
-    * The history object for managing session history.
-  * `routes`: `Route[]` _(mandatory)_
-    * An array of route definitions.
-  * `preloader`: `() => void` _(optional)_
-    * A function to execute before a route is loaded.
-  * `RouterView`: `Component` _(mandatory)_
-    * The component to render for matched routes.
-  * `beforeRouteParse`: `(route: Route) => Route | void | Promise<Route | void>` _(optional)_
-    * A function to execute before parsing a route, if you want to modify a `Route`.
-  * `beforeRouteSelect`: `(route: SelectedRoute) => SelectedRoute | void | Promise<SelectedRoute | void>` _(optional)_
-    * A function to execute before selecting a route, as example for the route authentication/authirization.
-  * `sensitive`: boolean _(optional)_
-    * If true, route matching will be case-sensitive.
-
-Returns
-* `ViewRouter`
-  * An object that represents the router. This object contains properties and methods to manage routing within the application.
-
-**Example:**
-```typescript
-import { createViewRouter } from '@pastweb/tools';
-import { RouterView } from '@pastweb/x';
-
-const router = createViewRouter({
-  routes: [
-    { path: '/', component: HomePage },
-    { path: '/about', component: AboutPage },
-  ],
-  preloader: MyProloaderComponent,
-  RouterView,
-});
-```
-
-Note : `pastweb/x` is intended to be a specific framework package (react, preact, vue, svelte ...).
-
-Core Features
-* `Route Parsing and Matching`:
-  * The router parses and normalizes routes, creating a structure that allows efficient matching of paths against the defined routes.
-* `Event-Driven`:
-  * It uses an event emitter to notify listeners about route changes or when new routes are added.
-* `Navigation`:
-  * The router offers methods to programmatically navigate, push, replace, or go back and forward in the history stack.
-* `Base Path Management`:
-  * Allows setting and managing a base path, which is useful for applications hosted under subdirectories.
-* `Route Preloading`:
-  * Supports route preloading, enabling efficient loading of route components.
-* `Custom Hooks`:
-  * Provides hooks (`beforeRouteParse`, `beforeRouteSelect`) that allow custom logic to be executed during route parsing and selection.
-  
-**Example:**
-```typescript
-  beforeRouteParse: async (route) => {
-    // You can now do async work (API calls, config loading, etc.)
-    const extraData = await fetch(`/api/route-config${route.path}`);
-    return { ...route, meta: { ...route.meta, extraData } };
-  },
-
-  beforeRouteSelect: async (route) => {
-    if (route.path === '/admin' && !(await isUserAdmin())) {
-      return { ...route, redirect: '/login' }; // or throw new Error(...)
-    }
-    return route;
-  }
-```
-
-Methods
-* `setBase(base: string): Promise<void>`
-  * Sets the base path for the router. The base path is the common prefix for all routes.
-* `addRoute(route: Route): Promise<void>`
-  * Adds a new route to the router dynamically after the router has been initialized.
-* `onRouteChange(fn: (route: SelectedRoute) => void): RemoveListener`
-  * Subscribes to route change events. The provided callback function will be called whenever the route changes.
-* `onRouteAdded(fn: (routes: Route[]) => void): RemoveListener`
-  * Subscribes to route added events. The provided callback function will be called whenever a new route is added to the router.
-* `navigate(path: string, state?: any): Promise<void>`
-  * Navigates to a specific path programmatically.
-* `push(path: string, state?: any): Promise<void>`
-  * Pushes a new state onto the history stack and navigates to the specified path.
-* `replace(path: string, state?: any): void`
-  * Replaces the current state in the history stack with a new state and navigates to the specified path.
-* `go(delta: number): void`
-  * Moves forward or backward in the history stack by a specified number of steps.
-* `setSearchParams(searchParams: URLSearchParams): void`
-  * Sets the search parameters for the current location without reloading the page.
-* `setHash(hash?: string): void`
-  * Sets the hash for the current location without reloading the page.
-* `getRoute(pathname: string): Promise<Route | false>`
-  * Find and return the current `route` or `false` for not route found.
-* `setRequest(request: ServerRequest): Promise<void>`
-  * Sets a new location and refreshes the current route. Useful in SSR context to initialize the router with the server request URL.
-* `getRouterLink(options: RouterLinkOptions): RouterLink`
-  * Creates a router link object that contains methods for navigation and checks if the link is active or exactly active.
-
-Edge Cases
-* `No Matching Route`:
-  * If no route matches the current path, the router will warn in the console and return a default empty route.
-* `Base Path Changes`:
-  * When the base path is changed, the router adjusts all existing routes accordingly to ensure consistent matching.
-
-Debugging
-If the `debug` option is enabled, the router logs detailed information about its internal state, such as the current paths, parsed routes, and the selected route. This can be helpful for debugging route configuration issues.
-
----
-### `Route Object`
-
-The `Route Object` contains the information to define a route for `ViewRouter`.
-
-> #### Syntax
-```typescript
-interface Route {
-  path: string;
-  redirect?: string;
-  view?: View;
-  views?: Record<string, View>;
-  children?: Route[];
-  [optionName: string]: any;
-};
-```
-
-Props
-
-* `path`: `string`
-  * the path string description for the route match.
-* `redirect`: `string` _(optional)_
-  * the URL to be redirected if the route match the `path` rule.
-* `view`: `View = any | (() => Promise<{ default: any, [prop: string]: any }>)` _(optional)_
-  * the `View` component or a function returning the `View` component module exported as `default`.
-* `views`: `Record<string, View>` _(optional)_
-  * An Object of named views to be handled from a `RouterView` component.
-* `children`: `Route[]` _(optional)_
-  * An array of nested `Routes`.
-
-The `Route` object can be extended with any other custom property which will be present in the `SelectedRoute` structure as described below:
-
-**Example:**
-```typescript
-const routes: Route[] = [
-  {
-    path: '/home',
-    view: HomeComponent,
-    icon: 'homeIcon',
-  },
-  {
-    path: '/category/:name',
-    view: CategoryComponent,
-    icon: 'categoryIcon',
-    children: [
-      {
-        path: '/product/?:id',
-        view: ProductComponent,
-      }
-    ],
-  },
-  {
-    path: '/',
-    redirect: '/home',
-  },
-];
-```
-> #### Parameters
-The parameters declared in the roue `path` will be present in the `SelectedRoute` structure described below under the property `params`.
-| Syntax                  | Meaning                          | Example Path                  | Resulting Params |
-|-------------------------|----------------------------------|-------------------------------|------------------|
-| `:name`                 | Required parameter               | `/user/john`                  | `{ name: 'john' }` |
-| `?:surname`             | Optional parameter               | `/user/john` or `/user/john/doe` | `{ name: 'john', surname?: 'doe' }` |
-| `:surname?`             | Optional parameter (alternative) | `/user/john` or `/user/john/doe` | `{ name: 'john', surname?: 'doe' }` |
-| `*slug`                 | Catch-all (rest) parameter       | `/user/john/profile/edit`     | `{ name: 'john', slug: ['profile', 'edit'] }` |
-| `?*slug`                | Optional catch-all               | `/user/john` or `/user/john/a/b` | `{ name: 'john', slug?: [...] }` |
-| `*slug?`                | Optional catch-all (alternative) | `/user/john` or `/user/john/a/b` | `{ name: 'john', slug?: [...] }` |
-
-
-When the browser URL will match one of the `Routes`, the `SelectedRoute` will be available in the `router.currentRoute` property having this structure:
-
-```typescript
-interface SelectedRoute {
-  parent: SelectedRoute | boolean;
-  regex: RegExp;
-  path: string;
-  params: RouteParams;
-  searchParams: URLSearchParams;
-  setSearchParams: (params: URLSearchParams) => void;
-  hash: string;
-  setHash: (hash?: string) => void;
-  views: Record<string, View>;
-  options: RouteOptions;
-  child: SelectedRoute | boolean;
-}
-```
-In the example above the `icon` property will be present in the options parameters, (`router.currentRoute.options.icon`).
-
----
-
-### `filterRoutes`
-
-The `filterRoutes` function filters a list of routes based on specified criteria. It allows you to filter out routes that do not meet the conditions defined in the provided filter descriptor.
-
-> #### Syntax
-```typescript
-function filterRoutes(routes: Route[] = [], filter: FilterDescriptor = {}): Route[];
-```
-
-Parameters
-* `routes`: `Route[] (default: [])`
-  * An array of route objects to be filtered. Each Route object represents a route in the application and may contain properties such as path, component, redirect, children, and others.
-* `filter`: `FilterDescriptor`
-  * An object describing the filter criteria. The keys in this object represent the properties of the Route objects to filter on, and the values are the criteria that those properties must match. The value can be a specific value to match or a function that returns a boolean indicating whether the route matches the criteria.
-
-Returns
-* `Route[]`:
-  * An array of Route objects that match the filter criteria. If a route has children, the function will recursively filter them based on the same criteria. If no routes match, an empty array is returned.
-
-**Example:**
-```typescript
-import { filterRoutes, type Route } from '@pastweb/tools';
-
-const routes: Route[] = [
-  { path: '/home', component: HomeComponent },
-  { path: '/about', component: AboutComponent, hideInPaths: true },
-  { path: '/user/:id', component: UserComponent },
-];
-
-const filter = { component: HomeComponent };
-
-const filteredRoutes = filterRoutes(routes, filter);
-console.log(filteredRoutes); 
-// Outputs: [{ path: '/home', component: HomeComponent }]
-```
----
-
-### `routeDive`
-
-The `routeDive` function is designed to traverse a nested route structure and return the route found at a specified depth.
-This is useful in scenarios where routes have nested children, and you need to access a route at a certain level within that hierarchy.
-
-> #### Syntax
-```typescript
-function routeDive(route: SelectedRoute, depth: number): SelectedRoute;
-```
-
-Parameters
-* `route`: `SelectedRoute`
-  * The initial `SelectedRoute` object representing the current route from which the traversal begins. This route may contain nested child routes.
-* `depth`: `number`
-  * The number of levels to traverse into the nested route structure. A depth of 0 returns the initial route, while a higher depth traverses deeper into the nested child routes.
-
-Returns
-* `SelectedRoute`:
-  * The `SelectedRoute` object located at the specified depth. If the specified depth exceeds the available levels of nesting, the function returns the deepest child route available.
-
-**Example:**
-```typescript
-import { routeDive, type SelectedRoute } from '@pastweb/tools';
-
-const currentRoute: SelectedRoute = {
-  path: '/parent',
-  child: {
-    path: '/parent/child',
-    child: {
-      path: '/parent/child/grandchild',
-    },
-  },
-};
-
-const grandchildRoute = routeDive(currentRoute, 2);
-console.log(grandchildRoute.path); // Output: '/parent/child/grandchild'
-```
-
-Edge Cases
-* `Zero Depth`:
-  * If the `depth` parameter is `0`, the function returns the initial route without any traversal.
-`Exceeding Depth`:
-  * If the specified `depth` is greater than the actual number of nested levels, the function returns the last available `child` route.
-
-Practical Use Cases
-* `View Rendering`:
-  * In a UI framework where different views are rendered based on the current route, `routeDive` can be used to determine which nested route corresponds to the current view depth.
-* `Breadcrumb Navigation`:
-  * For generating breadcrumb navigation, `routeDive` can help in identifying the route at different levels, enabling dynamic breadcrumb creation.
-
-Example of Nested Route Traversal
-Given a route structure with multiple levels of nesting, routeDive will traverse through each level until it either reaches the specified depth or the deepest available route. This allows developers to dynamically access deeply nested routes without manually iterating through each level.
-
----
-
 ## Date and Time
 
 ### `isDateYoungerOf`
@@ -1369,6 +1593,53 @@ console.log(isDateYoungerOf(date, '12h')); // Output: false
 Edge Cases
 * `Past and Future Dates`: The function checks the date against the current date and time, so it works for both past and future dates relative to `now`.
 * `Zero or Negative Durations`: If the duration components result in zero or negative values, the function will consider the date as not younger and will return `false`.
+
+---
+
+### `stringToMs`
+
+The `stringToMs` function converts a duration string into milliseconds.
+It accepts the same unit format as [`isDateYoungerOf`](#isdateyoungerof), making it useful for timers, cache delays, and any logic that needs a numeric duration rather than a date comparison.
+
+> #### Syntax
+```typescript
+function stringToMs(duration: string): number;
+```
+
+Parameters
+* `duration`: `string`
+  * A string representing the duration composed of various time units:
+    * `Y` for years (average: 365.25 days)
+    * `M` for months (average: 30.436875 days)
+    * `D` for days
+    * `h` for hours (case-insensitive)
+    * `m` for minutes
+    * `s` for seconds
+  * Components can appear in any order and be combined, e.g. `"2Y3M1D2h30m45s"` or `"5m"`.
+
+Returns
+* `number`:
+  * The total duration in milliseconds. The result is floored to an integer. Returns `0` for empty, whitespace-only, or unparseable strings.
+
+**Example:**
+```typescript
+import { stringToMs } from '@pastweb/tools';
+
+console.log(stringToMs('1s'));              // 1000
+console.log(stringToMs('5m'));              // 300000
+console.log(stringToMs('1D'));              // 86400000
+console.log(stringToMs('2Y3M1D2h30m45s'));  // combined total in ms
+console.log(stringToMs(''));                // 0
+```
+
+Notes
+* `Month vs minute`: Uppercase `M` means months; lowercase `m` means minutes (e.g. `"1M30m"` is one month plus thirty minutes).
+* `Case sensitivity`: Only hours (`h`) are matched case-insensitively; other units use fixed letter casing as listed above.
+* `Repeated components`: The parser sums every matched segment, so `"1h1h"` is treated as two hours.
+
+Use Cases
+* `Cache and polling delays`: Convert `expireIn`-style strings (e.g. `'5m'`, `'1s'`) into millisecond values for `setTimeout` or scheduling logic.
+* `Timers and debouncing`: Turn human-readable duration strings into numeric delays for async workflows.
 
 ---
 
@@ -1995,7 +2266,32 @@ Parameters
 
 Returns
 * `string`:
-  * A string representing the type of the target. The returned string is one of the built-in JavaScript types (e.g., `"Object"`, `"Array"`, `"Function"`, `"String"`, `"Number"`, `"Null"`, `"Undefined"`, etc.).
+  * A string representing the type of the target. The returned string is one of the built-in JavaScript types (e.g., `"Object"`, `"Array"`, `"Function"`, `"String"`, `"Number"`, `"Null"`, `"Undefined"`, etc.). See the table below for known/common return values.
+
+#### Known returned values
+
+| JavaScript value                  | Returned string |
+|-----------------------------------|-----------------|
+| `string` (primitive or `new String()`) | `"String"` |
+| `number` (incl. `NaN`, `Infinity`) | `"Number"` |
+| `boolean` (primitive or `new Boolean()`) | `"Boolean"` |
+| `undefined`                       | `"Undefined"` |
+| `null`                            | `"Null"` |
+| `symbol`                          | `"Symbol"` |
+| `bigint`                          | `"BigInt"` |
+| plain object `{}` or `new Object()` | `"Object"` |
+| `Array` `[]` or `new Array()`     | `"Array"` |
+| `Function` (incl. arrow functions, `class`, `new Function()`) | `"Function"` |
+| `Date` `new Date()`               | `"Date"` |
+| `RegExp` `/a/` or `new RegExp()`  | `"RegExp"` |
+| `Map` `new Map()`                 | `"Map"` |
+| `Set` `new Set()`                 | `"Set"` |
+| `Error` (and subclasses like `TypeError`) | `"Error"` |
+| `Promise` `new Promise(...)`      | `"Promise"` |
+| `WeakMap` / `WeakSet`             | `"WeakMap"` / `"WeakSet"` |
+| `ArrayBuffer`, `DataView`, typed arrays (e.g. `Uint8Array`) | `"ArrayBuffer"`, `"DataView"`, `"Uint8Array"`, ... |
+| DOM elements (browser)            | e.g. `"HTMLDivElement"`, `"HTMLElement"`, ... |
+| User-defined classes (default)    | `"Object"` (unless `toString` is overridden) |
 
 **Example:**
 ```typescript
@@ -2034,6 +2330,7 @@ Edge Cases
   * Correctly returns `"Symbol"` for symbol values, which `typeof` also handles but might be less intuitive in some cases.
 
 ---
+
 ### `isObject`
 
 The `isObject` function checks whether a given value is an object.
@@ -2066,22 +2363,24 @@ console.log(isObject('hello')); // false
 ### `isType`
 
 The `isType` function is a utility that checks whether a given value matches a specified type.
-It uses the [getType](#gettype) function to accurately determine the type of the target and compares it to the provided type string.
+It uses the [`getType`](#gettype) function internally for accurate type detection (more reliable than the native `typeof` operator).
 
 > #### Syntax
 ```typescript
 function isType(type: string, target: any): boolean;
 ```
 
-Parameters
+**Parameters**
 * `type`: `string`
-  * The type to check against. This should be a string representing the expected type of the `target`, such as `"String"`, `"Number"`, `"Array"`, `"Object"`, etc.
+  * The expected type name as returned by `getType` (e.g. `"String"`, `"Number"`, `"Array"`, `"Object"`, `"Null"`, `"Undefined"`, `"Date"`, etc.).
 * `target`: `any`
-  * The value whose type is to be checked. This can be any JavaScript value, such as a string, number, object, array, function, etc.
+  * The value to test.
 
-Returns
+**Returns**
 * `boolean`:
-  * Returns `true` if the `target` matches the specified `type`, otherwise `false`.
+  * `true` if the value is not `null`/`undefined` **and** `getType(target) === type`; otherwise `false`.
+
+**Important:** The function explicitly returns `false` for `null` and `undefined` (even when checking for `"Null"` or `"Undefined"`) due to an internal guard.
 
 **Example:**
 ```typescript
@@ -2091,19 +2390,32 @@ console.log(isType('String', 'Hello')); // true
 console.log(isType('Number', 123)); // true
 console.log(isType('Array', [1, 2, 3])); // true
 console.log(isType('Object', { key: 'value' })); // true
-console.log(isType('Null', null)); // true
+console.log(isType('Null', null)); // false   // explicit guard
 console.log(isType('Undefined', undefined)); // false
 console.log(isType('Function', () => {})); // true
 console.log(isType('Date', new Date())); // true
+console.log(isType('RegExp', /foo/)); // true
 ```
 
-Use Cases
+**Use Cases**
 * `Type Validation`:
   * Use `isType` when you need to validate that a value is of a specific type before proceeding with further operations.
 * `Conditional Logic`:
   * Helps in conditionally executing code based on the type of a variable, ensuring that the operations being performed are type-safe.
 * `Form Validation`:
   * Useful in form validation scenarios where input values need to be checked against expected types before submission or processing.
+
+**Notes**
+* `Precision via getType`:
+  * Leverages `getType` (based on `Object.prototype.toString`) for reliable detection of arrays, dates, null, etc.
+* `Null / Undefined Guard`:
+  * Always returns `false` for `null` and `undefined` to avoid common type-checking pitfalls.
+
+**Edge Cases**
+* `Null and Undefined`:
+  * `isType('Null', null)` and `isType('Undefined', undefined)` both return `false` (intentional guard).
+* `Custom Objects`:
+  * User-defined classes usually match `"Object"` (same as `getType`).
 
 ---
 
@@ -2243,6 +2555,142 @@ Edge Cases
 * `Empty Path`: If the path is an empty string, the function will return `defaultValue`.
 * `Non-Object Target`: If the target is not an object, the function immediately returns `defaultValue`.
 ---
+
+### `setReadOnly`
+
+Makes one or more properties of an object read-only (immutable) by setting `writable: false` and `configurable: false` using `Object.defineProperty`.
+
+Once a property is made read-only:
+- Its value cannot be reassigned.
+- It cannot be deleted or reconfigured (e.g. you cannot change it back to writable).
+
+Only properties that already exist on the target object are affected. Non-existing property names passed in the `prop` list are silently ignored.
+
+**Note:** In non-strict mode, assignments to non-writable properties fail silently. In strict mode they throw a `TypeError`.
+
+> #### Syntax
+```typescript
+function setReadOnly<T extends object>(
+  target: T,
+  prop: Extract<keyof T, string> | Extract<keyof T, string>[]
+): void;
+```
+
+**Parameters**
+* `target`: `T extends object`
+  * The object whose properties should be made read-only.
+* `prop`: `string | string[]`
+  * A single property name or an array of property names to make read-only. Only properties that exist on `target` will be processed.
+
+**Returns**
+* `void`
+
+**Example:**
+```typescript
+import { setReadOnly } from '@pastweb/tools';
+
+const user = { id: 1, name: 'Alice', role: 'admin' };
+
+// Make a single property read-only
+setReadOnly(user, 'id');
+user.id = 99; // throws TypeError (strict mode) or is ignored
+
+// Make multiple properties read-only
+setReadOnly(user, ['name', 'role']);
+user.name = 'Bob'; // read-only
+user.role = 'user'; // read-only
+
+// Non-existing properties are ignored (no error)
+setReadOnly(user, ['id', 'doesNotExist']);
+```
+
+**Use Cases**
+* `Configuration Objects`:
+  * Protecting critical configuration values from accidental modification after initialization.
+* `Constants / Enums`:
+  * Making certain properties on plain objects behave like true constants.
+* `API Response Objects`:
+  * Ensuring that certain fields returned from an API cannot be mutated by consumer code.
+* `Security / Integrity`:
+  * Preventing tampering with sensitive data (IDs, permissions, etc.) stored on objects.
+
+**Notes**
+* This function only affects **existing** own enumerable properties.
+* It sets both `writable` and `configurable` to `false`. This is stronger than just `writable: false` (prevents `delete` and redefinition).
+
+**Edge Cases**
+* Passing an empty array does nothing (no properties are made read-only).
+* Passing a property that doesn't exist on the object has no effect.
+* The function does **not** make the object itself non-extensible (you can still add new properties).
+* Works on plain objects, class instances, etc.
+
+---
+
+### `setSymbolKey`
+
+Attaches a symbol as a hidden property on the target object.
+
+By default the property is installed as non-enumerable, non-writable and non-configurable (using the exported `DEFAULT_SYMBOL_DESCRIPTOR`). This makes the symbol invisible to normal object iteration (`Object.keys`, `for...in`, `JSON.stringify`, spread, etc.) while still allowing detection via `Object.hasOwn(target, symbol)` or `Object.getOwnPropertySymbols(target)`.
+
+This is the canonical way to install internal "marker" symbols used by the reactivity system (`REF`, `COMPUTED`, `REACTIVE`) and other modules (`PORTAL`, `GLOBAL_CONTEXT_TYPE`, ...).
+
+> #### Syntax
+```typescript
+function setSymbolKey(
+  target: Record<PropertyKey, any>,
+  symbol: symbol,
+  value?: any,
+  descriptor?: Descriptor
+): void;
+```
+
+**Parameters**
+* `target`: `Record<PropertyKey, any>`
+  * The object that will receive the symbol property.
+* `symbol`: `symbol`
+  * The `Symbol` key to attach.
+* `value`: `any` _(optional, default: `true`)_
+  * The value stored under the symbol (most markers just use the boolean `true`).
+* `descriptor`: `Descriptor` _(optional)_
+  * Descriptor options. Defaults to `DEFAULT_SYMBOL_DESCRIPTOR` (`{ configurable: false, enumerable: false, writable: false }`).
+
+**Returns**
+* `void`
+
+**Example:**
+```typescript
+import { setSymbolKey, DEFAULT_SYMBOL_DESCRIPTOR } from '@pastweb/tools';
+
+const MY_MARKER = Symbol('myMarker');
+const obj: any = { visible: 42 };
+
+setSymbolKey(obj, MY_MARKER);
+setSymbolKey(obj, MY_MARKER, 'hello world'); // overwrite value
+
+console.log(obj[MY_MARKER]);                    // 'hello world'
+console.log('MY_MARKER' in obj);                // false
+console.log(Object.keys(obj));                  // ['visible']
+console.log(Object.getOwnPropertySymbols(obj)); // [ MY_MARKER ]
+
+// You can still inspect it
+console.log(Object.hasOwn(obj, MY_MARKER));     // true
+```
+
+**Use Cases**
+* `Internal Markers`:
+  * Attaching hidden flags that can be detected by `isRef`, `isComputed`, `isReactive`, `isPortal`, `isGlobalContext`, etc. without polluting the public shape of objects.
+* `Branding / Nominal Typing`:
+  * Adding a symbol "brand" to objects so that type guards or runtime checks can recognise "our" instances even when they are plain objects or proxies.
+* `Non-Enumerable Metadata`:
+  * Storing metadata that should never appear in `JSON.stringify`, `Object.entries`, or `for...in` loops.
+
+**Notes**
+* The default descriptor (`DEFAULT_SYMBOL_DESCRIPTOR`) is the recommended shape for marker symbols. You can pass a custom `descriptor` if you need different behaviour (e.g. make it enumerable for debugging).
+* Because symbols are used as keys, there is no risk of name collision with string properties.
+* This function is intentionally low-level; most consumers should use the higher-level helpers (`setAsGlobalContext`, the reactivity `reactive`/`ref`/`computed` factories, `createPortal`, etc.) which call it internally.
+
+---
+
 ### `update`
 The update function is a utility for updating the properties of a target object with values from a source object.
 It supports both shallow and deep updates, and it allows you to exclude specific properties from being updated.
@@ -2463,18 +2911,22 @@ deepRef.value.nested = 20; // Logs: "Nested value: 20"
 ## `effect`
 
 The `effect` function creates a reactive effect that runs when its dependencies change. It supports tracking dependencies from reactive objects, refs, or computed values, making it a core component of reactive systems.
-If there are not dependencies specified (source), the function callback is immediatelly executed registering the dependencies automatically.
-if dependencies are specified, the effect callback function will run just if any of the the dependencies changes.
-if you want to run immediatelly the function you can pass "true" as third parameter.
-The dependenciesrould be a function which returns the value to track of a reactive object "() => obj.a", a ref object, a reactive object itself or
-an array of these.
-If a reactive object is passed as dependency the function will run when any of the reactive object properties will change.
+If no `source` is provided, the callback is immediately executed (registering any reactive dependencies accessed inside it automatically).
+When dependencies are specified, the callback only re-runs when those dependencies change.
+Pass `immediate = true` as the third argument to run the effect immediately on creation.
+
+The `source` can be:
+- a function returning a single value or an array of values (e.g. `() => dep` or `() => [dep1, dep2, dep3.value]` — property accesses and `.value` reads inside will be tracked automatically),
+- a single `ref`, `reactive` object, or `computed`,
+- or an array mixing the above (for non-direct values inside an array, wrap them as `() => value`).
+
+If a reactive object is passed as a dependency, the effect runs when any of its properties change.
 
 > #### Syntax
 ```typescript
 function effect<T>(
-  fn: (newVal: any | any[], oldVal: any | any[]) => void,
-  source?: (() => T) | { value: T } | Record<PropertyKey, any> | Array<(() => any) | { value: any } | Record<PropertyKey, any>>,
+  fn: (newVal: any | any[], oldVal: any | any[]) => void | Promise<void>,
+  source?: (() => T) | (() => any[]) | { value: T } | Record<PropertyKey, any> | Array<(() => any) | { value: any } | Record<PropertyKey, any>>,
   immediate = false
 );
 ```
@@ -2482,8 +2934,12 @@ function effect<T>(
 **Parameters**
 * `fn`: `(newVal: any | any[], oldVal: any | any[]) => void`
   * The effect function to run when dependencies change. It receives the new and old values of the tracked source(s).
-* `source`: `(() => T) | { value: T } | Record<PropertyKey, any> | Array<(() => any) | { value: any } | Record<PropertyKey, any>>` _(optional)_
-  * The reactive source(s) to track. Can be a function, a ref, a reactive object, or an array of such sources. If omitted, the effect tracks all reactive dependencies accessed within `fn`.
+* `source`: `(() => T) | (() => any[]) | { value: T } | Record<PropertyKey, any> | Array<...>` _(optional)_
+  * The reactive source(s) to track. Supports:
+    - A function returning a scalar value or an array of values (e.g. `() => dep` or `() => [dep1, dep2, dep3.value]`).
+    - A single `ref`, reactive object, or `computed`.
+    - An array of the above (wrap non-direct items with `() => value` inside arrays).
+  If omitted, the effect tracks all reactive dependencies accessed within `fn`.
 * `immediate`: `boolean` _(optional)_
   * If `true`, the effect runs immediately upon creation. Defaults to `false`.
 
@@ -2509,7 +2965,7 @@ effect((newVal) => {
 }, obj, true); // Logs immediately: "Value is: 10"
 obj.value = 20; // Logs: "Value is: 20"
 
-// Example with multiple sources
+// Example with multiple sources (array form)
 const source1 = ref(1);
 const source2 = reactive({ x: 2 });
 effect((newVal) => {
@@ -2517,6 +2973,15 @@ effect((newVal) => {
 }, [source1, source2]);
 source1.value = 3; // Logs: "Sources: 3, 2"
 source2.x = 4; // Logs: "Sources: 3, 4"
+
+// Example with a function returning an array of dependencies (new supported form)
+const a = reactive({ x: 10 });
+const b = ref(20);
+effect((newVal) => {
+  console.log(`Array deps: ${newVal[0]}, ${newVal[1]}`);
+}, () => [a.x, b.value]);
+a.x = 11; // Logs: "Array deps: 11, 20"
+b.value = 21; // Logs: "Array deps: 11, 21"
 ```
 
 **Use Cases**
@@ -2543,22 +3008,69 @@ source2.x = 4; // Logs: "Sources: 3, 4"
 
 ---
 
-## `computed`
+## `isRef` / `isReactive` / `isComputed` (utilities)
+
+These helpers inspect the internal marker symbols installed via [`setSymbolKey`](#setsymbolkey).
+
+- `isRef(value)` — returns `true` for values created by `ref()` and for all computed results (computed values are treated as a kind of ref for the effect system).
+- `isReactive(value)` — returns `true` only for objects created by `reactive()`.
+- `isComputed(value)` — returns `true` only for values created by `computed()`.
+
+All three correctly handle both the classic boxed form and the transparent proxy form used for object results.
+
+**Example**
+```ts
+const r = reactive({ x: 1 });
+const c = ref(42);
+const comp = computed(() => r.x * 2);
+
+isReactive(r);   // true
+isRef(c);        // true
+isRef(comp);     // true   (computed is also a ref)
+isComputed(comp);// true
+```
+
+**Pure ref vs. computed (for `isRef`)**
+
+Because every `computed()` result carries the `REF` marker (so that `isRef(comp)` and direct use as an `effect()` source continue to work), `isRef(result)` alone does **not** guarantee that `result` came from `ref()`.
+
+To be sure you have a *pure* ref (created by `ref()`, excluding computed values), test both:
+
+```ts
+const result = getSomeReactiveValue(); // might be a ref() or a computed()
+
+if (isRef(result) && !isComputed(result)) {
+  // result is guaranteed to be a plain ref created with ref(), not a computed
+  // e.g. you can safely do result.value = ... with ref-specific expectations
+  result.value = 123;
+}
+```
+
+`isRef(result)` will be `true` for both `ref(42)` and `computed(() => ...)` (and their object-shaped proxy forms).
+
+---
 
 The `computed` function creates a lazily-evaluated computed value that re-evaluates only when its dependencies change. This is useful for deriving values from reactive state without re-computing unless necessary.
 
+The getter may be synchronous or asynchronous (`() => T | Promise<T>`).
+
 > #### Syntax
 ```typescript
-function computed<T>(getter: () => T): { readonly value: T };
+function computed<T>(getter: () => T | Promise<T>): Computed<T>;
 ```
 
+(where `Computed<T>` is `Readonly<T>` when `T` is an object/array, otherwise `{ readonly value: T }`).
+
 **Parameters**
-* `getter`: `() => T`
-  * A function that computes the value based on reactive dependencies. The function is called lazily when the `value` property is accessed.
+* `getter`: `() => T | Promise<T>`
+  * A function (sync or async) that computes the value based on reactive dependencies. The function is called lazily on first access or when the computed is marked dirty.
 
 **Returns**
-* `{ readonly value: T }`
-  * An object with a readonly `value` property that returns the computed value. The value is cached until dependencies change.
+* For object results (including arrays): a readonly proxy to the computed object. You can read properties directly (`computedObj.prop`). The proxy also exposes `.value` (returns the raw object) and carries both the `REF` and `COMPUTED` markers.
+* For non-object results: the classic `{ readonly value: T }`.
+* In both cases the result is usable as a ref (via `isRef()` and as a direct source to `effect()`). While an async computation is pending, reads return the previous (stale) value.
+
+All computed results carry the `REF` marker (so they are treated as refs for the effect system) and the `COMPUTED` marker (for `isComputed()`).
 
 **Example:**
 ```typescript
@@ -2601,7 +3113,7 @@ count.value = 3; // Logs: "Doubled is: 6"
 
 ---
 
-## GlobalContext
+## Global Context
 
 The **Global Context** is a powerful and widely adopted concept in modern frontend frameworks. It enables dependency injection and state sharing between components without requiring deep prop drilling, while also allowing values to be updated and automatically reflected in descendant components.
 
@@ -2648,6 +3160,12 @@ Below the utilities used for the `Context API pattern` in order to help the impl
   * Checks if the given target is a valid global context object.
 * `function setAsGlobalContext(target: GlobalContext): void`
   * Marks the given target object as a Global Context by attaching the `GLOBAL_CONTEXT_TYPE` symbol.
+* `function setSymbolKey(target: Record<PropertyKey, any>, symbol: symbol, value?: any, descriptor?: Descriptor): void`
+  * Low-level helper used to attach non-enumerable, non-writable, non-configurable symbol markers (e.g. `REF`, `COMPUTED`, `REACTIVE`, `PORTAL`). See the dedicated [`setSymbolKey`](#setsymbolkey) documentation.
+* `createMediatorContextUtils`: `function createMediatorContextUtils<T>(mediator: MediatorFunction<T>, props: Props = {}, extras: Extras = {},context: ContextUtils): any & T`
+  * Creates and executes a mediator function with an associated context.
+* `getContextUtils`: `function getContextUtils(): ContextUtils`
+  * Creates and executes a mediator function with an associated context.
 
 **Types**
 * `ContextUtils`: `interface ContextUtils {
@@ -2659,26 +3177,59 @@ Below the utilities used for the `Context API pattern` in order to help the impl
   - The generic global context reactive Object.
 * `MediatorFunction`: `type MediatorFunction<T = any> = (props: Props) => any & T;`
   - The mediator function described [below](#mediator) which contains the component logic.
-* `MediatorContextFunction`: `type MediatorContextFunction<T = any> = (props: Props, ctxUtils: ContextUtils) => any & T;`
-  - Pretty much the same `MediatorFunction`, this type is used in side the implementation of the `useMediator` framework hook fuction for a better typescript integration.
 * `Props`: `type Props = any & object;`
   - The generic props object passed to the `MediatorFunction`.
+* `Extras`: `type Props = any & object;`
+  - The exta generic object parameter passed to the `MediatorFunction`.
 * `Mediator`: `type Mediator<State extends {} = {}> = { state?: State; } & object;`
   The mediator object returned from the `MediatorFunction`.
 
 ### `Mediator`
 
-A `mediator` is a function used to export the component logic outside, rendering the logic portable to different front end frameworks. The `mediator` function get two parameters `props` and `ctxUtils` described above, and returns a mediator object with a rective `state` and other properties as example the functions to the attached to the listeners (onclick, onchange...).
+A `mediator` is a function used to export the component logic outside, rendering the logic portable to different front end frameworks. The `mediator` function receives `props` and `extras` (plus access to context utils via `getContextUtils()`) and returns a mediator object containing a reactive `state` and other properties (methods, lifecycle hooks, `getContext`, etc.).
 
-**Example:**
+This is the core pattern used by all `@pastweb` components.
+
+**Typical mediator structure**
+
 ```typescript
-import { reactive, getContext, effect } from '@pastweb/tools';
+import { reactive, effect } from '@pastweb/tools';
+import type { MyProps, MyMediator, MyState } from './types';
 
-function myMediator(props, { getContext, setContext }) {
+export function myMediator(props: MyProps): MyMediator {
+  const state = reactive<MyState>({
+    foo: props.foo,
+  });
+
+  // React to prop changes (sources are functions so they are tracked)
+  effect(
+    (foo) => { state.foo = foo; },
+    () => props.foo,
+  );
+
+  function doSomething() {
+    // ...
+  }
+
+  return {
+    state,
+    doSomething,
+  };
+}
+```
+
+Mediators can also interact with Global Context:
+
+```typescript
+import { reactive, getContextUtils, effect } from '@pastweb/tools';
+
+function myMediator(props, extras) {
   const state = reactive({ value: 'initialValue' });
   
+  const { getContext, setContext } = getContextUtils();
+  
   const ctx = getContext('contextKey');
-  // the context object is a rective object
+  // the context object is a reactive object
   effect(() => {
     state.value = ctx.value;
   });
@@ -2691,26 +3242,54 @@ function myMediator(props, { getContext, setContext }) {
 }
 ```
 
-The example above is written just for documentation purpose and shows the generic structure of a mediator function and how is it possible adds effects to the intenal `state`, `props` and how to interanct with the `Global Context`.
+The example above shows the generic structure of a mediator function, how to add effects that react to internal `state`, `props`, and how to interact with the `Global Context`.
+
+For router-specific usage of mediators, see the [Router mediator hooks](#router-mediator-hooks) section under `createViewRouter`.
 
 ---
 
 ### `createMicroStore`
 
-Creates a rective micro store to share between components not necessarly nested.
-Accept a `name` string as first argument and a `setup` function which returns a `MicroStore` object.
-The `setup` function can get a `selector` function as only argument in case of very complex `state` which will be used inside the `actions` object
-which contains the methods to handle the state.
-It returns a hook function which returns an object with a `state` prop which is the readonly version of the defined state in the setup function and the methods to handle it.
+Creates a reactive micro store to share between components that are not necessarily nested.
+Accepts a `name` string as the first argument and a `setup` function that returns a `MicroStoreConfig` object with `state` and `actions`.
 
- #### Syntax
+Inside `actions`, you can mutate the internal reactive state in two ways:
+- **`this.state`** — via method shorthand or `function` syntax (recommended for simple access).
+- **`select`** — the setup helper passed as the only argument to `setup` (useful for arrow functions or complex selectors).
+
+The returned hook function yields an object with a **readonly** `state` property and the action methods.
+
+> #### Syntax
 ```typescript
-function createMicroStore<S extends Record<string, any>,A extends Record<string, (...args: any[]) => any>>(name: string,setup: (select: <T>(fn: Selector<T, S>) => T) => MicroStoreConfig<S, A>): UseMicroStore<S, A>
+function createMicroStore<
+  S extends Record<string, any>,
+  A extends Record<string, (...args: any[]) => any>
+>(
+  name: string,
+  setup: (select: <T>(fn: Selector<T, S>) => T) => MicroStoreConfig<S, A>
+): UseMicroStore<S, A>
 ```
+
+**Parameters**
+* `name`: `string`
+  * Unique store name (used in error messages and the global registry).
+* `setup`: `(select) => MicroStoreConfig<S, A>`
+  * Receives a temporary `select` helper and must return `{ state, actions }`.
+
+**Returns**
+* `UseMicroStore<S, A>` — a hook function:
+  * `useMicroStore()` → full store with readonly `state` + actions.
+  * `useMicroStore(selector)` → store with selected readonly `state` slice + actions.
+
+**Related types**
+* `MicroStoreConfig<S, A>` — setup return shape (`state` + `actions`).
+* `MicroStoreActionsContext<S>` — context available as `this` inside actions (`{ state: Reactive<S> }`).
+* `MicroStore<S, A>` — full store instance shape.
+* `Selector<T, S>` — `(state: S) => T`.
 
 **Example:**
 ```typescript
-import { createMicroStore } from '@pastweb/tools';
+import { createMicroStore, type MicroStoreActionsContext } from '@pastweb/tools';
 
 const useCounterStore = createMicroStore('counter', select => ({
   state: {
@@ -2718,20 +3297,26 @@ const useCounterStore = createMicroStore('counter', select => ({
     name: 'My Counter'
   },
   actions: {
-    increment: (by = 1) => {
-      const state = select(s => s);          // Get full state
-      state.count += by;        // Internal mutation (allowed)
+    increment(by = 1) {
+      this.state.count += by;    // Access mutable state via `this`
     },
-    decrement: (by = 1) => {
-      const state = select(s => s);
-      state.count -= by;
+    decrement(by = 1) {
+      this.state.count -= by;
     },
-    setName: (newName: string) => {
-      const state = select(s => s);
-      state.name = newName;
+    setName(newName: string) {
+      this.state.name = newName;
+    },
+    // Alternatively, use the setup `select` helper (works with arrow functions too):
+    reset() {
+      select(s => s).count = 0;
+    },
+    // Explicit `this` typing when needed:
+    add(this: MicroStoreActionsContext<{ count: number; name: string }>, n: number) {
+      this.state.count += n;
     },
   },
 }));
+
 // === Usage ===
 
 // 1. Full state
@@ -2752,6 +3337,12 @@ effect(() => {
   console.log('Count changed:', count);
 });
 ```
+
+**Notes**
+* The exposed `.state` on the returned store is **readonly** at both the TypeScript and runtime level. All mutations must go through `actions`.
+* Use **method shorthand** or `function` syntax when accessing `this.state`. Arrow functions (`increment: () => { ... }`) do not receive the actions context as `this`; use `select` instead.
+* The action name `"state"` is reserved and cannot be used in the `actions` object.
+* Selectors can return any value (primitives, objects, arrays, nested properties). Changes via actions are automatically reflected in all selector views.
 
 ---
 
@@ -2793,6 +3384,686 @@ Object.entries(customerStores).forEach(([name, useStore]) => {
   console.log(`${name} state:`, useStore().state);
 });
 ```
+---
+
+## Routing
+
+### `createViewRouter`
+
+The `createViewRouter` function is a core utility for managing routing in a single-page application (SPA).
+It provides the ability to define routes, navigate between them, and react to route changes within the application.
+The `ViewRouter` uses the [history](https://github.com/browserstate/history.js) library covering the most common
+functionalities implemented in other router UI Frameworks like [react-router](https://reactrouter.com/en/main) or [vue-router](https://router.vuejs.org/).
+The goal of this implementation is to obtain a consistent set of API and terminology across frameworks.
+
+The router state properties (`currentRoute`, `location`, `isResolving`, `paths`, `base`, etc.) are **reactive**.
+Use the library's `effect` / `computed` primitives to react to changes instead of event callbacks.
+
+> #### Syntax
+```typescript
+function createViewRouter(options: RouterOptions): ViewRouter;
+```
+
+Parameters
+* `options`: `RouterOptions`
+  * An object containing configuration options for the router. The available options include:
+  * `base`: `string` _(optional)_
+    * The base path for all routes.
+  * `debug`: `boolean` _(optional)_
+    * If true, enables debug logging for the router.
+  * `history`: `History` _(optional)_
+    * The history object for managing session history.
+  * `routes`: `Route[]` _(mandatory)_
+    * An array of route definitions.
+  * `preloader`: `() => void` _(optional)_
+    * A function to execute before a route is loaded.
+  * `RouterView`: `Component` _(mandatory)_
+    * The component to render for matched routes.
+  * `beforeRouteParse`: `(route: Route) => Route | void | Promise<Route | void>` _(optional)_
+    * A function to execute before parsing a route, if you want to modify a `Route`.
+  * `beforeRouteSelect`: `(route: SelectedRoute) => SelectedRoute | void | Promise<SelectedRoute | void>` _(optional)_
+    * A function to execute before selecting a route, as example for the route authentication/authorization.
+  * `sensitive`: boolean _(optional)_
+    * If true, route matching will be case-sensitive.
+  * `initialRequest`: `NodeRequest` _(optional, SSR only)_
+    * An incoming server request. When provided in an SSR context the router will automatically
+      initialize using this request so that `currentRoute` / `location` are correct after `await router.ready`.
+
+Returns
+* `ViewRouter`
+  * An object that represents the router. This object contains reactive properties and methods to manage routing within the application.
+  * Key reactive properties: `currentRoute`, `location`, `isResolving`, `paths`, `base`, `documentSettings`, `request` (SSR).
+  * `ready: Promise<void>` – resolves once the initial route has been resolved. Use `await router.ready` to safely read `currentRoute` on first access.
+
+**Example (browser + reactivity):**
+```typescript
+import { createViewRouter, effect } from '@pastweb/tools';
+
+const router = createViewRouter({
+  routes: [
+    { path: '/', view: 'HomePage' },
+    { path: '/about', view: 'AboutPage' },
+  ],
+});
+
+await router.ready; // optional but recommended
+
+// React to changes using the reactive system
+effect(() => {
+  console.log('Route changed to:', router.currentRoute.path);
+  console.log('Params:', router.currentRoute.params);
+});
+```
+
+Core Features
+* `Route Parsing and Matching`:
+  * The router parses and normalizes routes, creating a structure that allows efficient matching of paths against the defined routes.
+* `Reactive State`:
+  * Router properties (`currentRoute`, `location`, `isResolving`, `paths`, `base`, ...) are powered by the library's reactivity system. Use `effect(() => router.currentRoute)` or `computed` to react to changes.
+* `Navigation`:
+  * The router offers methods to programmatically navigate, push, replace, or go back and forward in the history stack.
+* `Base Path Management`:
+  * Allows setting and managing a base path, which is useful for applications hosted under subdirectories.
+* `Route Preloading`:
+  * Supports route preloading, enabling efficient loading of route components.
+* `Custom Hooks`:
+  * Provides hooks (`beforeRouteParse`, `beforeRouteSelect`) that allow custom logic to be executed during route parsing and selection.
+* `SSR Support`:
+  * `initialRequest` option + `router.ready` promise make it easy to initialize the router correctly on the server without seeing a transient empty route.
+  
+**Example (custom hooks):**
+```typescript
+  beforeRouteParse: async (route) => {
+    // You can now do async work (API calls, config loading, etc.)
+    const extraData = await fetch(`/api/route-config${route.path}`);
+    return { ...route, meta: { ...route.meta, extraData } };
+  },
+
+  beforeRouteSelect: async (route) => {
+    if (route.path === '/admin' && !(await isUserAdmin())) {
+      return { ...route, redirect: '/login' }; // or throw new Error(...)
+    }
+    return route;
+  }
+```
+
+Methods
+* `setBase(base: string): Promise<void>`
+  * Sets the base path for the router. The base path is the common prefix for all routes.
+* `addRoute(route: Route): Promise<void>`
+  * Adds a new route to the router dynamically after the router has been initialized.
+* `navigate(path: string, state?: any): Promise<void>`
+  * Navigates to a specific path programmatically.
+* `push(path: string, state?: any): Promise<void>`
+  * Pushes a new state onto the history stack and navigates to the specified path.
+* `replace(path: string, state?: any): void`
+  * Replaces the current state in the history stack with a new state and navigates to the specified path.
+* `go(delta: number): void`
+  * Moves forward or backward in the history stack by a specified number of steps.
+* `setSearchParams(searchParams: URLSearchParams): void`
+  * Sets the search parameters for the current location without reloading the page.
+* `setHash(hash?: string): void`
+  * Sets the hash for the current location without reloading the page.
+* `getRoute(pathname: string): Promise<Route | false>`
+  * Find and return the current `route` or `false` for not route found.
+* `setRequest(request: ServerRequest): Promise<void>`
+  * Sets a new location and refreshes the current route. Useful in SSR context to initialize the router with the server request URL.
+* `getRouterLink(options: RouterLinkOptions): RouterLink`
+  * Creates a router link object that contains methods for navigation and checks if the link is active or exactly active.
+
+Edge Cases
+* `No Matching Route`:
+  * If no route matches the current path, the router will warn in the console and return a default empty route.
+* `Base Path Changes`:
+  * When the base path is changed, the router adjusts all existing routes accordingly to ensure consistent matching.
+
+Debugging
+If the `debug` option is enabled, the router logs detailed information about its internal state, such as the current paths, parsed routes, and the selected route. This can be helpful for debugging route configuration issues.
+
+---
+### `Route Object`
+
+The `Route Object` contains the information to define a route for `ViewRouter`.
+
+> #### Syntax
+```typescript
+interface Route {
+  path: string;
+  redirect?: string;
+  view?: View;
+  views?: Record<string, View>;
+  children?: Route[];
+  [optionName: string]: any;
+};
+```
+
+Props
+
+* `path`: `string`
+  * the path string description for the route match.
+* `redirect`: `string` _(optional)_
+  * the URL to be redirected if the route match the `path` rule.
+* `view`: `View = any | (() => Promise<{ default: any, [prop: string]: any }>)` _(optional)_
+  * the `View` component or a function returning the `View` component module exported as `default`.
+* `views`: `Record<string, View>` _(optional)_
+  * An Object of named views to be handled from a `RouterView` component.
+* `children`: `Route[]` _(optional)_
+  * An array of nested `Routes`.
+* `meta`: `Record<string, any>` _(optional)_
+  * Any other metadata you want to pass to the `SelectedRoute`. 
+
+The `Route` object can be extended with any other custom property which will be present in the `SelectedRoute` structure as described below:
+
+**Example:**
+```typescript
+const routes: Route[] = [
+  {
+    path: '/home',
+    view: HomeComponent,
+    meta: {
+      icon: 'homeIcon',
+    },
+  },
+  {
+    path: '/category/:name',
+    view: CategoryComponent,
+    meta: {
+      icon: 'categoryIcon',
+    },
+    children: [
+      {
+        path: '/product/?:id',
+        view: ProductComponent,
+      }
+    ],
+  },
+  {
+    path: '/',
+    redirect: '/home',
+  },
+];
+```
+> #### Parameters
+The parameters declared in the roue `path` will be present in the `SelectedRoute` structure described below under the property `params`.
+| Syntax                  | Meaning                          | Example Path                  | Resulting Params |
+|-------------------------|----------------------------------|-------------------------------|------------------|
+| `:name`                 | Required parameter               | `/user/john`                  | `{ name: 'john' }` |
+| `?:surname`             | Optional parameter               | `/user/john` or `/user/john/doe` | `{ name: 'john', surname?: 'doe' }` |
+| `:surname?`             | Optional parameter (alternative) | `/user/john` or `/user/john/doe` | `{ name: 'john', surname?: 'doe' }` |
+| `*slug`                 | Catch-all (rest) parameter       | `/user/john/profile/edit`     | `{ name: 'john', slug: ['profile', 'edit'] }` |
+| `?*slug`                | Optional catch-all               | `/user/john` or `/user/john/a/b` | `{ name: 'john', slug?: [...] }` |
+| `*slug?`                | Optional catch-all (alternative) | `/user/john` or `/user/john/a/b` | `{ name: 'john', slug?: [...] }` |
+
+
+When the browser URL will match one of the `Routes`, the `SelectedRoute` will be available in the `router.currentRoute` property having this structure:
+
+```typescript
+interface SelectedRoute {
+  parent: SelectedRoute | boolean;
+  regex: RegExp;
+  path: string;
+  params: RouteParams;
+  searchParams: URLSearchParams;
+  setSearchParams: (params: URLSearchParams) => void;
+  hash: string;
+  setHash: (hash?: string) => void;
+  views: Record<string, View>;
+  meta: RouteMetadata;
+  child: SelectedRoute | boolean;
+}
+```
+In the example above the `icon` property will be present in the meta properties, (`router.currentRoute.meta.icon`).
+
+### Router mediator hooks
+
+These hooks are meant to be used inside mediator functions (see the [Mediator](#mediator) section in [Global Context](#global-context) for the full pattern and examples used by all `@pastweb` components).
+
+The router must be registered in the context under `ROUTER_CONTEXT_KEY` (usually done at the root) before mediators that use these hooks are executed.
+
+#### `useRouter`
+
+> #### Syntax
+```typescript
+function useRouter(): ViewRouter;
+```
+
+Returns the `ViewRouter` that was previously set in the current mediator context.
+
+**Example — inside a route mediator**
+
+```typescript
+import { useRouter, reactive, effect } from '@pastweb/tools';
+
+export function myMediator(props: any, extras: any) {
+  const router = useRouter();
+
+  const state = reactive({
+    loading: true,
+    data: null,
+  });
+
+  // React to location changes
+  effect(() => {
+    if (router.location.pathname === '/dashboard') {
+      loadData();
+    }
+  });
+
+  async function loadData() {
+    state.loading = true;
+    state.data = await fetchDashboardData();
+    state.loading = false;
+  }
+
+  function goToSettings() {
+    router.navigate('/settings');
+  }
+
+  return { state, goToSettings };
+}
+```
+
+#### `useLocation`
+
+> #### Syntax
+```typescript
+function useLocation(): Location;
+```
+
+Returns a **reactive** `Location` object (stable transparent readonly proxy powered by `computed` over the router's location).
+
+All accesses (e.g. `location.pathname`) are tracked and stay fresh. This is the recommended way to consume location inside mediators because you can capture the returned object and safely attach effects to individual properties without stale values. Leverages the object-shaped computed support (direct access, no manual sync or `.value` wrapper).
+
+**Parameters**
+
+* None.
+
+**Returns**
+
+* `Location`
+  * Reactive location with `pathname`, `searchParams`, `hash`, etc.
+
+**Example — reacting to location changes inside a mediator**
+
+```typescript
+import { useLocation, useRouter, reactive, effect } from '@pastweb/tools';
+
+export function myMediator(props: any, extras: any) {
+  const router = useRouter();
+  const location = useLocation();   // reactive proxy
+
+  const state = reactive({
+    showMobileMenu: false,
+    currentSection: 'home',
+  });
+
+  // This effect will re-run on every location change
+  effect(() => {
+    const { pathname } = location;
+
+    state.currentSection = pathname.split('/')[1] || 'home';
+
+    // close mobile menu on navigation (very common pattern)
+    if (pathname !== '/') {
+      state.showMobileMenu = false;
+    }
+  });
+
+  function toggleMobileMenu() {
+    state.showMobileMenu = !state.showMobileMenu;
+  }
+
+  return { state, toggleMobileMenu };
+}
+```
+
+#### `useNavigate`
+
+> #### Syntax
+```typescript
+function useNavigate(): (path: string, state?: any) => Promise<void>;
+```
+
+Returns the `navigate` function from the current `ViewRouter` instance (obtained via `useRouter`).
+
+This is a convenience hook for performing navigation from within a mediator without needing to access the full router.
+
+**Parameters**
+
+* None.
+
+**Returns**
+
+* `(path: string, state?: any) => Promise<void>`
+  * The navigate function from the router.
+
+**Example — using navigate inside a mediator**
+
+```typescript
+import { useNavigate, useRouter, reactive, effect } from '@pastweb/tools';
+
+export function myMediator(props: any, extras: any) {
+  const navigate = useNavigate();
+  const router = useRouter(); // if other router APIs are needed
+
+  const state = reactive({
+    isSubmitting: false,
+  });
+
+  async function handleSubmit(formData: any) {
+    state.isSubmitting = true;
+    // ... do some work
+    await navigate('/success', { from: 'form' });
+  }
+
+  return { state, handleSubmit };
+}
+```
+
+#### `usePaths`
+
+> #### Syntax
+```typescript
+function usePaths(filter?: FilterDescriptor): Readonly<Route[]>;
+```
+
+Returns the (optionally filtered) list of routes as a reactive readonly array (a transparent proxy powered by `computed` under the hood).
+
+You use the result directly as an array (`paths.length`, `paths.map(...)`, `paths.some(...)` etc.). All property accesses and iterations are tracked.
+
+The hook accepts the same `FilterDescriptor` as the standalone `filterRoutes` utility. The array is powered by `computed`, so it automatically stays up-to-date when routes are added (via `addRoute`) or when the filter changes.
+
+This is the recommended way to consume the route list inside mediators when you want to react to it (for menus, etc.) without capturing stale arrays. It follows the same direct reactive shape as other updated mediator hooks and `router.paths`.
+
+**Parameters**
+
+* `filter`: `FilterDescriptor` _(optional)_ – same shape as for `filterRoutes`.
+
+**Returns**
+
+* `Readonly<Route[]>` (reactive array proxy)
+  * The current (filtered) routes. Use it directly.
+
+**Example — using paths inside a mediator (e.g. for a dynamic menu)**
+
+```typescript
+import { usePaths, useRouter, reactive, effect } from '@pastweb/tools';
+
+export function myMediator(props: any, extras: any) {
+  const paths = usePaths({ meta: { visibleInMenu: true } });
+  const router = useRouter();
+
+  const state = reactive({
+    menuItems: [] as Route[],
+  });
+
+  effect(() => {
+    state.menuItems = paths;
+  });
+
+  function navigateTo(path: string) {
+    router.navigate(path);
+  }
+
+  return { state, navigateTo };
+}
+```
+
+#### `useRoute`
+
+> #### Syntax
+```typescript
+function useRoute(): SelectedRoute;
+```
+
+Returns a reactive `SelectedRoute` object that remains in sync with the router's current route.
+
+This hook is intended to be called from within a mediator function. It returns a stable transparent readonly proxy (via `computed`) over the router's current route. All property accesses are tracked and stay up to date automatically when the current route changes.
+
+This allows safe capture of the route object from a mediator and reactive observation of its properties (using the new object computed proxy support):
+
+```ts
+const route = useRoute();
+effect(() => {
+  console.log('Current path:', route.path);
+});
+```
+
+**Parameters**
+
+* None.
+
+**Returns**
+
+* `SelectedRoute` (reactive object)
+  * `path`, `params`, `searchParams`, `hash`, `meta`, `views`, `isActive`-related fields, `setSearchParams`, `setHash`, `parent`, `child`, etc.
+
+**Example — using the current route inside a mediator**
+
+```typescript
+import { useRoute, useRouter, reactive, effect } from '@pastweb/tools';
+
+export function myMediator(props: any, extras: any) {
+  const route = useRoute();   // reactive proxy
+
+  const state = reactive({
+    currentPath: '',
+    title: '',
+  });
+
+  // This effect will re-run on every route change
+  effect(() => {
+    state.currentPath = route.path;
+    state.title = route.meta?.title || route.path;
+  });
+
+  return { state };
+}
+```
+
+---
+
+#### `useRouterLink`
+
+> #### Syntax
+```typescript
+function useRouterLink(options: RouterLinkOptions): RouterLink;
+```
+
+Returns a reactive `RouterLink` object (stable transparent proxy via `computed` over the link descriptor computed from current location + options).
+
+`isActive`, `isExactActive`, `pathname`, and `navigate` are kept fresh automatically. Recommended for mediators needing reactive link state (direct property access, no manual subscription or `.value`). Uses the updated object computed support.
+
+**Parameters**
+
+* `options: RouterLinkOptions`
+  * `path: string` — The target path (may contain `:param` placeholders).
+  * `params?: Record<string, string | number | boolean | null | undefined>` — Values for the placeholders.
+  * `searchParams?: URLSearchParams` — Query string to append.
+  * `hash?: string` — Hash fragment to append.
+
+**Returns**
+
+* `RouterLink` (reactive object)
+  * `pathname: string` — The final resolved path with params/search/hash applied.
+  * `isActive: boolean` — True if the current location matches the link (non-exact).
+  * `isExactActive: boolean` — True if the current location exactly matches the link.
+  * `navigate: (to?: string) => void` — Convenience method to navigate to this link (or an override).
+
+**Example — using router links inside a mediator**
+
+```typescript
+import { useRouterLink, effect } from '@pastweb/tools';
+
+export function myMediator(props: any, extras: any) {
+  const home = useRouterLink({ path: '/' });
+  const about = useRouterLink({ path: '/about' });
+
+  const state = reactive({
+    homeActive: false,
+    aboutActive: false,
+  });
+
+  effect(() => {
+    // Re-runs automatically when the current route changes
+    state.homeActive = home.isActive;
+    state.aboutActive = about.isActive;
+  });
+
+  return { state };
+}
+```
+
+---
+
+#### `useSearchParams`
+
+> #### Syntax
+```typescript
+function useSearchParams(): {
+  params: URLSearchParams;
+  setSearchParams: (searchParams: URLSearchParams) => void;
+};
+```
+
+Returns a reactive object containing the current search params (`params`) and the `setSearchParams` function from the router.
+
+`params` is derived via `computed` (transparent proxy to the current URLSearchParams, or the real instance for API compat). Changes due to navigation or `setSearchParams` are automatically reflected (tracked accesses). The setter is the router's (updates URL + refreshes).
+
+This is the recommended way to read/write query parameters reactively from inside mediators (uses updated computed support, no manual internal effect for the data).
+
+**Parameters**
+
+* None.
+
+**Returns**
+
+* `{ params: URLSearchParams; setSearchParams: (searchParams: URLSearchParams) => void }`
+  * `params` — The current `URLSearchParams` (updated reactively on location changes).
+  * `setSearchParams` — Function to set new search params (updates the URL via navigation).
+
+**Example — reading and updating search params inside a mediator**
+
+```typescript
+import { useSearchParams, useRouter, effect } from '@pastweb/tools';
+
+export function myMediator(props: any, extras: any) {
+  const search = useSearchParams();
+
+  const state = reactive({
+    filter: '',
+  });
+
+  effect(() => {
+    // Re-runs whenever search params change
+    state.filter = search.params.get('filter') || '';
+  });
+
+  function setFilter(value: string) {
+    const next = new URLSearchParams(search.params);
+    next.set('filter', value);
+    search.setSearchParams(next);
+  }
+
+  return { state, setFilter };
+}
+```
+
+---
+
+### `filterRoutes`
+
+The `filterRoutes` function filters a list of routes based on specified criteria. It allows you to filter out routes that do not meet the conditions defined in the provided filter descriptor.
+
+> #### Syntax
+```typescript
+function filterRoutes(routes: Route[] = [], filter: FilterDescriptor = {}): Route[];
+```
+
+Parameters
+* `routes`: `Route[] (default: [])`
+  * An array of route objects to be filtered. Each Route object represents a route in the application and may contain properties such as path, component, redirect, children, and others.
+* `filter`: `FilterDescriptor`
+  * An object describing the filter criteria. The keys in this object represent the properties of the Route objects to filter on, and the values are the criteria that those properties must match. The value can be a specific value to match or a function that returns a boolean indicating whether the route matches the criteria.
+
+Returns
+* `Route[]`:
+  * An array of Route objects that match the filter criteria. If a route has children, the function will recursively filter them based on the same criteria. If no routes match, an empty array is returned.
+
+**Example:**
+```typescript
+import { filterRoutes, type Route } from '@pastweb/tools';
+
+const routes: Route[] = [
+  { path: '/home', component: HomeComponent },
+  { path: '/about', component: AboutComponent, hideInPaths: true },
+  { path: '/user/:id', component: UserComponent },
+];
+
+const filter = { component: HomeComponent };
+
+const filteredRoutes = filterRoutes(routes, filter);
+console.log(filteredRoutes); 
+// Outputs: [{ path: '/home', component: HomeComponent }]
+```
+---
+
+### `routeDive`
+
+The `routeDive` function is designed to traverse a nested route structure and return the route found at a specified depth.
+This is useful in scenarios where routes have nested children, and you need to access a route at a certain level within that hierarchy.
+
+> #### Syntax
+```typescript
+function routeDive(route: SelectedRoute, depth: number): SelectedRoute;
+```
+
+Parameters
+* `route`: `SelectedRoute`
+  * The initial `SelectedRoute` object representing the current route from which the traversal begins. This route may contain nested child routes.
+* `depth`: `number`
+  * The number of levels to traverse into the nested route structure. A depth of 0 returns the initial route, while a higher depth traverses deeper into the nested child routes.
+
+Returns
+* `SelectedRoute`:
+  * The `SelectedRoute` object located at the specified depth. If the specified depth exceeds the available levels of nesting, the function returns the deepest child route available.
+
+**Example:**
+```typescript
+import { routeDive, type SelectedRoute } from '@pastweb/tools';
+
+const currentRoute: SelectedRoute = {
+  path: '/parent',
+  child: {
+    path: '/parent/child',
+    child: {
+      path: '/parent/child/grandchild',
+    },
+  },
+};
+
+const grandchildRoute = routeDive(currentRoute, 2);
+console.log(grandchildRoute.path); // Output: '/parent/child/grandchild'
+```
+
+Edge Cases
+* `Zero Depth`:
+  * If the `depth` parameter is `0`, the function returns the initial route without any traversal.
+`Exceeding Depth`:
+  * If the specified `depth` is greater than the actual number of nested levels, the function returns the last available `child` route.
+
+Practical Use Cases
+* `View Rendering`:
+  * In a UI framework where different views are rendered based on the current route, `routeDive` can be used to determine which nested route corresponds to the current view depth.
+* `Breadcrumb Navigation`:
+  * For generating breadcrumb navigation, `routeDive` can help in identifying the route at different levels, enabling dynamic breadcrumb creation.
+
+Example of Nested Route Traversal
+Given a route structure with multiple levels of nesting, routeDive will traverse through each level until it either reaches the specified depth or the deepest available route. This allows developers to dynamically access deeply nested routes without manually iterating through each level.
+
+---
+
+
 ---
 
 ## String functions
@@ -2876,50 +4147,60 @@ Notes
 
 ### `hashID`
 
-The `hashID` function attempts to generate a unique identifier (ID) that is not present in a provided cache of existing IDs.
-If no cache is provided, it simply returns a randomly generated ID.
-This function is useful for ensuring uniqueness in scenarios where IDs must be distinct within a given set.
+Generates a random "friendly" ID.
+
+If a `cache` (array or Set) is provided, it will repeatedly generate IDs until it finds one that is not present in the cache, up to a configurable number of `retries`. This is useful when you need IDs that are unique within a known set.
+
+If no cache is provided, it simply returns a randomly generated ID (no uniqueness guarantee — it is up to the caller to ensure uniqueness if required).
 
 > #### Syntax
 ```typescript
-function hashID(cache?: string[] | Set<string> | null, config: Config = {}): string;
+function hashID(
+  cache?: string[] | Set<string> | null,
+  options?: HashIDOptions
+): string;
 ```
 
-Parameters
+**Parameters**
 * `cache`: `string[] | Set<string> | null` _(optional)_
-  * An array or set of existing IDs that the newly generated ID should avoid. If not provided, the function generates a random ID without checking against a cache.
-* `config`: `Config` _(optional)_
-  * An object containing configuration options for ID generation. The Config type can include:
-* `retries`: `number`
-  * The number of attempts to make in generating a unique ID that is not in the cache. Defaults to a predefined constant `UNIQUE_RETRIES`.
+  * A list (array or Set) of existing IDs that the generated ID must not collide with. If omitted or `null`, a random ID is returned immediately without any uniqueness check.
+* `options`: `HashIDOptions` _(optional)_
+  * Configuration for ID generation:
+    * `alphabet?: string` — Characters to use when building the ID. Default is a 62-character alphanumeric set (visually distinct, with some letters removed to reduce accidental profanity).
+    * `prefix?: string` — String to prepend to every generated ID.
+    * `idLength?: number` — Length of the random portion of the ID (default: `8`).
+    * `retries?: number` — Maximum number of generation attempts when a `cache` is supplied (default: `9999`).
 
-Returns
-* `string`:
-  * A unique ID as a string. If a unique ID cannot be generated within the allowed number of retries, the last attempted ID is returned, and an error is logged.
+**Returns**
+* `string`
+  * A generated ID. When a `cache` is provided and no unique ID is found after exhausting retries, the last generated ID (which may collide) is returned and a console error is logged.
 
 **Example:**
 ```typescript
 import { hashID } from '@pastweb/tools';
 
-const existingIDs = ['id1', 'id2', 'id3'];
-const uniqueID = hashID(existingIDs, { retries: 5 });
+// Simple random ID (no cache → no uniqueness guarantee)
+const id = hashID();
+console.log(id); // e.g. "_a3f9k2p7"
 
-console.log(uniqueID); // Outputs a unique ID not present in existingIDs
+// Unique ID against an existing cache
+const used = ['_abc12345', '_def67890'];
+const unique = hashID(used, { prefix: 'user-', retries: 10, idLength: 6 });
+console.log(unique); // e.g. "user-_x7k9p2" (guaranteed not in `used`)
 ```
 
-Use Cases
+**Use Cases**
 * `DOM Element IDs`:
-  * Ensuring unique IDs for dynamically generated HTML elements to prevent conflicts in CSS or JavaScript targeting.
-* `Database Keys`:
-  * Generating unique keys for database records where uniqueness is critical to maintaining data integrity.
-* `Resource Management`:
-  * Assigning unique identifiers to resources in systems that require distinct labels or identifiers.
+  * Generating unique `id` attributes for dynamically created elements.
+* `Client-side Caches / Stores`:
+  * Creating collision-resistant keys when you maintain a local list of existing IDs.
+* `Temporary Identifiers`:
+  * Quick friendly IDs for UI components, logs, or in-memory objects.
 
-Notes
-* `Performance Considerations`:
-  * The retry mechanism can affect performance if the cache is very large or the number of retries is high. However, the function is optimized by using `Set` for fast lookups.
-* `Error Handling`:
-  * The function logs an error if it cannot generate a unique ID within the specified retries. This helps in debugging cases where ID collisions are frequent.
+**Notes**
+* The generated IDs always start with `_` (unless a `prefix` is supplied) followed by characters from the alphabet.
+* For more advanced use cases (scoped/namespaced caches with `getId`/`has`/`removeId` methods), see the separate [`createIdCache`](#createidcache) utility.
+* Using a `Set` for the cache gives the best performance for large collections.
 
 ---
 
@@ -2978,114 +4259,6 @@ Edge Cases
 * `Single Character Strings`:
   * For single character strings, the function will return the character in lowercase if it's an uppercase letter.
 
----
-
-## Utility functions
-
-### `isSSR`
-Checks whether the code is being executed in a server-side rendering (SSR) environment.
-
-**Example:**
-```typescript
-import { isSSR } from '@pastweb/tools';
-
-if (isSSR) {
-  console.log('Running on the server');
-} else {
-  console.log('Running on the client');
-}
-```
----
-
-### `memo`
-
-The `memo` function is a higher-order utility that enables memoization of another function. Memoization is a performance optimization technique that caches the results of expensive function calls and reuses the cached result when the same inputs occur again. This can significantly reduce the time complexity of certain operations, especially in scenarios where the function is called repeatedly with the same arguments.
-
-> #### Syntax
-```typescript
-function memo(func: MemoCallback): (...args: any[]) => any;
-```
-
-Parameters
-* `func`: `MemoCallback`
-  * The function to be memoized. This function will be executed normally the first time it is called with a set of arguments, and its result will be stored in a cache for future reuse.
-
-Returns
-* `Function`:
-  * A memoized version of the provided function. When this memoized function is called, it first checks the cache to see if the result for the given arguments has already been computed. If it has, the cached result is returned; otherwise, the function is executed, and the result is stored in the cache for future calls.
-
-**Example:**
-```typescript
-import { memo } from '@pastweb/tools';
-
-function complexCalculation(a: number, b: number): number {
-  console.log('Computing...');
-  return a + b;
-}
-
-const memoizedCalculation = memo(complexCalculation);
-
-console.log(memoizedCalculation(1, 2)); // Logs: 'Computing...' then '3'
-console.log(memoizedCalculation(1, 2)); // Logs: '3' (no 'Computing...' since the result is cached)
-console.log(memoizedCalculation(2, 3)); // Logs: 'Computing...' then '5'
-console.log(memoizedCalculation(2, 3)); // Logs: '5' (cached result)
-```
-
-Use Cases
-* `Expensive Calculations`:
-  * Memoization is especially useful for functions that perform expensive calculations or operations, such as those involving complex algorithms or large data processing.
-* `Recursive Functions`:
-  * Memoization can be used to optimize recursive functions by avoiding redundant calculations of the same results.
-* `Pure Functions`:
-  * Memoization works best with pure functions, which always produce the same output for the same input and have no side effects.
-
-Performance Considerations
-* `Memory Usage`:
-  * The cache grows with each unique set of arguments, so it is important to be mindful of the potential memory usage. In some cases, it may be necessary to implement a cache eviction strategy to prevent unbounded growth.
-* `Equality Check`:
-  * The function uses strict equality (`===`) to compare arguments. If the arguments are complex objects, you may need to ensure that identical objects are passed in the same reference, or else the memoization may not work as intended.
-
-Edge Cases
-* `Non-Primitive Arguments`:
-  * Since the function uses strict equality for comparisons, if non-primitive values (like objects or arrays) are passed as arguments, the memoization might not work as expected unless the same object references are used.
-* `Variadic Functions`:
-  * The memo function can handle variadic functions (functions with a variable number of arguments) since it operates on args as an array.
-
-Notes
-* `Side Effects`:
-  * Memoization should not be used with functions that produce side effects, as the function may not execute every time, potentially leading to inconsistent states.
-
----
-### `noop`
-
-The `noop` function is a utility function that performs no operations (no-op) and returns `undefined`.
-It is commonly used as a placeholder function or as a default callback when no specific behavior is required.
-
-> #### Syntax
-```typescript
-function noop(...args: any[]): any;
-```
-
-Parameters
-* `...args`: `any[]`
-  * A variable number of arguments that can be passed to the function. These arguments are ignored and have no effect on the function's behavior.
-
-Returns
-* `any`:
-  * The function does not perform any operations and always returns `undefined`.
-
-**Example:**
-```typescript
-import { noop } from '@pastweb/tools';
-
-function exampleFunction(callback = noop) {
-  // Some operation
-  callback();
-}
-
-exampleFunction(); // No operation is performed by the callback
-exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
-```
 ---
 
 ## Styles
@@ -3282,6 +4455,150 @@ Below the utility list:
 | shrink-4 | flex-shrink: 4; |
 | shrink-5 | flex-shrink: 5; |
 
-### License
+---
 
-This project is licensed under the MIT License.This project is licensed under the MIT License.
+## Utility functions
+
+### `isSSR`
+@deprecated Use the environment detection constants from `./envs` (e.g. `!isBrowser` or `isServer`) instead.
+
+Checks whether the code is being executed in a server-side rendering (SSR) environment.
+
+**Example:**
+```typescript
+import { isSSR } from '@pastweb/tools';
+
+if (isSSR) {
+  console.log('Running on the server');
+} else {
+  console.log('Running on the client');
+}
+```
+---
+
+### Environment detection constants (`envs`)
+
+The `envs` module provides a set of boolean constants for detecting the current runtime environment. These are more precise and future-proof than the deprecated `isSSR`.
+
+**Available constants:**
+- `isBrowser`: `true` when running in a browser environment (has `window` and `document`).
+- `isNode`: `true` when running in Node.js.
+- `isDeno`: `true` when running in Deno.
+- `isBun`: `true` when running in Bun.
+- `isServer`: `true` when running in any server-side JavaScript runtime (Node.js, Deno, or Bun).
+- `isReactNative`: `true` when running in React Native.
+- `isCapacitor`: `true` when running inside a Capacitor app.
+- `isNativeScript`: `true` when running inside a NativeScript app.
+- `isElectron`: `true` when running inside Electron.
+
+**Example:**
+```typescript
+import { isBrowser, isServer, isCapacitor } from '@pastweb/tools';
+
+if (isServer) {
+  console.log('Running on the server');
+} else if (isCapacitor) {
+  console.log('Running inside Capacitor');
+} else if (isBrowser) {
+  console.log('Running in the browser');
+}
+```
+
+---
+
+### `memo`
+
+The `memo` function is a higher-order utility that enables memoization of another function. Memoization is a performance optimization technique that caches the results of expensive function calls and reuses the cached result when the same inputs occur again. This can significantly reduce the time complexity of certain operations, especially in scenarios where the function is called repeatedly with the same arguments.
+
+> #### Syntax
+```typescript
+function memo(func: MemoCallback): (...args: any[]) => any;
+```
+
+Parameters
+* `func`: `MemoCallback`
+  * The function to be memoized. This function will be executed normally the first time it is called with a set of arguments, and its result will be stored in a cache for future reuse.
+
+Returns
+* `Function`:
+  * A memoized version of the provided function. When this memoized function is called, it first checks the cache to see if the result for the given arguments has already been computed. If it has, the cached result is returned; otherwise, the function is executed, and the result is stored in the cache for future calls.
+
+**Example:**
+```typescript
+import { memo } from '@pastweb/tools';
+
+function complexCalculation(a: number, b: number): number {
+  console.log('Computing...');
+  return a + b;
+}
+
+const memoizedCalculation = memo(complexCalculation);
+
+console.log(memoizedCalculation(1, 2)); // Logs: 'Computing...' then '3'
+console.log(memoizedCalculation(1, 2)); // Logs: '3' (no 'Computing...' since the result is cached)
+console.log(memoizedCalculation(2, 3)); // Logs: 'Computing...' then '5'
+console.log(memoizedCalculation(2, 3)); // Logs: '5' (cached result)
+```
+
+Use Cases
+* `Expensive Calculations`:
+  * Memoization is especially useful for functions that perform expensive calculations or operations, such as those involving complex algorithms or large data processing.
+* `Recursive Functions`:
+  * Memoization can be used to optimize recursive functions by avoiding redundant calculations of the same results.
+* `Pure Functions`:
+  * Memoization works best with pure functions, which always produce the same output for the same input and have no side effects.
+
+Performance Considerations
+* `Memory Usage`:
+  * The cache grows with each unique set of arguments, so it is important to be mindful of the potential memory usage. In some cases, it may be necessary to implement a cache eviction strategy to prevent unbounded growth.
+* `Equality Check`:
+  * The function uses strict equality (`===`) to compare arguments. If the arguments are complex objects, you may need to ensure that identical objects are passed in the same reference, or else the memoization may not work as intended.
+
+Edge Cases
+* `Non-Primitive Arguments`:
+  * Since the function uses strict equality for comparisons, if non-primitive values (like objects or arrays) are passed as arguments, the memoization might not work as expected unless the same object references are used.
+* `Variadic Functions`:
+  * The memo function can handle variadic functions (functions with a variable number of arguments) since it operates on args as an array.
+
+Notes
+* `Side Effects`:
+  * Memoization should not be used with functions that produce side effects, as the function may not execute every time, potentially leading to inconsistent states.
+
+---
+### `noop`
+
+The `noop` function is a utility function that performs no operations (no-op) and returns `undefined`.
+It is commonly used as a placeholder function or as a default callback when no specific behavior is required.
+
+> #### Syntax
+```typescript
+function noop(...args: any[]): any;
+```
+
+Parameters
+* `...args`: `any[]`
+  * A variable number of arguments that can be passed to the function. These arguments are ignored and have no effect on the function's behavior.
+
+Returns
+* `any`:
+  * The function does not perform any operations and always returns `undefined`.
+
+**Example:**
+```typescript
+import { noop } from '@pastweb/tools';
+
+function exampleFunction(callback = noop) {
+  // Some operation
+  callback();
+}
+
+exampleFunction(); // No operation is performed by the callback
+exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
+```
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+© 2026 Domenico Pasto
