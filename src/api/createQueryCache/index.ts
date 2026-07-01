@@ -9,11 +9,13 @@ export {
   setSSRDehydratedState,
   getSSRDehydratedState,
   clearSSRDehydratedState,
+  DEHYDRATED_SCRIPT_ID,
 } from './utils';
 export { QUERY_CACHE_CONTEXT_KEY } from './constnts';
 
 export type {
   CacheOptions,
   QueryCache,
+  QueryCacheSnapshot,
   QueryData,
 } from './types';

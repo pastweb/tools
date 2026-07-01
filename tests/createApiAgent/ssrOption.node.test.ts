@@ -6,6 +6,7 @@ import { createSSRTracker, setCurrentSSRTracker, clearCurrentSSRTracker } from '
 let mockIsServer = false;
 
 vi.mock('../../src/envs', () => ({
+  isBrowser: false,
   get isServer() { return mockIsServer; },
 }));
 

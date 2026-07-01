@@ -4,6 +4,11 @@ import MockAdapter from 'axios-mock-adapter';
 import { createApiAgent, createQueryCache, useQuery, QueryData } from '../../src/api';
 import { ref, computed } from '../../src/reactivity';
 
+vi.mock('../../src/envs', () => ({
+  isBrowser: true,
+  isServer: false,
+}));
+
 describe('given useQuery with createApiAgent or plain fn, when using various immediate, source reactivity, initialData, fetch and error scenarios, then loading/fetching states, data, errors, placeholders and refetching behave correctly', () => {
   let mock: MockAdapter;
   let agent: ReturnType<typeof createApiAgent>;
@@ -78,7 +83,7 @@ describe('given useQuery with createApiAgent or plain fn, when using various imm
 
     await vi.runAllTimersAsync();
 
-    expect(agent.cache.has(url)).toBe(true);
+    expect(queryCache.has(url)).toBe(true);
     expect(query.status).toBe('success');
     expect(query.fetchStatus).toBe('idle');
     expect(query.responseStatus).toBe(200);
@@ -105,16 +110,16 @@ describe('given useQuery with createApiAgent or plain fn, when using various imm
 
     await vi.runAllTimersAsync();
 
-    const data = agent.cache.get(url) as QueryData;
+    const data = queryCache.get(url) as QueryData;
     expect(data.onDataCallbacks.size).toBe(1);
-    expect(agent.cache.has(url)).toBe(true);
+    expect(queryCache.has(url)).toBe(true);
     expect(query.isPending).toBe(false);
     expect(query.isFetching).toBe(false);
     expect(query.data).toEqual(responseData);
     expect(query.isError).toBe(false);
     expect(query.error).toBe(null);
 
-    agent.cache.invalidateQuery(url);
+    queryCache.invalidateQuery(url);
     const responseData2 = { id: 2, name: 'test2' };
     mock.onGet(url).reply(200, responseData2);
     fn();
@@ -364,7 +369,7 @@ describe('given useQuery with createApiAgent or plain fn, when using various imm
     await vi.advanceTimersByTimeAsync(0);
     expect(query.data).toEqual(responseData1);
     expect(mock.history.get.length).toBe(1);
-    expect(agent.cache.has(url)).toBe(true);
+    expect(queryCache.has(url)).toBe(true);
 
     // Advance time past the expireIn window + scheduled fetchOnExpired
     vi.advanceTimersByTime(2100);

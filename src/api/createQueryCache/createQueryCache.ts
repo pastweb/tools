@@ -1,6 +1,8 @@
 import { isBrowser } from '../../envs';
 import { setCache, invalidateQuery, invalidateQueries, dehydrate, hydrate, runRecallCheckers } from './utils';
 import { resetForSSR as resetCacheForSSR } from './utils';
+import { DEHYDRATED_SCRIPT_ID } from './constnts';
+import { readPageDehydratedSnapshot } from './utils/readPageDehydratedSnapshot';
 import type { AxiosInstance } from 'axios';
 import type { QueryOptions } from '../createApiAgent';
 import type { CacheOptions, QueryCache, CacheMaps } from './types';
@@ -8,7 +10,7 @@ import type { CacheOptions, QueryCache, CacheMaps } from './types';
 /**
  * Creates a standalone query cache that can be shared between one or more API agents.
  *
- * When you pass the returned cache as `queryCache` to `createApiAgent({ queryCache })` (recommended over the deprecated `cache: true`),
+ * When you pass the returned cache as `queryCache` to `createApiAgent({ queryCache })`,
  * all those agents will share the same storage and the same set of SSR prefetch registrations.
  *
  * In SSR environments the cache cooperates with `isServer`:
@@ -23,7 +25,7 @@ import type { CacheOptions, QueryCache, CacheMaps } from './types';
  * Cache entries support lifecycle options on `agent.get`: `fetchOnExpired` (replaces `callOnExpired`),
  * `fetchOnInvalidate`, `removeOnExpired`, and `removeOnInvalidate`. See `QueryOptions` TSDoc.
  *
- * @param options - Optional {@link CacheOptions}. `refetchOnWindowFocus` and `refetchOnReconnect` default to `false`.
+ * @param options - Optional {@link CacheOptions}. `deHydratedScriptID` defaults to {@link DEHYDRATED_SCRIPT_ID}; `refetchOnWindowFocus` and `refetchOnReconnect` default to `false`.
  *
  * @example
  * ```ts
@@ -41,7 +43,11 @@ import type { CacheOptions, QueryCache, CacheMaps } from './types';
  * @returns A new standalone `QueryCache` instance.
  */
 export function createQueryCache(options: CacheOptions = {}): QueryCache {
-  const { refetchOnWindowFocus = false, refetchOnReconnect = false } = options;
+  const {
+    deHydratedScriptID = DEHYDRATED_SCRIPT_ID,
+    refetchOnWindowFocus = false,
+    refetchOnReconnect = false,
+  } = options;
 
   const cacheMaps: CacheMaps = {
     queryCache: new Map(),
@@ -59,6 +65,7 @@ export function createQueryCache(options: CacheOptions = {}): QueryCache {
   }
 
   const cache: QueryCache = {
+    getDehydrateScriptID: () => deHydratedScriptID,
     get: (key: string) => cacheMaps.queryCache.get(key),
     getAll: () => Array.from(cacheMaps.queryCache),
     has: (key: string) => cacheMaps.queryCache.has(key),
@@ -78,6 +85,14 @@ export function createQueryCache(options: CacheOptions = {}): QueryCache {
     hydrate: (data: string) => hydrate(cacheMaps, data),
     resetForSSR: () => resetCacheForSSR(cacheMaps),
   };
+
+  if (isBrowser) {
+    const snapshot = readPageDehydratedSnapshot(deHydratedScriptID);
+
+    if (snapshot) {
+      hydrate(cacheMaps, snapshot);
+    }
+  }
 
   return cache;
 }

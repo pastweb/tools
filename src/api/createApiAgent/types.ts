@@ -50,12 +50,6 @@ export type ErrorResponseInterceptor = (err: AxiosError) => void ;
 
 export type AgentOptions = {
   /**
-   * @deprecated Use `queryCache: createQueryCache()` (or pass a shared one) to enable
-   * caching for GET requests and SSR data collection. The boolean `cache` flag is no longer
-   * the recommended way to opt into caching.
-   */
-  cache?: boolean;
-  /**
    * A `QueryCache` instance to use for this agent.
    * Pass `createQueryCache()` (or a shared instance) to enable caching, SSR prefetching
    * (via dehydrate/hydrate), and cache-backed GETs.
@@ -236,11 +230,6 @@ export interface Agent {
   agent: AxiosInstance;
   /** Current default request config (headers, withCredentials, ...). */
   agentConfig: AxiosRequestConfig;
-  /**
-   * @deprecated Access the `QueryCache` by keeping a reference to the one you passed
-   * via `createApiAgent({ queryCache })`. The `.cache` property on the agent is deprecated.
-   */
-  cache: QueryCache;
   /** Config used for `download()` calls (responseType: 'blob' + other merged settings). */
   downloadConfig: AxiosRequestConfig;
   /** Config used for `upload()` calls (multipart/form-data header). */
@@ -267,8 +256,8 @@ export interface Agent {
   /** DELETE request (optionally participates in cache onSuccess/onError). */
   delete: <T = any>(url: string, options?: MutationOptions) => Promise<AxiosResponse<T>>;
   /**
-   * GET request. When the agent was created with a `queryCache` (recommended) or the
-   * deprecated `cache: true`, this goes through the cache layer.
+   * GET request. When the agent was created with a `queryCache`, this goes through the
+   * cache layer.
    *
    * Using `queryKey` or `expireIn` in options without `queryCache` on the agent will
    * trigger a `console.error`.

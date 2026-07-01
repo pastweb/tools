@@ -6,6 +6,7 @@ import MockAdapter from 'axios-mock-adapter';
 
 // Force server mode
 vi.mock('../../src/envs', () => ({
+  isBrowser: false,
   isServer: true,
 }));
 
@@ -33,15 +34,15 @@ describe('given useQuery and createApiAgent with shared queryCache in SSR (node)
     // In SSR with cache, get returns placeholder immediately and registers
     const res = await agent.get(url);
     expect(res.data).toBeUndefined(); // placeholder
-    expect(agent.cache.has(url)).toBe(false); // not yet populated
+    expect(cache.has(url)).toBe(false); // not yet populated
 
     // dehydrate() executes the registered prefetches and returns serialized cache snapshot
-    const snapshot = await agent.cache.dehydrate();
+    const snapshot = await cache.dehydrate();
     expect(typeof snapshot).toBe('string');
 
     expect(mock.history.get.length).toBe(1);
-    expect(agent.cache.has(url)).toBe(true);
-    const cached = agent.cache.get(url);
+    expect(cache.has(url)).toBe(true);
+    const cached = cache.get(url);
     expect(cached?.response.data).toEqual(responseData);
   });
 
@@ -64,10 +65,10 @@ describe('given useQuery and createApiAgent with shared queryCache in SSR (node)
     expect(query.isFetching).toBe(false);
 
     // dehydrate executes registered work
-    await agent.cache.dehydrate();
+    await cache.dehydrate();
 
     // Now cache has it; subsequent use would pick up, but current query instance already settled with placeholder
-    expect(agent.cache.has(url)).toBe(true);
+    expect(cache.has(url)).toBe(true);
   });
 
   it('given multiple agents sharing the same queryCache instance, when each performs gets in SSR, then dehydrate on the shared cache collects all, and execution populates shared cache', async () => {
@@ -90,8 +91,8 @@ describe('given useQuery and createApiAgent with shared queryCache in SSR (node)
     expect(sharedCache.has(url1)).toBe(true);
     expect(sharedCache.has(url2)).toBe(true);
     // agents see it too
-    expect(agent1.cache.has(url1)).toBe(true);
-    expect(agent2.cache.has(url2)).toBe(true);
+    expect(sharedCache.has(url1)).toBe(true);
+    expect(sharedCache.has(url2)).toBe(true);
   });
 
   it('given useQuery with immediate false and source in SSR, when fetch is called manually, then prefetch is registered via dehydrate and no timers are scheduled', async () => {
@@ -104,14 +105,14 @@ describe('given useQuery and createApiAgent with shared queryCache in SSR (node)
     const fn = () => agent.get(`${urlBase}?p=${page.value}`);
     const query = useQuery({ fn, source: page, immediate: false });
 
-    expect(query.isPending).toBe(false);
+    expect(query.isPending).toBe(true);
     expect(query.isFetching).toBe(false);
 
     // Manual fetch registers in SSR
     await query.fetch();
     await vi.runAllTimersAsync();
 
-    const snapshot = await agent.cache.dehydrate();
+    const snapshot = await cache.dehydrate();
     expect(typeof snapshot).toBe('string');
 
     // ensure no timer side effects were attempted (fetchOnExpired not used)
@@ -120,7 +121,7 @@ describe('given useQuery and createApiAgent with shared queryCache in SSR (node)
     await vi.runAllTimersAsync();
 
     // calling dehydrate again is harmless (still has registrations)
-    const snapshot2 = await agent.cache.dehydrate();
+    const snapshot2 = await cache.dehydrate();
     expect(typeof snapshot2).toBe('string');
   });
 
@@ -140,8 +141,8 @@ describe('given useQuery and createApiAgent with shared queryCache in SSR (node)
     await vi.runAllTimersAsync();
 
     // only the initial registration happened; dehydrate on cache executes it
-    const snapshot = await agent.cache.dehydrate();
+    const snapshot = await cache.dehydrate();
     expect(typeof snapshot).toBe('string');
-    expect(agent.cache.has(url)).toBe(true);
+    expect(cache.has(url)).toBe(true);
   });
 });

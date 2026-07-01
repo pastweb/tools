@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { effect, useMatchDevice } from '../../src';
-import { setUserAgent, MatchMedia } from './util';
+import { setUserAgent, MatchMedia } from '../utils';
 import { testUA, devicesConfig } from './constants';
 import type { DevicesConfig, MatchDevicesResult, DevicesResult } from '../../src';
 

@@ -1,4 +1,14 @@
-export { createApiAgent, createQueryCache, QUERY_CACHE_CONTEXT_KEY, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryCache } from './api';
+export {
+  createApiAgent,
+  createQueryCache,
+  DEHYDRATED_SCRIPT_ID,
+  QUERY_CACHE_CONTEXT_KEY,
+  useInfiniteQuery,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryCache,
+} from './api';
 export type {
   Agent,
   AgentOptions,
@@ -18,6 +28,7 @@ export type {
   ApiSSRMode,
   CacheOptions,
   QueryCache,
+  QueryCacheSnapshot,
   QueryResponse,
   QueryStatus,
   InfiniteQueryConfig,
@@ -37,7 +48,6 @@ export type {
 } from './api';
 
 export { assign } from './assign';
-export { registerAsyncTask, resolveAsyncTasks } from './ssrUtils';
 export { camelize } from './camelize';
 
 export { cl, Mode } from './cl';
@@ -138,8 +148,6 @@ export type {
 export { hashID, type HashIDOptions } from './hashID';
 export { isDateYoungerOf } from './isDateYoungerOf';
 export { isObject } from './isObject';
-/** @deprecated Use environment constants from './envs' instead (e.g. isServer or !isBrowser) */
-export { isSSR } from './isSSR';
 export { isType } from './isType';
 export { kebabize } from './kebabize';
 

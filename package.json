@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Production-ready, tree-shakeable utilities for modern JavaScript and TypeScript web applications.",
   "keywords": [
     "api-client",
@@ -245,6 +245,10 @@
     "./api/createQueryCache/utils/isEntryExpired": {
       "import": "./dist/api/createQueryCache/utils/isEntryExpired.mjs",
       "require": "./dist/api/createQueryCache/utils/isEntryExpired.cjs"
+    },
+    "./api/createQueryCache/utils/readPageDehydratedSnapshot": {
+      "import": "./dist/api/createQueryCache/utils/readPageDehydratedSnapshot.mjs",
+      "require": "./dist/api/createQueryCache/utils/readPageDehydratedSnapshot.cjs"
     },
     "./api/createQueryCache/utils/resetForSSR": {
       "import": "./dist/api/createQueryCache/utils/resetForSSR.mjs",
@@ -825,10 +829,6 @@
     "./isObject/isObject": {
       "import": "./dist/isObject/isObject.mjs",
       "require": "./dist/isObject/isObject.cjs"
-    },
-    "./isSSR": {
-      "import": "./dist/isSSR/index.mjs",
-      "require": "./dist/isSSR/index.cjs"
     },
     "./isType": {
       "import": "./dist/isType/index.mjs",

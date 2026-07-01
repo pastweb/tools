@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pathMatch, pathToRegExp } from '../../src/createViewRouter/utils';
+import { pathMatch, pathToRegExp } from '../../../src/createViewRouter/utils';
 
 describe('pathMatch', () => {
   it('given a route pattern with :named params and a concrete path, when pathMatch runs, then it returns match info with extracted params', () => {

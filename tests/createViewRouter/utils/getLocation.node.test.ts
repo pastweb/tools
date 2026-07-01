@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getLocation } from '../../src/createViewRouter/utils';
+import { getLocation } from '../../../src/createViewRouter/utils';
 
 describe('getLocation', () => {
   it('given a full URL string, when getLocation is called, then it returns a parsed object with pathname, search, hash, etc.', () => {

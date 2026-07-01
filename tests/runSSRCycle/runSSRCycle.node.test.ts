@@ -8,6 +8,7 @@ let mockIsServer = false;
 
 vi.mock('../../src/envs', () => ({
   get isServer() { return mockIsServer; },
+  get isBrowser() { return !mockIsServer; },
 }));
 
 describe('given runSSRCycle', () => {
@@ -68,17 +69,28 @@ describe('given runSSRCycle', () => {
   it('when tracker reports dynamic during static attempt, then downgrades and rerenders dynamic', async () => {
     const tracker = createSSRTracker({ route: '/dynamic' });
     tracker.markDynamic('cookies');
+    const trackerModes: Array<{ phase: string; isStatic: boolean }> = [];
 
     const result = await runSSRCycle({
       tracker,
       shouldAttemptStatic: true,
-      render: async ({ isStatic, phase }) => `<html>${phase}:${isStatic}</html>`,
+      render: async ({ isStatic, phase }) => {
+        trackerModes.push({ phase: tracker.phase, isStatic: tracker.isStatic });
+        return `<html>${phase}:${isStatic}</html>`;
+      },
     });
 
     expect(result.downgraded).toBe(true);
     expect(result.isStatic).toBe(false);
     expect(result.html).toBe('<html>render:false</html>');
     expect(result.phases.filter(p => p === 'render')).toHaveLength(2);
+    expect(trackerModes).toEqual([
+      { phase: 'collect', isStatic: true },
+      { phase: 'collect', isStatic: true },
+      { phase: 'render', isStatic: true },
+      { phase: 'render', isStatic: false },
+    ]);
+    expect(result.trackerSnapshot.isStatic).toBe(false);
   });
 
   it('when onStaticProven provided and static proven, then invokes callback', async () => {

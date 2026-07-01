@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeRouteParamValue } from '../../src/createViewRouter/utils';
+import { normalizeRouteParamValue } from '../../../src/createViewRouter/utils';
 
 describe('normalizeRouteParamValue', () => {
   it('given the string "true" or "false", when normalizeRouteParamValue is called, then it returns the boolean primitive', () => {

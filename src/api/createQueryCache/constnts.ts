@@ -6,3 +6,8 @@
  * mediators that call `useQueryCache()`.
  */
 export const QUERY_CACHE_CONTEXT_KEY = '$$QUERY_CACHE_CONTEXT_KEY';
+
+/**
+ * Default DOM script id used to embed a dehydrated query-cache snapshot.
+ */
+export const DEHYDRATED_SCRIPT_ID = '__API_DEHYDRATED__';

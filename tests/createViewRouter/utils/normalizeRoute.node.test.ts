@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeRoute } from '../../src/createViewRouter';
+import { normalizeRoute } from '../../../src/createViewRouter/utils';
 
 describe('normalizeRoute', () => {
   const DefaultRouterView = () => 'DefaultView';

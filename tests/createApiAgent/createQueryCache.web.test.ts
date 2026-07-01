@@ -76,7 +76,7 @@ describe('given createQueryCache fetchOnExpired and removeOnExpired in the brows
     entry.timestamp = Date.now() - 2000;
 
     window.dispatchEvent(new Event('focus'));
-    await vi.waitFor(() => expect(focusAgent.get).toHaveBeenCalledTimes(2));
+    await Promise.resolve();
 
     expect(focusAgent.get).toHaveBeenCalledTimes(2);
     expect(cache.get('/focus')?.response.data).toEqual({ n: 2 });
@@ -114,8 +114,9 @@ describe('given createQueryCache fetchOnExpired and removeOnExpired in the brows
     entry.timestamp = Date.now() - 2000;
 
     window.dispatchEvent(new Event('online'));
-    await vi.waitFor(() => expect(reconnectAgent.get).toHaveBeenCalledTimes(2));
+    await Promise.resolve();
 
+    expect(reconnectAgent.get).toHaveBeenCalledTimes(2);
     expect(cache.get('/reconnect')?.response.data).toEqual({ n: 2 });
   });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeServerRequest } from '../../src/createViewRouter';
+import { normalizeServerRequest } from '../../../src/createViewRouter/utils';
 
 describe('normalizeServerRequest', () => {
   const makeReq = (overrides: any = {}) => ({

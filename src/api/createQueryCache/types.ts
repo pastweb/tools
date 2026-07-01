@@ -6,6 +6,12 @@ import type { QueryOptions, QueryResponse } from '../createApiAgent';
  */
 export interface CacheOptions {
   /**
+   * DOM script id used by page-level query-cache hydration helpers.
+   *
+   * Defaults to {@link DEHYDRATED_SCRIPT_ID}.
+   */
+  deHydratedScriptID?: string;
+  /**
    * When `true`, re-runs every registered `checker` in `recallCache` when the browser
    * window/tab regains focus. Defaults to `false`. Only active when {@link isBrowser} is `true`.
    */
@@ -16,6 +22,12 @@ export interface CacheOptions {
    */
   refetchOnReconnect?: boolean;
 }
+
+/**
+ * Serialized query-cache snapshot embedded in server-rendered HTML or passed
+ * directly to client hydration.
+ */
+export type QueryCacheSnapshot = string | null | undefined;
 
 /**
  * Internal shape stored inside a `QueryCache` for each cached entry.
@@ -97,13 +109,17 @@ export interface SaveQueryOptions {
 };
 
 /**
- * The cache object returned by `createQueryCache()` (and attached as `agent.cache`).
+ * The cache object returned by `createQueryCache()`.
  *
  * Keys are either the full request URL or a serialized structured `queryKey` (when provided
  * as an array to `agent.get(url, { queryKey: [...] })` or equivalent). This enables hybrid
  * URL-based or key-based caching.
  */
 export interface QueryCache {
+  /**
+   * Returns the DOM script id used for page-level dehydrated query-cache snapshots.
+   */
+  getDehydrateScriptID: () => string;
   /** Retrieve raw cached data for a URL key (or undefined). */
   get: (key: string) => QueryData | undefined;
   /** Return all entries as [key, QueryData] pairs. */

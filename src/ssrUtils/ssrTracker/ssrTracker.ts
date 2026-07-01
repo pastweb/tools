@@ -16,19 +16,39 @@ let currentSSRTracker: SSRTracker | undefined;
  * The tracker is intentionally framework-agnostic. Routers, API agents, async
  * task utilities, and framework adapters can all report facts to the active
  * tracker without depending on each other.
+ *
+ * `isStatic` is the current render mode selected by the SSR cycle. It is not
+ * the inverse of `isDynamic`: a render can be attempted as static while the
+ * tracker is still collecting facts that may later downgrade it to dynamic.
+ *
+ * @param options - Initial route, phase, and render mode metadata.
+ * @returns SSR tracker for one render cycle.
+ *
+ * @example
+ * ```ts
+ * const tracker = createSSRTracker({ route: '/docs', isStatic: true });
+ *
+ * tracker.setPhase('render');
+ * tracker.setStaticMode(false);
+ *
+ * console.log(tracker.snapshot().isStatic); // false
+ * ```
  */
 export function createSSRTracker(options: SSRTrackerOptions = {}): SSRTracker {
-  const { route, phase = 'collect' } = options;
+  const { route, phase = 'collect', isStatic = false } = options;
   const reasons = new Set<string>();
   const dependencies = new Map<string, SSRDependency>();
   let currentPhase: SSRTrackerPhase = phase;
+  let currentIsStatic = isStatic;
 
   const tracker: SSRTracker = {
+    get isStatic() { return currentIsStatic; },
     get isDynamic() { return reasons.size > 0; },
     get reasons() { return reasons; },
     get dependencies() { return dependencies; },
     get phase() { return currentPhase; },
     get route() { return route; },
+    setStaticMode,
     setPhase,
     markDynamic,
     addDependency,
@@ -38,6 +58,10 @@ export function createSSRTracker(options: SSRTrackerOptions = {}): SSRTracker {
 
   function setPhase(phase: SSRTrackerPhase): void {
     currentPhase = phase;
+  }
+
+  function setStaticMode(isStatic: boolean): void {
+    currentIsStatic = isStatic;
   }
 
   function markDynamic(reason: string): void {
@@ -54,6 +78,7 @@ export function createSSRTracker(options: SSRTrackerOptions = {}): SSRTracker {
 
   function snapshot(): SSRTrackerSnapshot {
     return {
+      isStatic: tracker.isStatic,
       isDynamic: tracker.isDynamic,
       reasons: Array.from(reasons),
       dependencies: Array.from(dependencies.values()),
@@ -66,6 +91,7 @@ export function createSSRTracker(options: SSRTrackerOptions = {}): SSRTracker {
     reasons.clear();
     dependencies.clear();
     currentPhase = phase;
+    currentIsStatic = isStatic;
   }
 
   return tracker;

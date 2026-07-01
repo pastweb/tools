@@ -2,11 +2,17 @@ import type { QueryCache } from '../../api/createQueryCache';
 import type { SSRTracker, SSRTrackerPhase, SSRTrackerSnapshot } from '../ssrTracker';
 
 export interface SSRCycleRenderContext {
+  /** Current render mode for this phase. */
   isStatic: boolean;
+  /** Current SSR phase. */
   phase: SSRTrackerPhase;
+  /** Serialized query-cache snapshot available during the final render phase. */
   apiDehydratedState: string | null;
 }
 
+/**
+ * Renderer called by {@link runSSRCycle} for collect and render phases.
+ */
 export type SSRCycleRenderFn = (ctx: SSRCycleRenderContext) => Promise<string>;
 
 export interface RunSSRCycleOptions {
@@ -20,7 +26,7 @@ export interface RunSSRCycleOptions {
   queryCache?: QueryCache;
   /** Loads async components registered during collection (e.g. resolveAsyncTasks). */
   resolveAsyncTasks?: () => Promise<void>;
-  /** Page render function invoked for each phase. */
+  /** Page render function invoked for each phase. The active tracker is synchronized before this function runs. */
   render: SSRCycleRenderFn;
   /** Reset in-memory query cache before collection. @default true when queryCache provided */
   resetQueryCache?: boolean;
@@ -42,6 +48,7 @@ export interface SSRCycleResult {
   snapshot: string | null;
   /** Dependency fingerprint for persisting apiCache / page manifests. */
   fingerprint: string;
+  /** Final tracker snapshot, including the final `isStatic` render mode. */
   trackerSnapshot: SSRTrackerSnapshot;
   /** Ordered list of phases executed (for testing / debugging). */
   phases: SSRTrackerPhase[];

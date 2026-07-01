@@ -18,9 +18,13 @@ import type { Route } from '../types';
 export function normalizeRoute(RouterView: any, route: Route, fullParent: string = ''): Route {
   const { path: _path, redirect, view, views: _views = {}, children, ...rest } = route;
   // Compute relative path using full parent
-  let relativePath = fullParent
-    ? route.path.replace(fullParent, '').replace(/^\//, '')
-    : route.path;
+  let relativePath = route.path;
+
+  if (fullParent && route.path.startsWith(fullParent)) {
+    relativePath = route.path.replace(fullParent, '').replace(/^\//, '');
+  } else if (fullParent && !route.path.startsWith('/')) {
+    relativePath = route.path;
+  }
 
   if (redirect) {
     return { path: relativePath, redirect: `/${redirect.replace(/^\//, '')}`, ...rest };

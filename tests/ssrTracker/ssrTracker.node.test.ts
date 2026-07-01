@@ -36,6 +36,18 @@ describe('given SSR tracker utilities', () => {
     expect(fp1).toBe(fp2);
   });
 
+  it('when static mode changes, then exposes it and includes it in snapshots', () => {
+    const tracker = createSSRTracker({ isStatic: true });
+
+    expect(tracker.isStatic).toBe(true);
+    expect(tracker.snapshot().isStatic).toBe(true);
+
+    tracker.setStaticMode(false);
+
+    expect(tracker.isStatic).toBe(false);
+    expect(tracker.snapshot().isStatic).toBe(false);
+  });
+
   it('when reportApiSSRToTracker with ssrMode dynamic, then marks tracker dynamic', () => {
     const tracker = createSSRTracker();
     setCurrentSSRTracker(tracker);

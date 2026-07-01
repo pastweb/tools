@@ -17,17 +17,27 @@ export function normalizePath(base: string, route: Route, parent: string = ''): 
   path = path.replace(/\/+/g, '/').trim();
   redirect = redirect ? redirect.replace(/\/+/g, '/').trim() : redirect;
 
+  const joinPaths = (...parts: string[]) => {
+    const normalized = parts
+      .filter(Boolean)
+      .join('/')
+      .replace(/\/+/g, '/')
+      .replace(/\/$/, '');
+
+    return normalized.startsWith('/') ? normalized || '/' : `/${normalized}`;
+  };
+
   if (!parent) {
-    path = `${base}${path.replace(/(^\/)|(\/$)/g, '')}`;
+    path = joinPaths(base, path);
     
-    if (redirect) redirect = `${base}${redirect.replace(/(^\/)|(\/$)/g, '')}`;
+    if (redirect) redirect = joinPaths(base, redirect);
   } else {
-    path = path.replace(parent, '').replace(/\/$/, '');
-    path = `${/^\//.test(path) ? parent : ''}${path}`;
+    const isAbsolute = path.startsWith('/');
+    path = isAbsolute ? joinPaths(base, path) : joinPaths(parent, path);
     
     if (redirect) {
-      redirect = redirect.replace(parent, '').replace(/\/$/, '');
-      redirect = `${/^\//.test(redirect) ? parent : ''}${redirect}`;
+      const isRedirectAbsolute = redirect.startsWith('/');
+      redirect = isRedirectAbsolute ? joinPaths(base, redirect) : joinPaths(parent, redirect);
     }
   }
 

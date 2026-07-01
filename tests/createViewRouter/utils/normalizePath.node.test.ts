@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizePath } from '../../src/createViewRouter';
+import { normalizePath } from '../../../src/createViewRouter/utils';
 
 describe('normalizePath', () => {
   it('given a path and a base, when normalizePath is called, then the path is joined correctly under the base with proper slashes', () => {

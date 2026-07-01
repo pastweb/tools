@@ -49,7 +49,7 @@ describe('given the agent.get select option', () => {
 
     expect(response1.data).toEqual([{ id: 2 }]);
     expect(response2.data).toBe(1);
-    expect(agent.cache.get(JSON.stringify(queryKey))?.response.data).toEqual({ items: [{ id: 2 }], total: 1 });
+    expect(queryCache.get(JSON.stringify(queryKey))?.response.data).toEqual({ items: [{ id: 2 }], total: 1 });
     expect(mock.history.get.length).toBe(1);
   });
 });

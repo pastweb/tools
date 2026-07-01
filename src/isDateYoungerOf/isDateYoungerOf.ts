@@ -10,78 +10,54 @@
  *                   - "m" for minutes
  *                   - "s" for seconds
  *                   The string can contain multiple components, e.g., "2Y3M1D" for 2 years, 3 months, and 1 day.
- * @returns `true` if the date is younger than the specified duration, `false` otherwise.
+ * @returns `true` if the date is strictly younger than the specified duration, `false` otherwise.
  */
 export function isDateYoungerOf(date: Date, duration: string): boolean {
-  const now = new Date();
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;
+  if (typeof duration !== 'string' || !duration.trim()) return false;
 
-  const regex = /(\d+Y)?(\d+M)?(\d+D)?(\d+h)?(\d+m)?(\d+s)?/;
-  const matches = duration.match(regex);
+  const normalized = duration.replace(/(\d+)H/g, '$1h');
+  const regex = /(\d+)Y|(\d+)M|(\d+)D|(\d+)h|(\d+)m|(\d+)s/g;
+  const cutoff = new Date();
+  let matched = false;
+  let hasPositiveDuration = false;
 
-  if (!matches) return false;
+  let match: RegExpExecArray | null;
 
-  // Extract and parse each component
-  const years = matches[1] ? parseInt(matches[1].replace('Y', '')) : 0;
-  const months = matches[2] ? parseInt(matches[2].replace('M', '')) : 0;
-  const days = matches[3] ? parseInt(matches[3].replace('D', '')) : 0;
-  const hours = matches[4] ? parseInt(matches[4].replace('h', '')) : 0;
-  const minutes = matches[5] ? parseInt(matches[5].replace('m', '')) : 0;
-  const seconds = matches[6] ? parseInt(matches[6].replace('s', '')) : 0;
+  while ((match = regex.exec(normalized)) !== null) {
+    matched = true;
 
-  let result = false;
-
-  if (years) {
-    const diff = now.getFullYear() - date.getFullYear();
-    result = Math.abs(diff) < years;
-  } else {
-    const diff = now.getFullYear() - date.getFullYear();
-    result = diff > 0;
-  }
-
-  if (!result) {
-    if (months) {
-      const diff = now.getMonth() - date.getMonth();
-      result = Math.abs(diff) < months;
-    } else {
-      const diff = now.getMonth() - date.getMonth();
-      result = diff > 0;
+    if (match[1]) {
+      const value = parseInt(match[1], 10);
+      hasPositiveDuration ||= value > 0;
+      cutoff.setFullYear(cutoff.getFullYear() - value);
+    }
+    if (match[2]) {
+      const value = parseInt(match[2], 10);
+      hasPositiveDuration ||= value > 0;
+      cutoff.setMonth(cutoff.getMonth() - value);
+    }
+    if (match[3]) {
+      const value = parseInt(match[3], 10);
+      hasPositiveDuration ||= value > 0;
+      cutoff.setDate(cutoff.getDate() - value);
+    }
+    if (match[4]) {
+      const value = parseInt(match[4], 10);
+      hasPositiveDuration ||= value > 0;
+      cutoff.setHours(cutoff.getHours() - value);
+    }
+    if (match[5]) {
+      const value = parseInt(match[5], 10);
+      hasPositiveDuration ||= value > 0;
+      cutoff.setMinutes(cutoff.getMinutes() - value);
+    }
+    if (match[6]) {
+      const value = parseInt(match[6], 10);
+      hasPositiveDuration ||= value > 0;
+      cutoff.setSeconds(cutoff.getSeconds() - value);
     }
   }
 
-  if (!result) {
-    if (days) {
-      const diff = now.getDate() - date.getDate();
-      result = Math.abs(diff) < days;
-    } else {
-      const diff = now.getDate() - date.getDate();
-      result = diff > 0;
-    }
-  }
-
-  if (!result) {
-    if (hours) {
-      const diff = now.getHours() - date.getHours();
-      result = diff < hours;
-    } else {
-      const diff = now.getHours() - date.getHours();
-      result = diff > 0;
-    }
-  }
-
-  if (!result) {
-    if (minutes) {
-      const diff = now.getMinutes() - date.getMinutes();
-      result = Math.abs(diff) < minutes;
-    } else {
-      const diff = now.getMinutes() - date.getMinutes();
-      result = diff > 0;
-    }
-  }
-  
-  if (!result && seconds) {
-    const diff = now.getSeconds() - date.getSeconds();
-    result = Math.abs(diff) < seconds;
-  }    
-
-  return result;
+  return matched && hasPositiveDuration && date.getTime() > cutoff.getTime();
 }

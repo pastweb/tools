@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeOptions } from '../../src/createViewRouter';
+import { normalizeOptions } from '../../../src/createViewRouter/utils';
 
 describe('normalizeOptions', () => {
   const routes = [{ path: '/' }];

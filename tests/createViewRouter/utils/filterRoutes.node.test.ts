@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterRoutes, Route, FilterDescriptor } from '../../src/createViewRouter';
+import { filterRoutes, Route, FilterDescriptor } from '../../../src/createViewRouter';
 
 describe('filterRoutes', () => {
   const routes: Route[] = [

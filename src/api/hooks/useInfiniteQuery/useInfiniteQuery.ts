@@ -38,7 +38,7 @@ function getDefaultPreviousPageParam<TPage, TPageParam>(
  * ```ts
  * const posts = useInfiniteQuery({
  *   initialPageParam: 1,
- *   fn: page => agent.get(`/api/posts?_page=${page}&_limit=10`),
+ *   fn: page => agent.get(`/api/posts?page=${page}&limit=10`),
  *   getNextPageParam: (_last, _pages, lastPageParam) => lastPageParam + 1,
  * });
  *

@@ -33,10 +33,10 @@ export async function runSSRCycle(options: RunSSRCycleOptions): Promise<SSRCycle
   } = options;
 
   const ownsTracker = !options.tracker;
-  const tracker: SSRTracker = options.tracker ?? createSSRTracker({ route });
+  const attemptedStatic = await resolveShouldAttemptStatic(options.shouldAttemptStatic);
+  const tracker: SSRTracker = options.tracker ?? createSSRTracker({ route, isStatic: attemptedStatic });
   const phases: SSRTrackerPhase[] = [];
 
-  const attemptedStatic = await resolveShouldAttemptStatic(options.shouldAttemptStatic);
   let isStatic = attemptedStatic;
   let downgraded = false;
   let snapshot: string | null = null;
@@ -50,20 +50,20 @@ export async function runSSRCycle(options: RunSSRCycleOptions): Promise<SSRCycle
       queryCache.resetForSSR();
     }
 
-    await runPhase(tracker, phases, 'collect', async () => {
+    await runPhase(tracker, phases, 'collect', isStatic, async () => {
       await render({ isStatic, phase: 'collect', apiDehydratedState: null });
     });
 
     if (resolveAsyncTasks) {
-      await runPhase(tracker, phases, 'resolve-tasks', resolveAsyncTasks);
+      await runPhase(tracker, phases, 'resolve-tasks', isStatic, resolveAsyncTasks);
     }
 
-    await runPhase(tracker, phases, 'collect', async () => {
+    await runPhase(tracker, phases, 'collect', isStatic, async () => {
       await render({ isStatic, phase: 'collect', apiDehydratedState: null });
     });
 
     if (queryCache) {
-      await runPhase(tracker, phases, 'dehydrate', async () => {
+      await runPhase(tracker, phases, 'dehydrate', isStatic, async () => {
         snapshot = await queryCache.dehydrate();
       });
 
@@ -72,7 +72,7 @@ export async function runSSRCycle(options: RunSSRCycleOptions): Promise<SSRCycle
       }
     }
 
-    html = await runPhase(tracker, phases, 'render', () =>
+    html = await runPhase(tracker, phases, 'render', isStatic, () =>
       render({ isStatic, phase: 'render', apiDehydratedState: snapshot })
     );
 
@@ -83,7 +83,7 @@ export async function runSSRCycle(options: RunSSRCycleOptions): Promise<SSRCycle
       downgraded = true;
       isStatic = false;
 
-      html = await runPhase(tracker, phases, 'render', () =>
+      html = await runPhase(tracker, phases, 'render', isStatic, () =>
         render({ isStatic: false, phase: 'render', apiDehydratedState: snapshot })
       );
 
@@ -137,9 +137,11 @@ async function runPhase<T>(
   tracker: SSRTracker,
   phases: SSRTrackerPhase[],
   phase: SSRTrackerPhase,
+  isStatic: boolean,
   fn: () => Promise<T>,
 ): Promise<T> {
   tracker.setPhase(phase);
+  tracker.setStaticMode(isStatic);
   phases.push(phase);
   return fn();
 }

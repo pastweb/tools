@@ -5,8 +5,8 @@ import type { AgentSettings, MutationOptions } from '../types';
 
 /**
  * Performs a DELETE request.
- * When the agent has a `queryCache` (or deprecated `cache: true`), `onSuccess`/`onError`
- * from options are invoked (you can use them to call `invalidateQuery` on the cache).
+ * When the agent has a `queryCache`, `onSuccess`/`onError` from options are invoked.
+ * Use those callbacks to call `invalidateQuery` on the cache instance you passed to the agent.
  */
 export async function deleteMethod<T = any>(
   settings: AgentSettings,
@@ -18,8 +18,7 @@ export async function deleteMethod<T = any>(
   const { onSuccess = noop, onError = noop, ...rest } = options;
   const config = Object.keys(rest).length ? rest : settings.agentConfig;
 
-  const hasCache = !!queryCache || !!settings.options.cache;
-  if (hasCache) {
+  if (queryCache) {
     try {
       const res = await agent.delete(url, config);
       onSuccess();

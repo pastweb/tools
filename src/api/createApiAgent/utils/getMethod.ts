@@ -7,8 +7,8 @@ import type { AgentSettings, QueryOptions, QueryResponse } from '../types';
 /**
  * Performs a GET request.
  *
- * If the agent was given a `queryCache` (via `createApiAgent({ queryCache })` or the
- * deprecated `cache: true`), the call goes through the cache layer:
+ * If the agent was given a `queryCache` via `createApiAgent({ queryCache })`,
+ * the call goes through the cache layer:
  * - Returns cached data when fresh.
  * - In SSR: returns a placeholder immediately and registers the request. Use the
  *   `queryCache.dehydrate()` to execute registered prefetches and obtain a snapshot.

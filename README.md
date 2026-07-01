@@ -32,10 +32,10 @@ The documentation is organized into the following major categories. Each section
 - **Object functions** — General-purpose object utilities (deep merging, property assignment, type checking, immutability helpers, and more).
 - **Reactivity** — A complete reactivity system (`reactive`, `ref`, `computed`, `effect`) together with supporting utilities and the Global Context pattern.
 - **Routing** — The full `createViewRouter` solution, including route definition, matching, navigation, and mediator hooks for framework integration.
-- **SSR utilities (experimental)** — Server-render coordination helpers (`registerAsyncTask`, `resolveAsyncTasks`, `runSSRCycle`, and SSR tracker utilities).
+- **SSR utilities (experimental)** — Server-render coordination helpers under `ssrUtils`, including `asyncTasks` (`registerAsyncTask`, `resolveAsyncTasks`), `runSSRCycle`, and SSR tracker utilities.
 - **String functions** — String transformation utilities (camelCase, kebab-case, friendly ID generation).
 - **Styles** — SCSS mixins and tools for responsive design, theming, and layout utilities.
-- **Utility functions** — General-purpose helpers (memoization, SSR detection, no-op, and similar tools).
+- **Utility functions** — General-purpose helpers (memoization, no-op, and similar tools).
 
 This project is distributed under the MIT licence.
 
@@ -121,7 +121,6 @@ This project is distributed under the MIT licence.
   - [Responsiveness mixins](#responsiveness-mixins)
   - [setup](#setup)
 - [Utility functions](#utility-functions)
-  - [isSSR](#isssr) (deprecated - use envs constants)
   - [Environment detection constants (envs)](#environment-detection-constants-envs)
   - [memo](#memo)
   - [noop](#noop)
@@ -142,8 +141,6 @@ function createApiAgent(options?: AgentOptions): Agent;
 ```
 Parameters
 * `options`: `AgentOptions` _(optional)_ The options for the API agent.
-  * `cache`: `boolean` _(optional)_ (default: false)
-    * @deprecated Use `queryCache` instead.
   * `queryCache`: `QueryCache` _(optional)_
     * Pass `createQueryCache()` to enable caching for GETs + SSR support (dehydrate/hydrate).
     * This is the recommended way. The agent will use the provided instance for caching.
@@ -163,8 +160,6 @@ Parameters
 Returns
 * `Agent`
   * The configured API agent.
-
-See the source TSDoc (now present on all functions and types, including in `types.ts`) for full details on methods like `get`, `dehydrate`/`hydrate` (on `QueryCache`), etc.
 
 Methods
 * `setAgentOptions(options: AgentOptions): void`
@@ -198,25 +193,7 @@ Methods
   * Downloads a file using a GET request and triggers a download in the browser.
 
 Cache
-Caching is enabled by passing a `queryCache` to `createApiAgent({ queryCache })` (the old `cache: true` boolean is deprecated). GET responses are stored under a key that is either:
-- the serialized `queryKey` you provide (array recommended: `['users', id]`, or legacy string), or
-- the full request URL when no `queryKey` is given.
-
-The cache supports:
-* `get(key: string): QueryData`
-  * Retrieves a cached response.
-* `getAll(): [string, QueryData][]`
-  * Returns all cache entries.
-* `has(key: string): boolean`
-  * Checks if a key exists in the cache.
-* `set(key: string, data: QueryData): Map<string, QueryData>`
-  * Sets a cache entry with a response, timestamp, and expiration.
-* `delete(key: string): boolean`
-  * Removes a cache entry.
-* `invalidateQuery(queryKey?: unknown | unknown[]): void`
-  * Invalidates cache entries by key or prefix. Accepts the same value you passed as `queryKey` (string, array, or URL). Works for both URL keys and structured queryKeys.
-
-Cache entries (when a `queryCache` is enabled) expire based on the `expireIn` option (e.g., `'1s'`, `'5m'`) using the [`isDateYoungerOf`](#isdateyoungerof) utility. Using `expireIn` or `queryKey` without enabling `queryCache` on the agent will log a console error.
+* Caching is enabled by passing a `queryCache` to `createApiAgent({ queryCache })` created via the [`createQueryCache`](#createquerycache) function. See [`createQueryCache`](#createquerycache) for cache keys, lifecycle behavior, invalidation, dehydration, and hydration.
 
 **GET options** (passed to `agent.get` via `QueryOptions`):
 
@@ -232,7 +209,11 @@ Cache entries (when a `queryCache` is enabled) expire based on the `expireIn` op
 | `ssrRevalitate` | `string \| false` | Static page revalidation hint for SSR dependencies. Strings are converted to milliseconds with `stringToMs`; `false` disables time-based revalidation. |
 
 ```typescript
-// Select a view of a wrapped API response while keeping the raw response in the cache.
+import { createApiAgent, createQueryCache } from '@pastweb/tools';
+
+const queryCache = createQueryCache();
+const agent = createApiAgent({ queryCache });
+
 // Example API response:
 // {
 //   items: [{ id: 1, name: 'Ada' }],
@@ -259,7 +240,7 @@ await agent.get('/api/users', { expireIn: '5m', fetchOnExpired: true });
 
 // Refetch immediately after invalidation
 await agent.get('/api/users', { expireIn: '5m', fetchOnInvalidate: true });
-agent.cache.invalidateQuery('/api/users');
+queryCache.invalidateQuery('/api/users');
 
 // Drop stale entries instead of refetching
 await agent.get('/api/users', { expireIn: '5m', removeOnExpired: true });
@@ -269,7 +250,7 @@ await agent.get('/api/users', { toon: true });
 ```
 
 Pagination
-When `pagination` is enabled, the `successResponseInterceptor` processes responses with a `Content-Range` header (e.g., `0-1/20` where `0-1` is start and end index adn `20` is the items total number).
+* When `pagination` is enabled, the `successResponseInterceptor` processes responses with a `Content-Range` header (e.g., `0-1/20` where `0-1` is start and end index adn `20` is the items total number).
 For `application/json` responses contains the pagination additional info:
 ```typescript
 {
@@ -329,18 +310,18 @@ const same = await agent.get('/api/users/123', { queryKey: ['users', 123] }); //
 await agent.get('/api/users?status=active');
 
 // Invalidate using the same queryKey shape you used when fetching (recommended)
-agent.cache.invalidateQuery(['users', 123]);
+queryCache.invalidateQuery(['users', 123]);
 
 // Or using a URL key / prefix (still fully supported)
-agent.cache.invalidateQuery('/api/users');
+queryCache.invalidateQuery('/api/users');
 
 // You can also pass the serialized string form if you prefer
-agent.cache.invalidateQuery(JSON.stringify(['users', 123]));
+queryCache.invalidateQuery(JSON.stringify(['users', 123]));
 
 
 // Paginated GET Request
 const agent = createApiAgent({ pagination: { defaultPageLimit: 10, header: 'Content-Range' } });
-const response = await agent.get('/api/users?offset0&limit=10');
+const response = await agent.get('/api/users?page=1&limit=10');
 // Response: { data: [...], info: { start: 0, end: 9, total: 50, size: 10, current: 1, of: 5 } }
 ```
 ----
@@ -355,13 +336,30 @@ function createQueryCache(options?: CacheOptions): QueryCache
 ```
 
 `CacheOptions`:
+* `deHydratedScriptID?: string` _(default: `'__API_DEHYDRATED__'`)_ — DOM script id used by page-level query-cache hydration.
 * `refetchOnWindowFocus?: boolean` _(default: `false`)_ — When `true` and running in a browser, re-runs every registered expiration `checker` in the cache when the window/tab regains focus.
 * `refetchOnReconnect?: boolean` _(default: `false`)_ — When `true` and running in a browser, re-runs every registered expiration `checker` when the browser fires the `online` event.
 
 The returned cache has:
-- `get(key)`, `has(key)`, `set(...)` (internal), `delete`, `invalidateQuery(key?)`, `invalidateQueries(keys)`, `getAll()`, `dehydrate()`, `hydrate(data)`, `resetForSSR()` (see above for hybrid key support)
+- `getDehydrateScriptID()`: returns the DOM script id used for page-level dehydrated query-cache snapshots.
+- `get(key)`: retrieves a cached response.
+- `getAll()`: returns all cache entries.
+- `has(key)`: checks if a key exists in the cache.
+- `set(...)`: internal cache-aware GET writer used by `agent.get`.
+- `delete(key)`: removes a cache entry.
+- `invalidateQuery(key?)`: invalidates cache entries by key or prefix.
+- `invalidateQueries(keys)`: invalidates multiple keys by delegating to `invalidateQuery`.
+- `dehydrate()`: executes registered SSR prefetches, populates the cache, and returns a JSON snapshot.
+- `hydrate(data)`: restores the cache from a JSON snapshot.
+- `resetForSSR()`: clears in-memory entries and recall registrations before a server render cycle.
 
-Cache keys are either serialized `queryKey` values (when you pass `queryKey: [...]` to get/useQuery) or raw URLs. `invalidateQuery` matches against whatever keys are stored (prefix rules apply to the final string keys). `invalidateQueries` accepts an array of keys and delegates to `invalidateQuery` for each one.
+GET responses are stored under a key that is either:
+- the serialized `queryKey` you provide (array recommended: `['users', id]`, or legacy string), or
+- the full request URL when no `queryKey` is given.
+
+Cache keys are either serialized `queryKey` values (when you pass `queryKey: [...]` to `agent.get` / `useQuery`) or raw URLs. `invalidateQuery` matches against whatever keys are stored and accepts the same value you passed as `queryKey` (string, array, or URL). Prefix rules apply to the final string keys. `invalidateQueries` accepts an array of keys and delegates to `invalidateQuery` for each one.
+
+Cache entries expire based on the `expireIn` option (e.g., `'1s'`, `'5m'`) using the [`isDateYoungerOf`](#isdateyoungerof) utility. Using `expireIn` or `queryKey` without passing `queryCache` to the agent will log a console error.
 
 `dehydrate()` executes any prefetch functions registered during SSR "dry runs", populates the cache, and returns a JSON string snapshot.
 
@@ -380,14 +378,28 @@ const snapshot = await queryCache.dehydrate();
 queryCache.hydrate(savedSnapshot); // restore before real render
 ```
 
+If your renderer embeds the dehydrated cache under a custom script id, configure the cache with the same id before hydration:
+
+```ts
+const queryCache = createQueryCache({
+  deHydratedScriptID: '__MY_API_STATE__',
+});
+
+console.log(queryCache.getDehydrateScriptID()); // "__MY_API_STATE__"
+```
+
 Use `queryCache.resetForSSR()` at the start of each SSR request (or rely on `runSSRCycle`, which calls it automatically) to avoid cross-request cache leakage.
 
 For partial hydration, use `sliceDehydratedState(snapshot, queryKeys)` to extract island-scoped cache JSON before client `hydrateRoot`.
 
 See `AgentOptions.queryCache` and `QueryCache` for details. (`dehydrate()` is exposed on `QueryCache`.)
+
 ----
+
 ### `useQuery`
+
 Creates a reactive query Object that fetches data using the provided function and updates based on reactive dependencies
+
 > #### Syntax
 ```typescript
 function useQuery<T>(config: QueryConfig<T>): QueryInfo<T>
@@ -427,7 +439,7 @@ When using `agent.get` inside `fn`, pass `select` in `QueryOptions` to project t
 
 For SSR scenarios, create a `queryCache` via `createQueryCache()` and pass it as the `queryCache` option when creating agents (`createApiAgent({ queryCache })`). Agents and `useQuery` calls during a collection (dry) render will register prefetch functions. Call `dehydrate()` on the `queryCache` to execute the registered prefetches and obtain a JSON cache snapshot before the final render pass. See also `createQueryCache`.
 
-(Note: `agent.cache` and the `cache: true` option are deprecated.)
+The agent does not expose a cache property. Keep and use the `queryCache` reference directly for `dehydrate`, `hydrate`, and invalidation.
 
 Example:
 ```typescript
@@ -442,7 +454,7 @@ const agent = createApiAgent({
 
 // Basic query with immediate fetch
 const query = useQuery({
-  fn: () => agent.get('/api/users?_page=1&_limit=10'),
+  fn: () => agent.get('/api/users?page=1&limit=10'),
 });
 
 console.log(query.data); // Initially null, updates to { data: [...], info: {...} }
@@ -452,7 +464,7 @@ console.log(query.responseStatus); // HTTP status after a response, e.g. 200
 // Query with reactive dependency
 const page = ref(1);
 const reactiveQuery = useQuery({
-  fn: () => agent.get(`/api/users?_page=${page.value}&_limit=10`),
+  fn: () => agent.get(`/api/users?page=${page.value}&limit=10`),
   source: page,
 });
 
@@ -503,12 +515,15 @@ const conditionalRetryQuery = useQuery({
 });
 
 // Manual invalidation - pass the same queryKey you used (array or string/URL)
-agent.cache.invalidateQuery(['user', 42]);
+queryCache.invalidateQuery(['user', 42]);
 ```
 
 ---
+
 ### `useInfiniteQuery`
+
 Creates a reactive infinite query for paginated or cursor-based lists.
+
 > #### Syntax
 ```typescript
 function useInfiniteQuery<TPage, TPageParam = unknown>(
@@ -542,7 +557,7 @@ const agent = createApiAgent({ pagination: true });
 
 const posts = useInfiniteQuery({
   initialPageParam: 1,
-  fn: page => agent.get(`/api/posts?_page=${page}&_limit=20`, {
+  fn: page => agent.get(`/api/posts?page=${page}&limit=20`, {
     queryKey: ['posts', page],
   }),
 });
@@ -567,13 +582,14 @@ const feed = useInfiniteQuery({
 ```
 
 ---
+
 ### `useQueries`
+
 Creates multiple `useQuery` instances and returns a reactive aggregate object.
+
 > #### Syntax
 ```typescript
-function useQueries<T extends readonly QueryConfig<any>[]>(
-  config: { queries: T } | T
-): UseQueriesInfo<T>
+function useQueries<T extends readonly QueryConfig<any>[]>(config: { queries: T } | T): UseQueriesInfo<T>
 ```
 
 Returns
@@ -623,6 +639,7 @@ await dashboard.fetch(); // refetches all child queries
 ```
 
 ---
+
 ### `useMutation`
 
 Creates a reactive mutation that executes the provided function and updates state with lifecycle hooks.
@@ -721,10 +738,13 @@ console.log(updateUser.isPlaceholderData); // false
 Creates an asynchronous store with the given options.
 Useful to be extended for async initialisation of application state manager like [redux](https://redux.js.org/) or [pinia](https://pinia.vuejs.org/) if needs to get initialisation data from async resources as [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 
+For built-in micro-store patterns, see [`createMicroStore`](#createmicrostore) and [`createAsyncMicroStore`](#createasyncmicrostore).
+
 > #### Syntax
 ```typescript
 function createAsyncStore<T>(options: AsyncStoreOptions): T;
 ```
+
 Parameters
 * `options`: `AsyncStoreOptions`
   * The options for creating the asynchronous store.
@@ -832,12 +852,9 @@ import {
 } from '@pastweb/tools/ssrUtils';
 ```
 
-They are also re-exported from the package root for convenience.
-
 ---
-### `registerAsyncTask` / `resolveAsyncTasks`
 
-Utility for registering and later resolving asynchronous work during SSR.
+### `registerAsyncTask` / `resolveAsyncTasks`
 
 These helpers are designed so that code running during the initial (collection) render pass can declare async work that should happen afterwards. The resolution step uses an iterative loop so that work discovered while executing earlier tasks (e.g. from nested async components) is also handled.
 
@@ -870,6 +887,7 @@ This pattern is useful when you need to discover asynchronous work (such as data
 `runSSRCycle` calls `resolveAsyncTasks` between two collection renders — see below.
 
 ---
+
 ### `runSSRCycle`
 
 Framework-agnostic SSR orchestrator for SSR router and other SSR entry points. Runs the full collection → prefetch → render cycle with SSR tracker integration and hybrid static downgrade.
@@ -884,7 +902,7 @@ function runSSRCycle(options: RunSSRCycleOptions): Promise<SSRCycleResult>
 **Key options:**
 * `render` — async function receiving `{ isStatic, phase, apiDehydratedState }`.
 * `queryCache` — shared cache; `resetForSSR()` runs before collection by default.
-* `resolveAsyncTasks` — loads async components registered during collection.
+* `resolveAsyncTasks` — loads async components registered through `ssrUtils/asyncTasks` during collection.
 * `shouldAttemptStatic` — pre-classify static intent; tracker may force downgrade.
 * `onStaticProven` / `onDynamicDowngrade` — hooks for SSR router manifest writes.
 
@@ -909,10 +927,8 @@ const { html, snapshot, fingerprint, downgraded } = await runSSRCycle({
   },
 });
 ```
-
-See `../PLAN.md` and `QUERY.md` for hybrid render + partial hydration architecture.
-
 ---
+
 ### SSR tracker (`createSSRTracker`)
 
 Standalone server-side tracker for hybrid render decisions. Installed during `runSSRCycle`; `agent.get({ ssrMode })` reports via `reportApiSSRToTracker`.
@@ -926,6 +942,10 @@ function clearCurrentSSRTracker(): void
 function reportApiSSRToTracker(url: string, options?: { queryKey?; ssrMode?; ssrRevalitate? }): void
 function createDependencyFingerprint(snapshot: SSRTrackerSnapshot): string
 ```
+
+`tracker.isStatic` exposes the current render mode selected by the SSR cycle.
+`runSSRCycle` updates it before every phase, including the second render when a
+static attempt is downgraded to dynamic output.
 
 **`agent.get` SSR option (`ApiSSRMode`):** `'auto' | 'static' | 'dynamic' | 'no-store'`
 
@@ -953,6 +973,7 @@ Create an async wrapper around [creteMicroStoreCollector](#createmicrostorecolle
 ```typescript
 function createAsyncMicroStore(options: MicroCollectorStoreOptions): MicroAsyncStore
 ```
+
 Returns
 * `MicroAsyncStore`
   * An object containing stores hooks to interact with the micro stores.
@@ -985,6 +1006,7 @@ await useAsyncStores.isReady;
 ```
 
 ---
+
 ### `createEventEmitter`
 
 Creates an event emitter that allows subscribing to events, emitting events, and removing event listeners.
@@ -994,6 +1016,7 @@ It allows you to create a custom event system where you can emit events, subscri
 ```typescript
 function createEventEmitter(): EventEmitter;
 ```
+
 Returns
 * `EventEmitter`
   * An object containing methods to interact with the event emitter.
@@ -1094,27 +1117,23 @@ langStore.changeLanguage('fr').then((t) => {
   console.log(t('key')); // Outputs the translation for 'key' in French
 });
 ```
+
 ---
 
 ### `createMatchSchemeAsyncStore`
 
-> #### Syntax  
-```ts
+Creates an asynchronous store for managing color schemes.
+This function initializes an asynchronous store specifically for handling color scheme preferences and system theme detection.
+It integrates with [`createMatchScheme`](#creatematchscheme) to track and manage color mode changes.
+
+> #### Syntax
+```typescript
 function createMatchSchemeAsyncStore(options?: SchemeOptionsAsyncStore): ColorSchemeAsyncStore;
 ```
 
-## Description  
-
-Creates an asynchronous store for managing color schemes.  
-This function initializes an asynchronous store specifically for handling  
-color scheme preferences and system theme detection. It integrates with  
-[`createMatchScheme`](#creatematchscheme) to track and manage color mode changes.
-
-## Parameters  
-
-#### `options` (optional)  
-**Type:** `SchemeOptionsAsyncStore`  
-Configuration options for the asynchronous store.
+Parameters
+* `options`: `SchemeOptionsAsyncStore` _(optional)_
+  * Configuration options for the asynchronous store.
 
 | Property       | Type                  | Default              | Description |
 |---------------|-----------------------|----------------------|-------------|
@@ -1123,28 +1142,22 @@ Configuration options for the asynchronous store.
 | `defaultMode` | `string`               | `"auto"`             | The default mode (`'auto'`, `'light'`, or `'dark'`). |
 | `initStore`   | `(matchScheme: MatchScheme) => Promise<void>` | `noop` | An asynchronous function that runs during store initialization. |
 
-## Returns  
+Returns
+* `ColorSchemeAsyncStore`
+  * An object that provides methods and properties for managing color schemes asynchronously.
 
-**Type:** `ColorSchemeAsyncStore`  
-An object that provides methods and properties for managing color schemes asynchronously.
+Properties
+* `matchScheme`: `MatchScheme`
+  * Manages color scheme detection and provides methods to get or change the scheme.
+* `init(): void`
+  * A no-op initialization function.
+* `setStoreReady(): void`
+  * Marks the store as ready after initialization.
 
-## Properties  
+**Example:**
+```typescript
+import { createMatchSchemeAsyncStore } from '@pastweb/tools';
 
-### `matchScheme`  
-**Type:** `MatchScheme`  
-Manages color scheme detection and provides methods to get or change the scheme.
-
-#### `init`  
-**Type:** `() => void`  
-A no-op function for initialization.
-
-#### `setStoreReady`  
-**Type:** `() => void`  
-Marks the store as ready after initialization.
-
-## Example Usage  
-
-```ts
 const colorSchemeStore = createMatchSchemeAsyncStore({
   defaultMode: 'auto',
   datasetName: 'theme',
@@ -1153,6 +1166,7 @@ const colorSchemeStore = createMatchSchemeAsyncStore({
   }
 });
 ```
+
 ---
 
 ### `debounce`
@@ -1183,6 +1197,7 @@ debouncedLog.cancel();  // Cancels the delayed invocation.
 debouncedLog.flush();   // Immediately invokes the delayed function.
 ```
 ---
+
 ### `throttle`
 
 Returns a throttle function defined in the `fn` parameter, which is executed for each `timeout` passed as the second parameter. The returned throttle function includes two members:
@@ -1203,6 +1218,7 @@ Parameters
 Returns
 * `ThrottleCallback`
   * The throttle callback function.
+
 **Example:**
 ```typescript
 import { throttle } from '@pastweb/tools';
@@ -1215,6 +1231,7 @@ throttledLog.cancel();  // Cancels the throttling.
 throttledLog.flush();   // Flushes the timeout, allowing the function to be invoked immediately.
 ```
 ---
+
 ## Browser functions
 
 ### `createMatchDevice`
@@ -1223,7 +1240,7 @@ Creates a utility for detecting and managing device types based on user agent st
 The `createMatchDevice` function is designed to help detect device types based on user agent strings and media queries. This utility is particularly useful for responsive design and ensuring that your application behaves differently depending on the device being used.
 
 * Device Detection: The utility supports both user agent string matching and media query matching to determine device types.
-* Server-Side Rendering (SSR): If server-side rendering is detected (use `isServer` from the envs constants; `isSSR` is deprecated), user agent-based detection is used, and media query-based detection is skipped.
+* Server-Side Rendering (SSR): If server-side rendering is detected user agent-based detection is used, and media query-based detection is skipped.
 * Dynamic Updates: The utility can respond to changes in media query matches, allowing dynamic updates to the device state.
 * Event Emitter: The underlying event emitter allows you to listen for specific device match changes, enabling reactive design and behavior changes.
 
@@ -1232,7 +1249,7 @@ The `createMatchDevice` function is designed to help detect device types based o
 function createMatchDevice(config: DevicesConfig = {}): MatchDevice;
 ```
 Parameters
-* `config`: `DevicesConfig`
+* `config`: `DevicesConfig` 
   * An optional configuration object that maps device names to their detection criteria. Each device's configuration can include a user agent test and/or a media query.
 
 Returns
@@ -1284,21 +1301,15 @@ console.log('Current matched devices:', currentDevices);
 ```
 ---
 
-Here is the **Markdown documentation** in the same style as the "isType" function documentation:  
-
----
-
 ### `createMatchScheme`
+
+Creates a match scheme manager that allows setting and tracking the color scheme mode.  
+It detects system preferences, provides methods to update the mode, and notifies listeners of changes.
 
 > #### Syntax 
 ```ts
 function createMatchScheme(options?: SchemeOptions): MatchScheme;
 ```
-
-## Description  
-
-Creates a match scheme manager that allows setting and tracking the color scheme mode.  
-It detects system preferences, provides methods to update the mode, and notifies listeners of changes.
 
 ## Parameters  
 
@@ -1313,93 +1324,49 @@ An object containing configuration options for the match scheme.
 
 ## Returns  
 
-**Type:** `MatchScheme`  
-An object with methods to manage and listen to scheme changes.
+* `MatchScheme`
+  * An object with methods to manage and listen to scheme changes.
 
 ## Methods  
 
-#### `getInfo`  
-```ts
-getInfo(): { mode: string; system: string; selected: string };
-```
-**Description:**  
-Retrieves the current color scheme information.
+* `scheme.getInfo(): { mode: string; system: string; selected: string }`
+  * Retrieves the current color scheme information.
+  * Returns:
 
-**Returns:**
 | Property   | Type   | Description |
 |------------|--------|-------------|
 | `mode`     | `string` | The currently set mode (`'auto'`, `'light'`, or `'dark'`). |
 | `system`   | `string` | The system's detected color scheme (`'light'` or `'dark'`). |
 | `selected` | `string` | The active mode (either `mode` or the detected system scheme if `mode` is `'auto'`). |
 
-**Example:**  
-```ts
-const scheme = createMatchScheme();
-console.log(scheme.getInfo()); 
-// { mode: 'auto', system: 'light', selected: 'light' }
-```
+* `scheme.setMode(mode: string): void`
+  * Updates the color mode. If `'auto'` is selected, the mode will follow the system's preference.
+  * Parameters:
 
-#### `setMode`  
-```ts
-setMode(mode: string): void;
-```
-**Description:**  
-Updates the color mode. If `'auto'` is selected, the mode will follow the system's preference.
-
-**Parameters:**
 | Name   | Type   | Description |
 |--------|--------|-------------|
 | `mode` | `string` | The new mode: `'auto'`, `'light'`, or `'dark'`. |
 
-**Example:**  
-```ts
-scheme.setMode('dark'); 
-console.log(scheme.getInfo()); 
-// { mode: 'dark', system: 'light', selected: 'dark' }
-```
+* `scheme.onModeChange(fn: (mode: string) => void): void`
+  * Registers a callback that is triggered when the mode changes.
+  * Parameters:
 
-#### `onModeChange`  
-```ts
-onModeChange(fn: (mode: string) => void): void;
-```
-**Description:**  
-Registers a callback that is triggered when the mode changes.
-
-**Parameters:**
 | Name | Type | Description |
 |------|------|-------------|
 | `fn` | `(mode: string) => void` | A callback function that receives the new mode. |
 
-**Example:**  
-```ts
-scheme.onModeChange((mode) => {
-  console.log(`Mode changed to: ${mode}`);
-});
-scheme.setMode('light'); 
-// Logs: "Mode changed to: light"
-```
+* `scheme.onSysSchemeChange(fn: (mode: string) => void): void`
+  * Registers a callback that triggers when the system's preferred color scheme changes.
+  * Parameters:
 
-#### `onSysSchemeChange`  
-```ts
-onSysSchemeChange(fn: (mode: string) => void): void;
-```
-**Description:**  
-Registers a callback that triggers when the system's preferred color scheme changes.
-
-**Parameters:**
 | Name | Type | Description |
 |------|------|-------------|
 | `fn` | `(mode: string) => void` | A callback function that receives the new system scheme (`'light'` or `'dark'`). |
 
-**Example:**  
-```ts
-scheme.onSysSchemeChange((systemMode) => {
-  console.log(`System scheme changed to: ${systemMode}`);
-});
-```
+**Example:**
+```typescript
+import { createMatchScheme } from '@pastweb/tools';
 
-## Example Usage  
-```ts
 const scheme = createMatchScheme({ defaultMode: 'auto', datasetName: 'theme' });
 
 console.log(scheme.getInfo()); 
@@ -1417,36 +1384,29 @@ scheme.setMode('light');
 
 ### `useColorScheme`
 
-> #### Syntax 
-```ts
+Hook that returns a reactive color-scheme info object and a setter function.
+It uses the library's reactivity primitives so the info stays up-to-date when the scheme changes.
+If `matchScheme` is provided it is used directly; otherwise `createMatchScheme(options)` is called internally.
+
+> #### Syntax
+```typescript
 function useColorScheme(options?: SchemeOptions, matchScheme?: MatchScheme): [ColorSchemeInfo, (mode: string) => void];
 ```
 
-## Description  
+Parameters
+* `options`: `SchemeOptions` _(optional)_
+  * Same options as [`createMatchScheme`](#creatematchscheme). Used only when no `matchScheme` is passed.
+* `matchScheme`: `MatchScheme` _(optional)_
+  * An existing `MatchScheme` instance. If omitted, one is created internally.
 
-Hook that returns a reactive `[ColorSchemeInfo, setMode]` tuple. It uses the library's reactivity primitives so the info stays up-to-date when the scheme changes (observable via `effect` or `computed`). 
+Returns
+* `[ColorSchemeInfo, (mode: string) => void]`
+  * A tuple where the first element is a reactive `ColorSchemeInfo` and the second element is the `setMode` function delegated to the underlying scheme.
 
-If `matchScheme` is provided it is used directly; otherwise `createMatchScheme(options)` is called internally to create one.
+**Example:**
+```typescript
+import { effect, useColorScheme } from '@pastweb/tools';
 
-## Parameters  
-
-### `options` (optional)  
-**Type:** `SchemeOptions`  
-Same options as `createMatchScheme` (used only when no `matchScheme` is passed).
-
-### `matchScheme` (optional)  
-**Type:** `MatchScheme`  
-An existing `MatchScheme` instance. If omitted, one is created for you.
-
-## Returns  
-
-**Type:** `[ColorSchemeInfo, (mode: string) => void]`  
-A tuple where:
-- The first element is a reactive `ColorSchemeInfo` (its properties update automatically).
-- The second element is the `setMode` function (delegated to the underlying scheme).
-
-**Example:**  
-```ts
 const [scheme, setMode] = useColorScheme({ defaultMode: 'auto' });
 
 effect(() => {
@@ -1577,14 +1537,14 @@ Parameters
 
 Returns
 * `boolean`:
-  * Returns `true` if the given date is younger than the specified duration relative to the current date and time. Returns `false` otherwise.
+  * Returns `true` if the given date is strictly younger than the specified duration relative to the current date and time. Returns `false` otherwise.
 
 **Example:**
 ```typescript
 import { isDateYoungerOf } from '@pastweb/tools';
 
 const date = new Date();
-date.setDate(date.getDate() - 1); // 1 day ago
+date.setHours(date.getHours() - 12); // 12 hours ago
 console.log(isDateYoungerOf(date, '1D')); // Output: true
 console.log(isDateYoungerOf(date, '2D')); // Output: true
 console.log(isDateYoungerOf(date, '12h')); // Output: false
@@ -1876,7 +1836,9 @@ entry.on('someEvent', () => console.log('Event triggered'));
 entry.emit('someEvent');
 ```
 ---
+
 ### `createPortal`
+
 Creates a Portal object that manages the lifecycle of portal entries, including opening, updating, and closing portal instances.
 Portal is a common term used to identify a mechanism usually implemented in a Front End framework for render and handle components in a not nested
 DOM element a good example is a rendering of a modal window you can see an example implementation for [react](https://react.dev/reference/react-dom/createPortal), [vue](https://vuejs.org/guide/built-ins/teleport) or [angualr](https://material.angular.io/cdk/portal/overview).
@@ -1946,7 +1908,9 @@ customPortal.close(entryId);
 In this example, a custom portal is created, opened with specific props, and then closed. The `setOnRemove` method is used to log a message whenever a portal entry is removed.
 
 ---
+
 ### `anchorsSetup`
+
 Sets up a structure of portals based on provided anchor IDs, descriptors, and configurations. This function is designed to initialize a tree of portal functions that can manage portal entries across different elements identified by their IDs.
 
 > #### Syntax
@@ -2046,7 +2010,9 @@ Error Handling
   * An error is thrown if the structure of descriptor does not match the structure of ids, or if a portal setup encounters a type inconsistency.
 
 ---
+
 ### `generateAnchors`
+
 Generates a set of unique anchor IDs based on an array of anchor paths.
 This function is used to create a structured object where each path is associated with a unique ID, which can be used to identify elements in a portal system.
 
@@ -2419,56 +2385,6 @@ console.log(isType('RegExp', /foo/)); // true
 
 ---
 
-### `proxy`
-
-The proxy function creates a proxy object that intercepts `get`, `set`, and `delete` operations on the target object.
-It invokes a callback function asynchronously after a delay whenever one of these operations occurs.
-The proxy can also filter which properties trigger the callback based on the provided property keys.
-
-> #### Syntax
-```typescript
-function proxy<T extends object = {}>(
-  target: T,
-  callback: ProxyCallback,
-  ...filter: (Extract<keyof T, string> | number | symbol)[]
-): T;
-```
-
-Parameters
-* `target`: `T`
-  * The target object that the proxy will wrap and monitor for operations.
-* `callback`: `ProxyCallback`
-  * A callback function that is invoked asynchronously after a property is accessed, modified, or deleted on the proxy. The callback is provided with details about the operation, including the  property name, old value, new value, and the type of action (get, set, delete).
-* `filter`: `(...filter: (Extract<keyof T, string> | number | symbol)[])` _(optional)_
-  * An optional list of properties (specified as strings, numbers, or symbols) to filter which properties should trigger the callback. If no filter is provided, the callback is invoked for all properties.
-
-Returns
-* `T`:
-  * Returns a new proxy object that wraps the target object. This proxy will trigger the callback for the specified operations and properties.
-
-**Example:**
-```typescript
-import { proxy } from '@pastweb/tools';
-
-const obj = { a: 1, b: 2 };
-const observedObj = proxy(obj, ({ action, newValue, oldValue, prop }) => {
-  console.log(`Action: ${action}, Property: ${String(prop)}, New Value: ${newValue}, Old Value: ${oldValue}`);
-});
-
-observedObj.a = 3; // Logs: Action: set, Property: a, New Value: 3, Old Value: 1
-delete observedObj.b; // Logs: Action: delete, Property: b, New Value: undefined, Old Value: 2
-```
-
-Description
-The `proxy` function enhances an object by creating a proxy that monitors `get`, `set`, and `delete` operations. Whenever one of these operations occurs on the target object, the provided callback function is invoked asynchronously, with a slight delay (16ms). The callback is passed detailed information about the operation, including the property name, the old and new values, and the type of operation (`get`, `set`, or `delete`).
-
-Filtering Properties
-The `proxy` function allows filtering of properties that should trigger the callback. You can specify which properties (by name, number, or symbol) should trigger the callback. If no properties are specified, the callback will be invoked for all properties.
-
-Callback Execution
-The callback is executed asynchronously using `setTimeout`, which ensures that the callback is non-blocking. A weak reference (`WeakRef`) is used for the callback to avoid memory leaks, ensuring that the callback is properly garbage collected if it is no longer in use.
-
----
 ### `remove`
 
 The remove function is used to delete a property from an object based on a dot-separated path. This operation can be performed either mutably (modifying the original object) or immutably (returning a new object without modifying the original).
@@ -2510,6 +2426,7 @@ console.log(newObj); // Output: { a: { b: {} } }
 console.log(obj);    // Output: { a: { b: { c: 42 } } } (original object unchanged)
 ```
 ---
+
 ### `select`
 
 The select function is a utility that allows you to safely retrieve the value of a deeply nested property within an object using a dot-separated path.
@@ -2644,7 +2561,7 @@ function setSymbolKey(
 ): void;
 ```
 
-**Parameters**
+Parameters
 * `target`: `Record<PropertyKey, any>`
   * The object that will receive the symbol property.
 * `symbol`: `symbol`
@@ -2654,7 +2571,7 @@ function setSymbolKey(
 * `descriptor`: `Descriptor` _(optional)_
   * Descriptor options. Defaults to `DEFAULT_SYMBOL_DESCRIPTOR` (`{ configurable: false, enumerable: false, writable: false }`).
 
-**Returns**
+Returns
 * `void`
 
 **Example:**
@@ -2676,15 +2593,12 @@ console.log(Object.getOwnPropertySymbols(obj)); // [ MY_MARKER ]
 console.log(Object.hasOwn(obj, MY_MARKER));     // true
 ```
 
-**Use Cases**
-* `Internal Markers`:
-  * Attaching hidden flags that can be detected by `isRef`, `isComputed`, `isReactive`, `isPortal`, `isGlobalContext`, etc. without polluting the public shape of objects.
-* `Branding / Nominal Typing`:
-  * Adding a symbol "brand" to objects so that type guards or runtime checks can recognise "our" instances even when they are plain objects or proxies.
-* `Non-Enumerable Metadata`:
-  * Storing metadata that should never appear in `JSON.stringify`, `Object.entries`, or `for...in` loops.
+Use Cases
+* `Internal Markers`: attaching hidden flags that can be detected by `isRef`, `isComputed`, `isReactive`, `isPortal`, `isGlobalContext`, etc. without polluting the public shape of objects.
+* `Branding / Nominal Typing`: adding a symbol "brand" to objects so that type guards or runtime checks can recognise "our" instances even when they are plain objects or proxies.
+* `Non-Enumerable Metadata`: storing metadata that should never appear in `JSON.stringify`, `Object.entries`, or `for...in` loops.
 
-**Notes**
+Notes
 * The default descriptor (`DEFAULT_SYMBOL_DESCRIPTOR`) is the recommended shape for marker symbols. You can pass a custom `descriptor` if you need different behaviour (e.g. make it enumerable for debugging).
 * Because symbols are used as keys, there is no risk of name collision with string properties.
 * This function is intentionally low-level; most consumers should use the higher-level helpers (`setAsGlobalContext`, the reactivity `reactive`/`ref`/`computed` factories, `createPortal`, etc.) which call it internally.
@@ -2692,6 +2606,7 @@ console.log(Object.hasOwn(obj, MY_MARKER));     // true
 ---
 
 ### `update`
+
 The update function is a utility for updating the properties of a target object with values from a source object.
 It supports both shallow and deep updates, and it allows you to exclude specific properties from being updated.
 
@@ -2747,7 +2662,9 @@ Notes
 Edge Cases
 * `Non-Object Inputs`: If either `target` or `toUpdate` is not an object, the function returns immediately without performing any updates.
 * `Empty toUpdate Object`: If `toUpdate` is empty or contains no properties, the `target` remains unchanged.
+
 ---
+
 ### `withDefaults`
 
 The withDefaults function merges a target object with a set of default values.
@@ -2782,7 +2699,7 @@ console.log(finalSettings); // Output: { theme: 'dark', fontSize: 'medium' }
 
 ## Reactivity
 
-## `reactive`
+### `reactive`
 
 The `reactive` function creates a reactive proxy for an object, enabling dependency tracking and automatic effect triggering when properties are accessed or modified. This is useful for building reactive state management systems where changes to an object's properties trigger updates in dependent computations or UI components.
 
@@ -2791,19 +2708,19 @@ The `reactive` function creates a reactive proxy for an object, enabling depende
 function reactive<T extends object>(obj: T, deep = false): T;
 ```
 
-**Parameters**
+Parameters
 * `obj`: `T extends object`
   * The object to make reactive. This can be any JavaScript object, such as a plain object or array.
 * `deep`: `boolean` _(optional)_
   * If `true`, nested objects accessed via properties are also made reactive. Defaults to `false`.
 
-**Returns**
+Returns
 * `T`
   * A reactive proxy of the input object, with the same type as the input. The proxy tracks property access and triggers effects on property changes.
 
 **Example:**
 ```typescript
-import { reactive, effect } from './reactivity';
+import { effect, reactive } from '@pastweb/tools';
 
 const obj = reactive({ count: 0 });
 
@@ -2821,31 +2738,23 @@ effect(() => {
 deepObj.nested.value = 20; // Logs: "Nested value: 20"
 ```
 
-**Use Cases**
-* **State Management**:
-  * Creating reactive state objects in frameworks like Vue.js or custom reactive systems, where changes to state automatically update the UI.
-* **Data Binding**:
-  * Enabling two-way data binding in applications by tracking property changes and updating dependent components.
-* **Observable Data**:
-  * Building observable data structures for real-time applications, such as dashboards or live-updating forms.
+Use Cases
+* `State Management`: creating reactive state objects in frameworks like Vue.js or custom reactive systems, where changes to state automatically update the UI.
+* `Data Binding`: enabling two-way data binding in applications by tracking property changes and updating dependent components.
+* `Observable Data`: building observable data structures for real-time applications, such as dashboards or live-updating forms.
 
-**Notes**
-* **Performance**:
-  * The function uses `Proxy` for reactivity, which is efficient but may have performance implications for large objects with frequent access or updates.
-* **Immutability**:
-  * The original object is modified to include a non-enumerable `isReactive` symbol to mark it as reactive. This property is not writable or configurable.
-* **Deep Reactivity**:
-  * When `deep` is `true`, nested objects are recursively made reactive, which can increase memory usage for complex object graphs.
+Notes
+* `Performance`: the function uses `Proxy` for reactivity, which is efficient but may have performance implications for large objects with frequent access or updates.
+* `Immutability`: the original object is modified to include a non-enumerable `isReactive` symbol to mark it as reactive. This property is not writable or configurable.
+* `Deep Reactivity`: when `deep` is `true`, nested objects are recursively made reactive, which can increase memory usage for complex object graphs.
 
-**Edge Cases**
-* **Non-Object Inputs**:
-  * The function expects an object as input. Passing non-objects (e.g., primitives) will result in a TypeScript type error.
-* **Circular References**:
-  * Deep reactivity may cause issues with circular references, requiring careful handling to avoid infinite recursion.
+Edge Cases
+* `Non-Object Inputs`: the function expects an object as input. Passing non-objects (e.g., primitives) will result in a TypeScript type error.
+* `Circular References`: deep reactivity may cause issues with circular references, requiring careful handling to avoid infinite recursion.
 
 ---
 
-## `ref`
+### `ref`
 
 The `ref` function creates a reactive reference (ref) for a single value, wrapping it in a reactive object with a `value` property. This is useful for managing reactive primitive values or simple state in reactive systems.
 
@@ -2854,19 +2763,19 @@ The `ref` function creates a reactive reference (ref) for a single value, wrappi
 function ref<T>(value: T, deep = false): { value: T };
 ```
 
-**Parameters**
+Parameters
 * `value`: `T`
   * The value to make reactive. This can be any value, including primitives (e.g., number, string) or objects.
 * `deep`: `boolean` _(optional)_
   * If `true`, nested objects within the value are also made reactive when accessed. Defaults to `false`.
 
-**Returns**
+Returns
 * `{ value: T }`
   * A reactive object with a single `value` property that holds the input value. The object is reactive, tracking access and triggering effects on changes.
 
 **Example:**
 ```typescript
-import { ref, effect } from './reactivity';
+import { effect, ref } from '@pastweb/tools';
 
 const count = ref(0);
 
@@ -2884,31 +2793,23 @@ effect(() => {
 deepRef.value.nested = 20; // Logs: "Nested value: 20"
 ```
 
-**Use Cases**
-* **Single Value Reactivity**:
-  * Managing reactive state for single values, such as counters, flags, or settings, in reactive applications.
-* **Form Inputs**:
-  * Binding form input values to reactive refs for real-time validation or updates.
-* **State Isolation**:
-  * Isolating a single piece of state in a reactive system, making it easier to manage compared to complex objects.
+Use Cases
+* `Single Value Reactivity`: managing reactive state for single values, such as counters, flags, or settings, in reactive applications.
+* `Form Inputs`: binding form input values to reactive refs for real-time validation or updates.
+* `State Isolation`: isolating a single piece of state in a reactive system, making it easier to manage compared to complex objects.
 
-**Notes**
-* **Performance**:
-  * Refs are lightweight due to their single-property structure, but deep reactivity (when enabled) may add overhead for nested objects.
-* **Immutability**:
-  * The returned ref object includes a non-enumerable `isRef` symbol to mark it as a ref, which is not writable or configurable.
-* **Type Safety**:
-  * The generic type `T` ensures type safety for the `value` property, allowing TypeScript to enforce correct usage.
+Notes
+* `Performance`: refs are lightweight due to their single-property structure, but deep reactivity (when enabled) may add overhead for nested objects.
+* `Immutability`: the returned ref object includes a non-enumerable `isRef` symbol to mark it as a ref, which is not writable or configurable.
+* `Type Safety`: the generic type `T` ensures type safety for the `value` property, allowing TypeScript to enforce correct usage.
 
-**Edge Cases**
-* **Primitive vs. Object Values**:
-  * The function works with both primitives and objects, but deep reactivity only applies to object values.
-* **Reassignment**:
-  * Reassigning the entire ref object (e.g., `count = ref(5)`) does not affect reactivity; only changes to the `value` property are tracked.
+Edge Cases
+* `Primitive vs. Object Values`: the function works with both primitives and objects, but deep reactivity only applies to object values.
+* `Reassignment`: reassigning the entire ref object (e.g., `count = ref(5)`) does not affect reactivity; only changes to the `value` property are tracked.
 
 ---
 
-## `effect`
+### `effect`
 
 The `effect` function creates a reactive effect that runs when its dependencies change. It supports tracking dependencies from reactive objects, refs, or computed values, making it a core component of reactive systems.
 If no `source` is provided, the callback is immediately executed (registering any reactive dependencies accessed inside it automatically).
@@ -2931,7 +2832,7 @@ function effect<T>(
 );
 ```
 
-**Parameters**
+Parameters
 * `fn`: `(newVal: any | any[], oldVal: any | any[]) => void`
   * The effect function to run when dependencies change. It receives the new and old values of the tracked source(s).
 * `source`: `(() => T) | (() => any[]) | { value: T } | Record<PropertyKey, any> | Array<...>` _(optional)_
@@ -2943,13 +2844,13 @@ function effect<T>(
 * `immediate`: `boolean` _(optional)_
   * If `true`, the effect runs immediately upon creation. Defaults to `false`.
 
-**Returns**
+Returns
 * `void`
   * The function does not return a value but sets up a reactive effect that runs when dependencies change.
 
 **Example:**
 ```typescript
-import { reactive, ref, effect } from './reactivity';
+import { effect, reactive, ref } from '@pastweb/tools';
 
 // Example with a ref
 const count = ref(0);
@@ -2984,27 +2885,19 @@ a.x = 11; // Logs: "Array deps: 11, 20"
 b.value = 21; // Logs: "Array deps: 11, 21"
 ```
 
-**Use Cases**
-* **UI Updates**:
-  * Automatically updating UI elements when reactive state changes, such as in reactive frameworks or custom rendering logic.
-* **Side Effects**:
-  * Performing side effects (e.g., logging, API calls) in response to changes in reactive data.
-* **Dependency Tracking**:
-  * Creating computed values or derived state that depend on multiple reactive sources.
+Use Cases
+* `UI Updates`: automatically updating UI elements when reactive state changes, such as in reactive frameworks or custom rendering logic.
+* `Side Effects`: performing side effects (e.g., logging, API calls) in response to changes in reactive data.
+* `Dependency Tracking`: creating computed values or derived state that depend on multiple reactive sources.
 
-**Notes**
-* **Performance**:
-  * The effect uses debouncing (with a 16ms delay) to optimize performance and prevent excessive re-runs during rapid updates.
-* **Dependency Collection**:
-  * Dependencies are automatically collected during the execution of `fn` or `source` if they are reactive (via `reactive` or `ref`).
-* **Value Comparison**:
-  * The effect only runs if the new value differs from the old value, with special handling for arrays to check element-wise changes.
+Notes
+* `Performance`: the effect uses debouncing (with a 16ms delay) to optimize performance and prevent excessive re-runs during rapid updates.
+* `Dependency Collection`: dependencies are automatically collected during the execution of `fn` or `source` if they are reactive (via `reactive` or `ref`).
+* `Value Comparison`: the effect only runs if the new value differs from the old value, with special handling for arrays to check element-wise changes.
 
-**Edge Cases**
-* **No Source**:
-  * If no `source` is provided, the effect tracks all reactive dependencies accessed within `fn`, which may lead to unintended dependencies if not carefully managed.
-* **Immediate Execution**:
-  * When `immediate` is `true`, the effect runs immediately, which may cause unexpected behavior if `fn` has side effects that depend on initialization.
+Edge Cases
+* `No Source`: if no `source` is provided, the effect tracks all reactive dependencies accessed within `fn`, which may lead to unintended dependencies if not carefully managed.
+* `Immediate Execution`: when `immediate` is `true`, the effect runs immediately, which may cause unexpected behavior if `fn` has side effects that depend on initialization.
 
 ---
 
@@ -3050,6 +2943,8 @@ if (isRef(result) && !isComputed(result)) {
 
 ---
 
+### `computed`
+
 The `computed` function creates a lazily-evaluated computed value that re-evaluates only when its dependencies change. This is useful for deriving values from reactive state without re-computing unless necessary.
 
 The getter may be synchronous or asynchronous (`() => T | Promise<T>`).
@@ -3061,11 +2956,11 @@ function computed<T>(getter: () => T | Promise<T>): Computed<T>;
 
 (where `Computed<T>` is `Readonly<T>` when `T` is an object/array, otherwise `{ readonly value: T }`).
 
-**Parameters**
+Parameters
 * `getter`: `() => T | Promise<T>`
   * A function (sync or async) that computes the value based on reactive dependencies. The function is called lazily on first access or when the computed is marked dirty.
 
-**Returns**
+Returns
 * For object results (including arrays): a readonly proxy to the computed object. You can read properties directly (`computedObj.prop`). The proxy also exposes `.value` (returns the raw object) and carries both the `REF` and `COMPUTED` markers.
 * For non-object results: the classic `{ readonly value: T }`.
 * In both cases the result is usable as a ref (via `isRef()` and as a direct source to `effect()`). While an async computation is pending, reads return the previous (stale) value.
@@ -3074,7 +2969,7 @@ All computed results carry the `REF` marker (so they are treated as refs for the
 
 **Example:**
 ```typescript
-import { ref, computed } from './reactivity';
+import { computed, effect, ref } from '@pastweb/tools';
 
 const count = ref(1);
 const doubled = computed(() => count.value * 2);
@@ -3089,27 +2984,19 @@ effect(() => {
 count.value = 3; // Logs: "Doubled is: 6"
 ```
 
-**Use Cases**
-* **Derived State**:
-  * Creating derived state, such as computed properties in Vue.js or calculations based on reactive data.
-* **Performance Optimization**:
-  * Avoiding unnecessary computations by caching the result and only re-computing when dependencies change.
-* **Reactive Dependencies**:
-  * Building values that depend on multiple reactive sources, such as combining refs and reactive objects.
+Use Cases
+* `Derived State`: creating derived state, such as computed properties in Vue.js or calculations based on reactive data.
+* `Performance Optimization`: avoiding unnecessary computations by caching the result and only re-computing when dependencies change.
+* `Reactive Dependencies`: building values that depend on multiple reactive sources, such as combining refs and reactive objects.
 
-**Notes**
-* **Laziness**:
-  * The `getter` function is only called when the `value` property is accessed and the cached value is stale (i.e., dependencies have changed).
-* **Caching**:
-  * The computed value is cached, improving performance for expensive computations by avoiding redundant work.
-* **Dependency Tracking**:
-  * The computed value automatically tracks its reactive dependencies, ensuring re-computation only when necessary.
+Notes
+* `Laziness`: the `getter` function is only called when the `value` property is accessed and the cached value is stale (i.e., dependencies have changed).
+* `Caching`: the computed value is cached, improving performance for expensive computations by avoiding redundant work.
+* `Dependency Tracking`: the computed value automatically tracks its reactive dependencies, ensuring re-computation only when necessary.
 
-**Edge Cases**
-* **Initial Evaluation**:
-  * The `getter` is not called until the `value` property is first accessed, which may delay side effects within the `getter`.
-* **Non-Reactive Dependencies**:
-  * If the `getter` accesses non-reactive data, changes to that data will not trigger re-computation, potentially leading to stale values.
+Edge Cases
+* `Initial Evaluation`: the `getter` is not called until the `value` property is first accessed, which may delay side effects within the `getter`.
+* `Non-Reactive Dependencies`: if the `getter` accesses non-reactive data, changes to that data will not trigger re-computation, potentially leading to stale values.
 
 ---
 
@@ -3151,7 +3038,7 @@ This approach combines the best aspects of existing solutions while providing gr
 
 Below the utilities used for the `Context API pattern` in order to help the implementation for this approach.
 
-**Constants and Utilities**
+Constants and Utilities
 * `GLOBAL_CONTEXT_TYPE`: `symbol`
   * Symbol used to identify a global context object.
 * `globalContext`: `GlobalContext = Record<string, any>`
@@ -3167,11 +3054,8 @@ Below the utilities used for the `Context API pattern` in order to help the impl
 * `getContextUtils`: `function getContextUtils(): ContextUtils`
   * Creates and executes a mediator function with an associated context.
 
-**Types**
-* `ContextUtils`: `interface ContextUtils {
-  getContext: <T>(key: string) => T | undefined;
-  setContext: <T>(key: string, value: T) => void;
-};`,
+Types
+* `ContextUtils`: `interface ContextUtils { getContext: <T>(key: string) => T | undefined; setContext: <T>(key: string, value: T) => void; };`,
   - The context utils funcction object to be passed as second parameter to the mediater context function.
 * `GlobalContext`: `type GlobalContext = Record<string | symbol, any>;`
   - The generic global context reactive Object.
@@ -3270,26 +3154,31 @@ function createMicroStore<
 ): UseMicroStore<S, A>
 ```
 
-**Parameters**
+Parameters
 * `name`: `string`
   * Unique store name (used in error messages and the global registry).
 * `setup`: `(select) => MicroStoreConfig<S, A>`
   * Receives a temporary `select` helper and must return `{ state, actions }`.
 
-**Returns**
-* `UseMicroStore<S, A>` — a hook function:
-  * `useMicroStore()` → full store with readonly `state` + actions.
-  * `useMicroStore(selector)` → store with selected readonly `state` slice + actions.
+Returns
+* `UseMicroStore<S, A>`
+  * A hook function that returns the store state and actions.
 
-**Related types**
-* `MicroStoreConfig<S, A>` — setup return shape (`state` + `actions`).
-* `MicroStoreActionsContext<S>` — context available as `this` inside actions (`{ state: Reactive<S> }`).
-* `MicroStore<S, A>` — full store instance shape.
-* `Selector<T, S>` — `(state: S) => T`.
+Methods
+* `useMicroStore(): MicroStore<S, A>`
+  * Returns the full store with readonly `state` and actions.
+* `useMicroStore(selector): MicroStore<T, A>`
+  * Returns the selected readonly `state` slice and actions.
+
+Related Types
+* `MicroStoreConfig<S, A>`: setup return shape (`state` + `actions`).
+* `MicroStoreActionsContext<S>`: context available as `this` inside actions (`{ state: Reactive<S> }`).
+* `MicroStore<S, A>`: full store instance shape.
+* `Selector<T, S>`: `(state: S) => T`.
 
 **Example:**
 ```typescript
-import { createMicroStore, type MicroStoreActionsContext } from '@pastweb/tools';
+import { createMicroStore, effect, type MicroStoreActionsContext } from '@pastweb/tools';
 
 const useCounterStore = createMicroStore('counter', select => ({
   state: {
@@ -3338,7 +3227,7 @@ effect(() => {
 });
 ```
 
-**Notes**
+Notes
 * The exposed `.state` on the returned store is **readonly** at both the TypeScript and runtime level. All mutations must go through `actions`.
 * Use **method shorthand** or `function` syntax when accessing `this.state`. Arrow functions (`increment: () => { ... }`) do not receive the actions context as `this`; use `select` instead.
 * The action name `"state"` is reserved and cannot be used in the `actions` object.
@@ -3366,8 +3255,6 @@ Returns
 * `CollectedStore` : `Record<string, UseMicroStore<S, A>>`
   * An object with the `MicroStore` name as `key` and the hook function as `value`.
 
-
----
 
 **Example:**
 ```typescript
@@ -3674,19 +3561,13 @@ Returns a **reactive** `Location` object (stable transparent readonly proxy powe
 
 All accesses (e.g. `location.pathname`) are tracked and stay fresh. This is the recommended way to consume location inside mediators because you can capture the returned object and safely attach effects to individual properties without stale values. Leverages the object-shaped computed support (direct access, no manual sync or `.value` wrapper).
 
-**Parameters**
-
-* None.
-
-**Returns**
-
+Returns
 * `Location`
   * Reactive location with `pathname`, `searchParams`, `hash`, etc.
 
-**Example — reacting to location changes inside a mediator**
-
+**Example:**
 ```typescript
-import { useLocation, useRouter, reactive, effect } from '@pastweb/tools';
+import { effect, reactive, useLocation, useRouter } from '@pastweb/tools';
 
 export function myMediator(props: any, extras: any) {
   const router = useRouter();
@@ -3728,12 +3609,7 @@ Returns the `navigate` function from the current `ViewRouter` instance (obtained
 
 This is a convenience hook for performing navigation from within a mediator without needing to access the full router.
 
-**Parameters**
-
-* None.
-
-**Returns**
-
+Returns
 * `(path: string, state?: any) => Promise<void>`
   * The navigate function from the router.
 
@@ -3775,19 +3651,17 @@ The hook accepts the same `FilterDescriptor` as the standalone `filterRoutes` ut
 
 This is the recommended way to consume the route list inside mediators when you want to react to it (for menus, etc.) without capturing stale arrays. It follows the same direct reactive shape as other updated mediator hooks and `router.paths`.
 
-**Parameters**
+Parameters
+* `filter`: `FilterDescriptor` _(optional)_
+  * Same shape as for `filterRoutes`.
 
-* `filter`: `FilterDescriptor` _(optional)_ – same shape as for `filterRoutes`.
-
-**Returns**
-
+Returns
 * `Readonly<Route[]>` (reactive array proxy)
   * The current (filtered) routes. Use it directly.
 
-**Example — using paths inside a mediator (e.g. for a dynamic menu)**
-
+**Example:**
 ```typescript
-import { usePaths, useRouter, reactive, effect } from '@pastweb/tools';
+import { effect, reactive, usePaths, useRouter } from '@pastweb/tools';
 
 export function myMediator(props: any, extras: any) {
   const paths = usePaths({ meta: { visibleInMenu: true } });
@@ -3822,26 +3696,23 @@ This hook is intended to be called from within a mediator function. It returns a
 
 This allows safe capture of the route object from a mediator and reactive observation of its properties (using the new object computed proxy support):
 
-```ts
+```typescript
 const route = useRoute();
 effect(() => {
   console.log('Current path:', route.path);
 });
 ```
 
-**Parameters**
-
+Parameters
 * None.
 
-**Returns**
-
+Returns
 * `SelectedRoute` (reactive object)
   * `path`, `params`, `searchParams`, `hash`, `meta`, `views`, `isActive`-related fields, `setSearchParams`, `setHash`, `parent`, `child`, etc.
 
-**Example — using the current route inside a mediator**
-
+**Example:**
 ```typescript
-import { useRoute, useRouter, reactive, effect } from '@pastweb/tools';
+import { effect, reactive, useRoute } from '@pastweb/tools';
 
 export function myMediator(props: any, extras: any) {
   const route = useRoute();   // reactive proxy
@@ -3874,26 +3745,27 @@ Returns a reactive `RouterLink` object (stable transparent proxy via `computed` 
 
 `isActive`, `isExactActive`, `pathname`, and `navigate` are kept fresh automatically. Recommended for mediators needing reactive link state (direct property access, no manual subscription or `.value`). Uses the updated object computed support.
 
-**Parameters**
+Parameters
+* `options`: `RouterLinkOptions`
+  * `path`: `string`
+    * The target path (may contain `:param` placeholders).
+  * `params`: `Record<string, string | number | boolean | null | undefined>` _(optional)_
+    * Values for the placeholders.
+  * `searchParams`: `URLSearchParams` _(optional)_
+    * Query string to append.
+  * `hash`: `string` _(optional)_
+    * Hash fragment to append.
 
-* `options: RouterLinkOptions`
-  * `path: string` — The target path (may contain `:param` placeholders).
-  * `params?: Record<string, string | number | boolean | null | undefined>` — Values for the placeholders.
-  * `searchParams?: URLSearchParams` — Query string to append.
-  * `hash?: string` — Hash fragment to append.
-
-**Returns**
-
+Returns
 * `RouterLink` (reactive object)
   * `pathname: string` — The final resolved path with params/search/hash applied.
   * `isActive: boolean` — True if the current location matches the link (non-exact).
   * `isExactActive: boolean` — True if the current location exactly matches the link.
   * `navigate: (to?: string) => void` — Convenience method to navigate to this link (or an override).
 
-**Example — using router links inside a mediator**
-
+**Example:**
 ```typescript
-import { useRouterLink, effect } from '@pastweb/tools';
+import { effect, reactive, useRouterLink } from '@pastweb/tools';
 
 export function myMediator(props: any, extras: any) {
   const home = useRouterLink({ path: '/' });
@@ -3932,12 +3804,7 @@ Returns a reactive object containing the current search params (`params`) and th
 
 This is the recommended way to read/write query parameters reactively from inside mediators (uses updated computed support, no manual internal effect for the data).
 
-**Parameters**
-
-* None.
-
-**Returns**
-
+Returns
 * `{ params: URLSearchParams; setSearchParams: (searchParams: URLSearchParams) => void }`
   * `params` — The current `URLSearchParams` (updated reactively on location changes).
   * `setSearchParams` — Function to set new search params (updates the URL via navigation).
@@ -4063,9 +3930,6 @@ Given a route structure with multiple levels of nesting, routeDive will traverse
 
 ---
 
-
----
-
 ## String functions
 
 ### `camelize`
@@ -4155,13 +4019,10 @@ If no cache is provided, it simply returns a randomly generated ID (no uniquenes
 
 > #### Syntax
 ```typescript
-function hashID(
-  cache?: string[] | Set<string> | null,
-  options?: HashIDOptions
-): string;
+function hashID(cache?: string[] | Set<string> | null, options?: HashIDOptions): string;
 ```
 
-**Parameters**
+Parameters
 * `cache`: `string[] | Set<string> | null` _(optional)_
   * A list (array or Set) of existing IDs that the generated ID must not collide with. If omitted or `null`, a random ID is returned immediately without any uniqueness check.
 * `options`: `HashIDOptions` _(optional)_
@@ -4171,7 +4032,7 @@ function hashID(
     * `idLength?: number` — Length of the random portion of the ID (default: `8`).
     * `retries?: number` — Maximum number of generation attempts when a `cache` is supplied (default: `9999`).
 
-**Returns**
+Returns
 * `string`
   * A generated ID. When a `cache` is provided and no unique ID is found after exhausting retries, the last generated ID (which may collide) is returned and a console error is logged.
 
@@ -4459,26 +4320,9 @@ Below the utility list:
 
 ## Utility functions
 
-### `isSSR`
-@deprecated Use the environment detection constants from `./envs` (e.g. `!isBrowser` or `isServer`) instead.
-
-Checks whether the code is being executed in a server-side rendering (SSR) environment.
-
-**Example:**
-```typescript
-import { isSSR } from '@pastweb/tools';
-
-if (isSSR) {
-  console.log('Running on the server');
-} else {
-  console.log('Running on the client');
-}
-```
----
-
 ### Environment detection constants (`envs`)
 
-The `envs` module provides a set of boolean constants for detecting the current runtime environment. These are more precise and future-proof than the deprecated `isSSR`.
+The `envs` module provides a set of boolean constants for detecting the current runtime environment.
 
 **Available constants:**
 - `isBrowser`: `true` when running in a browser environment (has `window` and `document`).
@@ -4565,6 +4409,7 @@ Notes
   * Memoization should not be used with functions that produce side effects, as the function may not execute every time, potentially leading to inconsistent states.
 
 ---
+
 ### `noop`
 
 The `noop` function is a utility function that performs no operations (no-op) and returns `undefined`.

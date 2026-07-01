@@ -13,7 +13,6 @@ import {
   successResponseInterceptor,
   errorResponseInterceptor,
 } from './utils';
-import { createQueryCache } from '../createQueryCache';
 import type { AxiosRequestConfig } from 'axios';
 import type {
   Agent,
@@ -77,18 +76,11 @@ export function createApiAgent(options: AgentOptions = {}): Agent {
     request => errorResponseInterceptor(settings, request),
   );
 
-  // Determine queryCache for caching/SSR features.
-  // - Prefer explicit `queryCache` passed in options.
-  // - Fall back to internal only for the deprecated `cache: true` boolean.
-  // - Otherwise undefined (no automatic caching layer).
-  const queryCache = settings.options.queryCache
-    || (settings.options.cache ? createQueryCache() : undefined);
+  const queryCache = settings.options.queryCache;
 
   const agentObject: Agent = {
     agent,
     agentConfig: settings.agentConfig,
-    // @deprecated - keep a reference to the queryCache you passed instead
-    cache: queryCache || createQueryCache(),
     downloadConfig: settings.downloadConfig,
     uploadConfig: settings.uploadConfig,
     setAgentOptions: (options: AgentOptions) => setAgentOptions(settings, options),

@@ -5,6 +5,7 @@ import type { AxiosInstance } from 'axios';
 let mockIsServer = false;
 
 vi.mock('../../src/envs', () => ({
+  isBrowser: false,
   get isServer() { return mockIsServer; },
 }));
 

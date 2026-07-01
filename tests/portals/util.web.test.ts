@@ -1,34 +1,27 @@
 import { describe, it, expect } from 'vitest';
 import { open, update, close, remove } from '../../src/portals/util';
 import { createNewEntry } from './util';
-import { createIdCache, type Portals } from '../../src';
+import { setCurrentPortalsCache, type Portals } from '../../src';
 import { INITIAL_VALUE } from './constants';
 
 const portals: Portals = {};
-const idCache = createIdCache();
+setCurrentPortalsCache(portals);
 
 const portalElement = document.createElement('div') as HTMLElement;
 const portalId = 'rootPortal';
 portalElement.id = portalId;
 document.body.appendChild(portalElement);
 
-const firstConfig = {
-  portalElement,
-  idCache,
-  entry: createNewEntry({ className: 'firstEntry' })
-};
+const getPortalElement = () => portalElement;
+const firstEntry = createNewEntry({ className: 'firstEntry' });
 
-const secondConfig = {
-  portalElement,
-  idCache,
-  entry: createNewEntry({
-    className: 'secondEntry',
-    initData: { initValue: 'passedValue'},
-  }),
-};
+const secondEntry = createNewEntry({
+  className: 'secondEntry',
+  initData: { initValue: 'passedValue'},
+});
 
-const firstEntryId: string | false = open(portals, firstConfig);
-const secondEntryId: string | false = open(portals, secondConfig);
+const firstEntryId: string | false = open(getPortalElement, firstEntry);
+const secondEntryId: string | false = open(getPortalElement, secondEntry);
 
 describe('given the portal util functions', () => {
   describe('given open invoked at top level to create entries before tests', () => {
@@ -83,11 +76,7 @@ describe('given the portal util functions', () => {
 
   describe('given update invoked after the initial open setup', () => {
     it('given the first entry exists, when update is called with new data for it, then the FirstEntry should contain the "newFirstEntryValue"', () => {
-      update(portals, {
-        portalElement,
-        entryId: firstEntryId as string,
-        entryData: 'newFirstEntryValue'
-      });
+      update(getPortalElement, firstEntryId as string, 'newFirstEntryValue');
       
       const element = document.querySelector('.firstEntry') as HTMLElement;
       
@@ -96,7 +85,7 @@ describe('given the portal util functions', () => {
     });
 
     it('given the second entry exists, when update is called with new data for it, then the SecondEntry should contain the "newSecondEntryValue"', () => {
-      update(portals, { portalElement, entryId: secondEntryId as string, entryData: 'newSecondEntryValue' });
+      update(getPortalElement, secondEntryId as string, 'newSecondEntryValue');
       
       const entryElement = document.getElementById(secondEntryId as string) as HTMLElement;
       const element = document.querySelector('.secondEntry') as HTMLElement;
@@ -108,13 +97,15 @@ describe('given the portal util functions', () => {
   });
 
   describe('given remove invoked after the initial open and update setup', () => {
-    it('given the first entry exists in DOM, when remove is called for it, then the firstEntry portal element should not be present', () => {
-      remove(portals, { portalElement, entryId: firstEntryId as string, idCache });
+    it('given the first entry exists in DOM, when remove is called for it, then the firstEntry portal element should not be present', async () => {
+      remove(getPortalElement, firstEntryId as string);
+      await new Promise(resolve => setTimeout(resolve, 20));
       expect(document.getElementById(firstEntryId as string)).toBe(null);
     });
 
-    it('given the second entry exists in DOM, when remove is called for it, then the secondEntry portal element should not be present', () => {
-      remove(portals, { portalElement, entryId: secondEntryId as string, idCache });
+    it('given the second entry exists in DOM, when remove is called for it, then the secondEntry portal element should not be present', async () => {
+      remove(getPortalElement, secondEntryId as string);
+      await new Promise(resolve => setTimeout(resolve, 20));
       expect(document.getElementById(secondEntryId as string)).toBe(null);
     });
   });

@@ -17,7 +17,7 @@ export interface InfiniteQueryInitialData<TPage, TPageParam> {
  * ```ts
  * const posts = useInfiniteQuery({
  *   initialPageParam: 1,
- *   fn: page => agent.get(`/posts?_page=${page}&_limit=10`),
+ *   fn: page => agent.get(`/posts?page=${page}&limit=10`),
  *   getNextPageParam: lastPage => lastPage.pagination?.current + 1,
  * });
  * ```

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { routeDive, SelectedRoute } from '../../src/createViewRouter';
+import { routeDive, SelectedRoute } from '../../../src/createViewRouter';
 
 describe('routeDive', () => {
   let mockRoute: SelectedRoute;

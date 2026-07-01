@@ -7,9 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Deprecated
-- `isSSR` is deprecated. Use the environment detection constants from `envs` instead (e.g. `isServer` or `!isBrowser`).
-
 ### Added
 - `useInfiniteQuery` hook under `src/api/hooks/useInfiniteQuery`. It manages ordered `pages` and `pageParams`, supports `fetch()` reset, `fetchNextPage()` append, and `fetchPreviousPage()` prepend flows, exposes the same lifecycle status model as `useQuery`, supports retry options, and can infer next/previous pages from agent pagination metadata when custom page-param resolvers are omitted. Added browser tests in `useInfiniteQuery.web.test.ts`.
 - `createQueryCache({ refetchOnReconnect })` for browser `online` refetch checks, plus `queryCache.invalidateQueries(keys)` to invalidate multiple keys by delegating to `invalidateQuery`.
@@ -18,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `retry` and `retryDelay` support for `useQuery` and `useMutation`. Retries are hook-level only and wrap the provided `fn` without changing cache behavior. `retry` accepts `boolean`, `number`, or a predicate function; `retryDelay` accepts milliseconds, a `stringToMs` duration string, or a function. Added tests in `useQueryRetry.web.test.ts` and `useMutationRetry.web.test.ts`, plus README / `QUERY.md` updates.
 - `agent.get(url, { select })` in `QueryOptions`. `select` projects the returned `response.data` for the current caller while the shared `QueryCache` keeps the raw response data. `response.onData(...)` callbacks are wrapped with the same selector so cache-driven updates keep the projected shape. Added browser tests in `tests/createApiAgent/selectOption.web.test.ts` and updated README / `QUERY.md`.
 - `CacheOptions` for `createQueryCache({ refetchOnWindowFocus?: boolean, refetchOnReconnect?: boolean })`. When `true` (default `false`), and only in the browser, window `focus` or `online` re-runs all `checker` functions stored in `recallCache`. Tests in `createQueryCache.web.test.ts`. Updated README + TSDoc.
+- Page-level query-cache hydration support: `createQueryCache({ deHydratedScriptID })`, `DEHYDRATED_SCRIPT_ID`, and `QueryCache#getDehydrateScriptID()`. In the browser, `createQueryCache()` now hydrates automatically when the configured dehydrated snapshot script is present. Added `pageDehydratedSnapshot.*.test.ts` coverage.
 - `createMicroStore` actions can now access the mutable internal state via `this.state` (in addition to the existing setup `select` helper). New exported type `MicroStoreActionsContext<S>` for typing `this` in actions. Updated TSDoc, README, and tests (`createMicroStore.node.test.ts`).
 - **SSR / hybrid render primitives** (Phase 1 of `PLAN.md`):
   - `runSSRCycle` — framework-agnostic orchestrator: collect → `resolveAsyncTasks` → collect → `dehydrate` → `hydrate` → render, with static downgrade when the SSR tracker reports dynamic behavior.
@@ -30,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Exported `serializeQueryKey` from the package root.
 
 ### Changed
+- Removed the deprecated SSR boolean export and subpath. Use the environment detection constants from `envs` instead, such as `isServer` or `!isBrowser`.
+- Removed the deprecated `createApiAgent({ cache: true })` implementation and the `agent.cache` property. GET caching and SSR query collection now only opt in through an explicit `queryCache`; keep that `queryCache` reference for `dehydrate`, `hydrate`, and invalidation.
 - SSR helpers now live under `src/ssrUtils` with public subpath exports from `@pastweb/tools/ssrUtils`. Root exports remain available for convenience.
 - **Query cache lifecycle options** (`createQueryCache` / `agent.get` `QueryOptions`):
   - Renamed `callOnExpired` → `fetchOnExpired` (same semantics: `true` = passive stale check on next get; `string` = active polling timer).
@@ -38,8 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `removeOnInvalidate` — delete entry immediately on invalidation.
   - Fixed `scheduleRecall` timer scheduling and `invalidateQuery` key handling for invalidate-all.
   - Options are persisted in `dehydrate`/`hydrate` snapshots. Updated TSDoc (types, utils, `QUERY_CACHE_CONTEXT_KEY`, `QueryConfig`), README, tests (`createQueryCache.node.test.ts`, `createQueryCache.web.test.ts`), and renamed `callOnExpired` references in existing tests.
-- Replaced internal `isSSR` usage across the package with `isBrowser` / `isServer` from `envs` (browser/DOM checks use `isBrowser`; server-only SSR logic uses `isServer`). The deprecated `isSSR` export remains for backward compatibility.
-- `dehydrate()` has been removed from the `Agent` interface (and runtime object). It is now only available on `QueryCache` (i.e. `agent.cache.dehydrate()` or the shared cache instance returned by `createQueryCache()`). This aligns with using a shared cache for SSR collection scenarios.
+- Replaced internal SSR environment checks across the package with `isBrowser` / `isServer` from `envs` (browser/DOM checks use `isBrowser`; server-only SSR logic uses `isServer`).
+- `dehydrate()` has been removed from the `Agent` interface (and runtime object). It is now only available on `QueryCache` (the shared cache instance returned by `createQueryCache()`). This aligns with using a shared cache for SSR collection scenarios.
 - Refactored `createApiAgent` module structure under `src/api/`: split logic into `createApiAgent/`, `createQueryCache/`, `useQuery.ts`, `useMutation.ts`, and shared `types.ts` and `utils.ts` for better maintainability. All public and internal functions (and types) now have comprehensive TSDoc. The public API surface remains the same.
 - In `getMethod` (used by `agent.get`): a `console.error` is now emitted when cache-related options (`queryKey` or `expireIn`) are used on a call but the agent was not created with `queryCache` in `AgentOptions`. This helps catch cases where caching features are accidentally disabled.
 
@@ -48,10 +48,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New constants: `isNode`, `isDeno`, `isBun`, `isElectron`
   - `isServer` is now a composite that returns `true` for Node.js, Deno, **or** Bun.
   - All env constants exported from main package.
-  - These provide more precise platform detection than the deprecated `isSSR`.
+  - These provide precise platform detection for browser, server, and native-like runtimes.
 - Tests for the envs constants (`tests/envs/envs.web.test.ts` and `tests/envs/envs.node.test.ts`), now covering `isNode`, `isDeno`, `isBun`, and updated `isServer` behavior.
 - Structured `queryKey?: unknown[]` support (hybrid with URL keys): `QueryConfig` (for `useQuery`) and `QueryOptions` (passed to `agent.get`) now accept optional `queryKey`. When an array is provided, it is serialized (via JSON.stringify) and used as the cache key for `set`/`get`/`dehydrate` etc; if omitted the request URL is used as before. Legacy string `queryKey` still warns and falls back to URL. This enables future TanStack-like cache identity while preserving existing URL-keyed usage.
-- `registerAsyncTask` and `resolveAsyncTasks` utilities. These allow code to register asynchronous work during an initial render/ collection pass on the server; `resolveAsyncTasks` executes the registered work (with iterative support for tasks that register additional work while running). Useful for patterns involving asynchronously loaded components.
+- `ssrUtils/asyncTasks` utilities: `registerAsyncTask` and `resolveAsyncTasks`. These allow code to register asynchronous work during an initial render/ collection pass on the server; `resolveAsyncTasks` executes the registered work (with iterative support for tasks that register additional work while running). Useful for patterns involving asynchronously loaded components.
 - Dedicated server-side and browser tests for `useQuery` + cache (`useQuery.node.test.ts`, updates to `useQuery.web.test.ts` and `createApiAgent.web.test.ts`) using GWT titles and covering shared cache, dehydrate registration, callOnExpired, etc.
 - `ready: Promise<void>` property on `ViewRouter`.
   - Resolves after the initial route has been resolved (browser auto-init, `initialRequest`, or manual `setRequest`/`initialSetup`).
@@ -107,7 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `stringToMs` utility: converts duration strings (same format as `isDateYoungerOf`) to milliseconds. Added comprehensive TSDoc, tests (`tests/stringToMs/stringToMs.node.test.ts`, GWT style), documentation under the "Date and Time" section in README, and export from the root `index.ts` + `package.json`. Fixed minute (`m`) vs month (`M`) parsing so lowercase `m` is correctly treated as minutes (used internally by query-cache delay scheduling).
 
 ### Changed
-- Query cache logic extracted to its own module `src/createApiAgent/createQueryCache.ts` (exported). Agents now accept `queryCache?: QueryCache` to reuse an external cache instance (useful for sharing across agents in SSR). Internal `get` always uses the provided or created cache when `cache: true` (or via the cache-aware path).
+- Query cache logic extracted to its own module `src/createApiAgent/createQueryCache.ts` (exported). Agents accept `queryCache?: QueryCache` to reuse an external cache instance (useful for sharing across agents in SSR), and cache-aware `get` behavior is driven by that explicit cache instance.
 - `useRoute` hook (and siblings) evolved with reactivity: initially to direct reactive object via `reactive + effect + update` (no more {value}), later further to direct `computed` transparent proxy for the route data (simpler, leverages object computed support). See later entries for final form. Direct prop access + effect observation supported throughout. TSDoc/tests/docs kept updated.
 - `usePaths` hook redesigned to return the (optionally filtered) routes directly as a reactive `Readonly<Route[]>` (transparent readonly proxy from `computed`). You now use `paths.length`, `paths.map(...)`, `paths.some(...)` etc. directly with no `.value` wrapper. This is consistent with `router.paths`, the direct array proxy shape for object results from `computed`, and the patterns of other mediator hooks. The previous `{ readonly value: Route[] }` shape and internal getter wrapper have been removed. Updated TSDoc, implementation, tests, and README.
 - `useLocation`, `useRoute`, and `useRouterLink` mediator hooks further redesigned for the transparent object `computed` support: now simply `return computed(() => router.xxx)` (stable proxy with direct prop access + tracking) instead of the previous `reactive + internal effect + update(...)` syncing logic. `useSearchParams` now derives its `params` via `computed` (still exposing real `URLSearchParams` instances and the setter) with no manual effect for data sync. This is simpler, removes `update` dependency from the hooks, and fully leverages new computed object/array proxies while preserving capture-from-mediator + effect-on-props behavior. TSDoc, tests, and comments updated.

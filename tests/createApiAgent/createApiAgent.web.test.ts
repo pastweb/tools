@@ -3,6 +3,11 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { createApiAgent, createQueryCache } from '../../src/api';
 
+vi.mock('../../src/envs', () => ({
+  isBrowser: true,
+  isServer: false,
+}));
+
 describe('given createApiAgent factory, when instantiating and configuring an agent, then it supports request methods, caching, pagination, auth, and file operations with correct behavior', () => {
   let mock: MockAdapter;
 
@@ -17,7 +22,7 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
     vi.useRealTimers();
   });
 
-  it('given no options provided, when createApiAgent is called, then the agent has undefined withCredentials, default headers object, and empty cache', async () => {
+  it('given no options provided, when createApiAgent is called, then the agent has undefined withCredentials, default headers object, and no cache', async () => {
     const defaultHeaders = {
       common: {
         Accept: 'application/json, text/plain, */*',
@@ -36,15 +41,15 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
 
     expect(agent.agent.defaults.withCredentials).toBeUndefined();
     expect(JSON.stringify(agent.agent.defaults.headers)).toEqual(JSON.stringify(defaultHeaders));
-    expect(agent.cache.getAll()).toEqual([]);
+    expect('cache' in agent).toBe(false);
   });
 
-  it('given custom headers and cache enabled, when createApiAgent is called, then agentConfig.headers match the provided headers and cache starts empty', async () => {
+  it('given custom headers and queryCache, when createApiAgent is called, then agentConfig.headers match the provided headers and cache starts empty', async () => {
     const headers = { 'X-Custom-Header': 'value' };
     const queryCache = createQueryCache();
     const agent = createApiAgent({ headers, queryCache });
     expect(JSON.stringify(agent.agentConfig.headers)).toEqual(JSON.stringify(headers));
-    expect(agent.cache.getAll()).toEqual([]);
+    expect(queryCache.getAll()).toEqual([]);
   });
 
   it('given withCredentials true, when createApiAgent is called, then withCredentials is true for agentConfig, uploadConfig and downloadConfig', async () => {
@@ -80,8 +85,8 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
 
     const response1 = await agent.get(url, { queryKey: qk });
     expect(response1.data).toEqual(responseData);
-    expect(agent.cache.has(url)).toBe(false);
-    expect(agent.cache.has(serializedKey)).toBe(true);
+    expect(queryCache.has(url)).toBe(false);
+    expect(queryCache.has(serializedKey)).toBe(true);
 
     mock.onGet(url).reply(500); // Simulate failure
     const response2 = await agent.get(url, { queryKey: qk });
@@ -98,11 +103,11 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
     // First request: cache the response
     const response1 = await agent.get(url, { expireIn: '1s' });
     expect(response1.data).toEqual(responseData);
-    expect(agent.cache.has(url)).toBe(true);
+    expect(queryCache.has(url)).toBe(true);
     expect(mock.history.get.length).toBe(1);
 
     // Modify the cache entry (QueryData) to simulate an older timestamp (2 seconds ago)
-    const cacheEntry = agent.cache.get(url);
+    const cacheEntry = queryCache.get(url);
     if (cacheEntry) {
       cacheEntry.timestamp = Date.now() - 2000;
     }
@@ -111,8 +116,8 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
     vi.advanceTimersByTime(2000);
 
     // Second request: should make a new request because cache is stale (isDateYoungerOf fails)
-    const response2 = await agent.get(url);
-    expect(agent.cache.has(url)).toBe(true); // Cache is updated with new response
+    const response2 = await agent.get(url, { expireIn: '1s' });
+    expect(queryCache.has(url)).toBe(true); // Cache is updated with new response
     expect(mock.history.get.length).toBe(2); // New request was made
     expect(response2.data).toEqual(responseData);
   });
@@ -125,10 +130,10 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
     mock.onGet(url).reply(200, responseData);
 
     await agent.get(url);
-    expect(agent.cache.has(url)).toBe(true);
+    expect(queryCache.has(url)).toBe(true);
 
-    agent.cache.invalidateQuery(url);
-    const data = agent.cache.get(url);
+    queryCache.invalidateQuery(url);
+    const data = queryCache.get(url);
     expect(data?.invalid).toBe(true);
   });
 
@@ -143,14 +148,14 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
 
     await agent.get(url1);
     await agent.get(url2);
-    expect(agent.cache.has(url1)).toBe(true);
-    expect(agent.cache.has(url2)).toBe(true);
+    expect(queryCache.has(url1)).toBe(true);
+    expect(queryCache.has(url2)).toBe(true);
 
     // Multiple different prefixes: call invalidateQuery for each (or use a broader common prefix)
-    agent.cache.invalidateQuery('/api/users');
-    agent.cache.invalidateQuery('/api/posts');
-    const data1 = agent.cache.get(url1);
-    const data2 = agent.cache.get(url2);
+    queryCache.invalidateQuery('/api/users');
+    queryCache.invalidateQuery('/api/posts');
+    const data1 = queryCache.get(url1);
+    const data2 = queryCache.get(url2);
     expect(data1?.invalid).toBe(true);
     expect(data2?.invalid).toBe(true);
   });
@@ -165,11 +170,11 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
 
     await agent.get(url, { queryKey: qk });
     const serialized = JSON.stringify(qk);
-    expect(agent.cache.has(serialized)).toBe(true);
+    expect(queryCache.has(serialized)).toBe(true);
 
     // Should accept the same array form used at query time
-    agent.cache.invalidateQuery(qk);
-    expect(agent.cache.get(serialized)?.invalid).toBe(true);
+    queryCache.invalidateQuery(qk);
+    expect(queryCache.get(serialized)?.invalid).toBe(true);
   });
 
   it('given an agent created without queryCache, when get is called using queryKey or expireIn, then console.error is emitted explaining the missing queryCache', async () => {
@@ -181,7 +186,7 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
 
     await agent.get('/warn1', { queryKey: ['test'] });
     expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining('cache-related options (queryKey and/or expireIn)')
+      expect.stringContaining('cache-related options')
     );
     expect(spy).toHaveBeenCalledWith(
       expect.stringContaining('no `queryCache` was passed in AgentOptions')
@@ -192,6 +197,23 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
     await agent.get('/warn2', { expireIn: '30s' });
     expect(spy).toHaveBeenCalledWith(
       expect.stringContaining('cache-related options')
+    );
+
+    spy.mockRestore();
+  });
+
+  it('given legacy cache true is passed through untyped code, when get is called with cache options, then no internal cache is created', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const agent = createApiAgent({ cache: true } as any);
+
+    mock.onGet('/legacy-cache').reply(200, { ok: true });
+
+    const response = await agent.get('/legacy-cache', { queryKey: ['legacy-cache'] });
+
+    expect(response.data).toEqual({ ok: true });
+    expect('cache' in agent).toBe(false);
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('no `queryCache` was passed in AgentOptions')
     );
 
     spy.mockRestore();
