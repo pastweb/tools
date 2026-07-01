@@ -48,6 +48,7 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "release": "bumpp",
+    "push:release": "node scripts/push-release.mjs",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
