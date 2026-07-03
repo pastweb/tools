@@ -1,7 +1,7 @@
 import { isBrowser } from '../../envs';
 import { setCache, invalidateQuery, invalidateQueries, dehydrate, hydrate, runRecallCheckers } from './utils';
 import { resetForSSR as resetCacheForSSR } from './utils';
-import { DEHYDRATED_SCRIPT_ID } from './constnts';
+import { DEHYDRATED_SCRIPT_ID } from './constants';
 import { readPageDehydratedSnapshot } from './utils/readPageDehydratedSnapshot';
 import type { AxiosInstance } from 'axios';
 import type { QueryOptions } from '../createApiAgent';

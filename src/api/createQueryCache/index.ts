@@ -11,7 +11,7 @@ export {
   clearSSRDehydratedState,
   DEHYDRATED_SCRIPT_ID,
 } from './utils';
-export { QUERY_CACHE_CONTEXT_KEY } from './constnts';
+export { QUERY_CACHE_CONTEXT_KEY } from './constants';
 
 export type {
   CacheOptions,

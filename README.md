@@ -28,7 +28,7 @@ The documentation is organized into the following major categories. Each section
 - **Async functions** — Tools for working with promises, API clients (`createApiAgent`, `useQuery`, `useMutation`), async stores, event emitters, debouncing, and throttling.
 - **Browser functions** — Client-side utilities including device detection, color scheme management, persistent storage, and the complete routing system.
 - **Date and Time** — Helpers for comparing dates and converting duration strings to milliseconds.
-- **Element functions** — DOM and UI utilities (class name composition, portals, anchor generation, element sizing).
+- **Element functions** — DOM and UI utilities (class name composition, shared island contracts, portals, anchor generation, element sizing).
 - **Object functions** — General-purpose object utilities (deep merging, property assignment, type checking, immutability helpers, and more).
 - **Reactivity** — A complete reactivity system (`reactive`, `ref`, `computed`, `effect`) together with supporting utilities and the Global Context pattern.
 - **Routing** — The full `createViewRouter` solution, including route definition, matching, navigation, and mediator hooks for framework integration.
@@ -68,6 +68,7 @@ This project is distributed under the MIT licence.
 - [Element functions](#element-functions)
   - [cl](#cl)
   - [createEntry](#createentry)
+  - [Island shared contracts](#island-shared-contracts)
   - [createPortal](#createportal)
     - [anchorsSetup](#anchorssetup)
     - [generateAnchors](#generateanchors)
@@ -122,6 +123,8 @@ This project is distributed under the MIT licence.
   - [setup](#setup)
 - [Utility functions](#utility-functions)
   - [Environment detection constants (envs)](#environment-detection-constants-envs)
+  - [getFunctionSignature](#getfunctionsignature)
+  - [isHMREnabled](#ishmrenabled)
   - [memo](#memo)
   - [noop](#noop)
 
@@ -199,6 +202,7 @@ Cache
 
 | Option | Type | Behavior |
 |--------|------|----------|
+| `queryKey` | `QueryKey` (`unknown[] \| string`) | Stable cache identity for the GET request. Arrays are recommended and serialized for targeted invalidation; strings are supported for URL-style or legacy keys. |
 | `select` | `(data, response) => any` | Projects `response.data` for the current `agent.get` call. The cache stores the raw response; `onData` updates are projected with the same selector. |
 | `toon` | `boolean` | Adds `text/toon` to the GET request `Accept` header. If the server responds with `content-type` containing `text/toon`, the response body is decoded with `@toon-format/toon`. |
 | `fetchOnExpired` | `true \| string` | Replaces the former `callOnExpired`. `true` = passive (refetch on next `get` only if stale). `string` = active timer that auto-refetches when `expireIn` is exceeded. |
@@ -209,10 +213,11 @@ Cache
 | `ssrRevalitate` | `string \| false` | Static page revalidation hint for SSR dependencies. Strings are converted to milliseconds with `stringToMs`; `false` disables time-based revalidation. |
 
 ```typescript
-import { createApiAgent, createQueryCache } from '@pastweb/tools';
+import { createApiAgent, createQueryCache, type QueryKey } from '@pastweb/tools';
 
 const queryCache = createQueryCache();
 const agent = createApiAgent({ queryCache });
+const usersKey: QueryKey = ['users'];
 
 // Example API response:
 // {
@@ -220,14 +225,14 @@ const agent = createApiAgent({ queryCache });
 //   meta: { total: 1 }
 // }
 const usersResponse = await agent.get('/api/users', {
-  queryKey: ['users'],
+  queryKey: usersKey,
   select: data => data.items,
 });
 console.log(usersResponse.data); // [{ id: 1, name: 'Ada' }]
 
 // Another caller can reuse the same cache entry and select a different view.
 const usersTotalResponse = await agent.get('/api/users', {
-  queryKey: ['users'],
+  queryKey: usersKey,
   select: data => data.meta.total,
 });
 console.log(usersTotalResponse.data); // 1
@@ -856,7 +861,7 @@ import {
 
 ### `registerAsyncTask` / `resolveAsyncTasks`
 
-These helpers are designed so that code running during the initial (collection) render pass can declare async work that should happen afterwards. The resolution step uses an iterative loop so that work discovered while executing earlier tasks (e.g. from nested async components) is also handled.
+These helpers are designed so that code running before the render pass can declare async work that should happen afterwards. The resolution step uses an iterative loop so that work discovered while executing earlier tasks (e.g. from nested async components) is also handled.
 
 > #### Syntax
 ```typescript
@@ -1835,6 +1840,107 @@ const entry = createEntry({
 entry.on('someEvent', () => console.log('Event triggered'));
 entry.emit('someEvent');
 ```
+---
+
+### Island shared contracts
+
+Framework-specific packages can use the `Island` contracts to share hydration strategy names, default props, and the context key used to mark an active island boundary. The tools package does not render or hydrate an island by itself; React, Vue, and other adapters should implement their own components around these shared values.
+
+> #### Syntax
+```typescript
+type ClientStrategy = 'load' | 'idle' | 'visible' | 'media' | 'none';
+
+interface IslandProps {
+  client?: ClientStrategy;
+  media?: string;
+  fallback?: any;
+  idleTimeout?: number;
+  islandId?: string;
+}
+
+interface IslandDefaultProps {
+  client: ClientStrategy;
+  media?: string;
+  fallback?: any;
+  idleTimeout: number;
+  islandId?: string;
+}
+
+const DEFAULT_ISLAND_PROPS: Pick<IslandDefaultProps, 'client' | 'idleTimeout'>;
+const ISLAND_CONTEXT_KEY: string;
+```
+
+Exports
+* `ClientStrategy`:
+  * Shared hydration strategy union used by framework-specific Island components.
+* `IslandProps`:
+  * Public Island props accepted before defaults are applied.
+* `IslandDefaultProps`:
+  * Normalized Island props after framework adapters merge `DEFAULT_ISLAND_PROPS`.
+* `DEFAULT_ISLAND_PROPS`:
+  * The default island options: `{ client: 'visible', idleTimeout: 5000 }`.
+* `ISLAND_CONTEXT_KEY`:
+  * Shared key used by framework adapters to provide or read island boundary context.
+
+Hydration strategies
+* `load`:
+  * Hydrate as soon as the client entry is ready.
+* `idle`:
+  * Hydrate when the browser is idle. `idleTimeout` can bound the wait.
+* `visible`:
+  * Hydrate when the island enters the viewport.
+* `media`:
+  * Hydrate when the `media` query matches.
+* `none`:
+  * Do not hydrate automatically.
+
+**Example:**
+```typescript
+import {
+  DEFAULT_ISLAND_PROPS,
+  ISLAND_CONTEXT_KEY,
+  type IslandDefaultProps,
+  type IslandProps,
+} from '@pastweb/tools';
+
+function normalizeIslandProps(props: IslandProps): IslandDefaultProps {
+  return {
+    ...DEFAULT_ISLAND_PROPS,
+    ...props,
+  };
+}
+
+const props = normalizeIslandProps({
+  client: 'idle',
+  idleTimeout: 3000,
+  islandId: 'hero-search',
+});
+
+console.log(ISLAND_CONTEXT_KEY, props.client);
+```
+
+Subpath import
+```typescript
+import { DEFAULT_ISLAND_PROPS } from '@pastweb/tools/Island';
+import type { ClientStrategy, IslandProps } from '@pastweb/tools/Island';
+```
+
+Use Cases
+* `Framework adapters`:
+  * Keep React, Vue, and other framework packages aligned on the same hydration strategy names and default values.
+* `Partial hydration`:
+  * Use `islandId` and `ISLAND_CONTEXT_KEY` to coordinate nested entries that should only hydrate inside an island boundary.
+* `Server-rendered UI`:
+  * Normalize `IslandProps` before choosing the client-side hydration trigger.
+
+Notes
+* `Island` contracts are framework-agnostic:
+  * The tools package intentionally does not define a component, composable, provider, or hook.
+* `fallback` is framework-specific:
+  * It is typed as `any` because each framework has its own renderable node type.
+* `media` is only meaningful with `client: 'media'`:
+  * Framework adapters should decide how to handle a missing media query.
+
 ---
 
 ### `createPortal`
@@ -4350,6 +4456,76 @@ if (isServer) {
 
 ---
 
+### `getFunctionSignature`
+
+`getFunctionSignature` returns a stable source-code signature for a function value.
+
+It is useful for development tooling and HMR-aware adapters that need to detect whether a function body changed while preserving normal runtime state. Non-function values return an empty string.
+
+> #### Syntax
+```typescript
+function getFunctionSignature<T = unknown>(fn: T): string;
+```
+
+Parameters
+* `fn`: `T`
+  * Value to inspect.
+
+Returns
+* `string`
+  * The function source signature, or an empty string when `fn` is not a function.
+
+**Example:**
+```typescript
+import { getFunctionSignature } from '@pastweb/tools';
+
+const first = getFunctionSignature(() => 'first');
+const second = getFunctionSignature(() => 'second');
+
+console.log(first === second); // false
+console.log(getFunctionSignature('not a function')); // ''
+```
+
+---
+
+### `isHMREnabled`
+
+`isHMREnabled` checks whether import metadata exposes a Hot Module Replacement API.
+
+Vite exposes HMR through `import.meta.hot`. Webpack 5 and compatible bundlers such as Rspack expose it through `import.meta.webpackHot` when code is compiled as strict ESM.
+
+> #### Syntax
+```typescript
+function isHMREnabled(meta?: HotImportMeta): boolean;
+```
+
+Parameters
+* `meta`: `HotImportMeta` _(optional)_
+  * Import metadata to inspect. Defaults to the current module's `import.meta`.
+
+Returns
+* `boolean`
+  * `true` when Vite or Webpack-compatible HMR metadata is present.
+
+**Example:**
+```typescript
+import { isHMREnabled } from '@pastweb/tools';
+
+if (isHMREnabled()) {
+  console.log('Hot updates are available for this module');
+}
+```
+
+**Example:**
+```typescript
+import { isHMREnabled, type HotImportMeta } from '@pastweb/tools';
+
+const isViteLike = isHMREnabled({ hot: {} } as HotImportMeta);
+const isWebpackLike = isHMREnabled({ webpackHot: {} } as HotImportMeta);
+```
+
+---
+
 ### `memo`
 
 The `memo` function is a higher-order utility that enables memoization of another function. Memoization is a performance optimization technique that caches the results of expensive function calls and reuses the cached result when the same inputs occur again. This can significantly reduce the time complexity of certain operations, especially in scenarios where the function is called repeatedly with the same arguments.
@@ -4444,6 +4620,4 @@ exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
-© 2026 Domenico Pasto
+[MIT](./LICENSE) License (c) 2026 [Domenico Pasto](https://github.com/pastweb)

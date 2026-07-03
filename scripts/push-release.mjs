@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
@@ -29,6 +30,27 @@ function read(command, args) {
   return result.stdout.trim();
 }
 
+function writeJson(file, value) {
+  writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function updatePackageVersion(version) {
+  const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+  packageJson.version = version;
+  writeJson('package.json', packageJson);
+
+  if (!existsSync('package-lock.json')) return;
+
+  const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+  packageLock.version = version;
+
+  if (packageLock.packages?.['']) {
+    packageLock.packages[''].version = version;
+  }
+
+  writeJson('package-lock.json', packageLock);
+}
+
 const rl = createInterface({ input, output });
 const rawVersion = await rl.question('Release version (for example 2.4.0): ');
 rl.close();
@@ -48,7 +70,7 @@ if (existingTags) {
   process.exit(1);
 }
 
-run('npm', ['version', version, '--no-git-tag-version', '--allow-same-version']);
+updatePackageVersion(version);
 run('npm', ['run', 'build']);
 run('git', ['status']);
 run('git', ['add', '.']);
@@ -67,4 +89,4 @@ if (hasStagedChanges) {
 run('git', ['tag', tagName]);
 run('git', ['push']);
 run('git', ['push', 'origin', tagName]);
-run('npm', ['publish']);
+console.log('Publishing to npm. Just run "npm publish".');

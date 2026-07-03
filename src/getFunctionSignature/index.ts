@@ -1,0 +1,1 @@
+export { getFunctionSignature } from './getFunctionSignature';

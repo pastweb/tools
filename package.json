@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Production-ready, tree-shakeable utilities for modern JavaScript and TypeScript web applications.",
   "keywords": [
     "api-client",
@@ -191,9 +191,9 @@
       "import": "./dist/api/createQueryCache/index.mjs",
       "require": "./dist/api/createQueryCache/index.cjs"
     },
-    "./api/createQueryCache/constnts": {
-      "import": "./dist/api/createQueryCache/constnts.mjs",
-      "require": "./dist/api/createQueryCache/constnts.cjs"
+    "./api/createQueryCache/constants": {
+      "import": "./dist/api/createQueryCache/constants.mjs",
+      "require": "./dist/api/createQueryCache/constants.cjs"
     },
     "./api/createQueryCache/createQueryCache": {
       "import": "./dist/api/createQueryCache/createQueryCache.mjs",
@@ -763,6 +763,14 @@
       "import": "./dist/getFullElementSize/types.mjs",
       "require": "./dist/getFullElementSize/types.cjs"
     },
+    "./getFunctionSignature": {
+      "import": "./dist/getFunctionSignature/index.mjs",
+      "require": "./dist/getFunctionSignature/index.cjs"
+    },
+    "./getFunctionSignature/getFunctionSignature": {
+      "import": "./dist/getFunctionSignature/getFunctionSignature.mjs",
+      "require": "./dist/getFunctionSignature/getFunctionSignature.cjs"
+    },
     "./getType": {
       "import": "./dist/getType/index.mjs",
       "require": "./dist/getType/index.cjs"
@@ -822,6 +830,30 @@
     "./isDateYoungerOf/isDateYoungerOf": {
       "import": "./dist/isDateYoungerOf/isDateYoungerOf.mjs",
       "require": "./dist/isDateYoungerOf/isDateYoungerOf.cjs"
+    },
+    "./isHMREnabled": {
+      "import": "./dist/isHMREnabled/index.mjs",
+      "require": "./dist/isHMREnabled/index.cjs"
+    },
+    "./isHMREnabled/isHMREnabled": {
+      "import": "./dist/isHMREnabled/isHMREnabled.mjs",
+      "require": "./dist/isHMREnabled/isHMREnabled.cjs"
+    },
+    "./isHMREnabled/types": {
+      "import": "./dist/isHMREnabled/types.mjs",
+      "require": "./dist/isHMREnabled/types.cjs"
+    },
+    "./Island": {
+      "import": "./dist/Island/index.mjs",
+      "require": "./dist/Island/index.cjs"
+    },
+    "./Island/constants": {
+      "import": "./dist/Island/constants.mjs",
+      "require": "./dist/Island/constants.cjs"
+    },
+    "./Island/types": {
+      "import": "./dist/Island/types.mjs",
+      "require": "./dist/Island/types.cjs"
     },
     "./isObject": {
       "import": "./dist/isObject/index.mjs",

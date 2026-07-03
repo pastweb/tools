@@ -11,6 +11,7 @@ export type {
   PageLimit,
   PageNumber,
   PaginationConfig,
+  QueryKey,
   QueryOptions,
   ApiSSRMode,
   QueryResponse,

@@ -1,4 +1,4 @@
-import { DEHYDRATED_SCRIPT_ID } from '../constnts';
+import { DEHYDRATED_SCRIPT_ID } from '../constants';
 
 /**
  * Reads the page-level dehydrated query-cache snapshot from the current document.

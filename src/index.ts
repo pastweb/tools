@@ -24,6 +24,7 @@ export type {
   QueryFetchStatus,
   QueryInfo,
   QueryData,
+  QueryKey,
   QueryOptions,
   ApiSSRMode,
   CacheOptions,
@@ -124,6 +125,7 @@ export type { DebouceCallback } from './debounce';
 export { deepMerge } from './deepMerge';
 
 export { getFullElementSize } from './getFullElementSize';
+export { getFunctionSignature } from './getFunctionSignature';
 export type { FullElementSize, Attribute } from './getFullElementSize';
 
 export { getType } from './getType';
@@ -147,6 +149,11 @@ export type {
 
 export { hashID, type HashIDOptions } from './hashID';
 export { isDateYoungerOf } from './isDateYoungerOf';
+export { isHMREnabled, type HotImportMeta } from './isHMREnabled';
+
+export { DEFAULT_ISLAND_PROPS, ISLAND_CONTEXT_KEY } from './Island';
+export type { ClientStrategy, IslandProps, IslandDefaultProps } from './Island';
+
 export { isObject } from './isObject';
 export { isType } from './isType';
 export { kebabize } from './kebabize';

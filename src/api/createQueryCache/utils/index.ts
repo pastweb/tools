@@ -16,7 +16,7 @@ export { dehydrate } from './dehydrate';
 export { hydrate } from './hydrate';
 export { resetForSSR } from './resetForSSR';
 export { sliceDehydratedState } from './sliceDehydratedState';
-export { DEHYDRATED_SCRIPT_ID } from '../constnts';
+export { DEHYDRATED_SCRIPT_ID } from '../constants';
 export {
   setSSRDehydratedState,
   getSSRDehydratedState,

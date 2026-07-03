@@ -1,5 +1,5 @@
 import { getContextUtils } from '../../globalContext';
-import { QUERY_CACHE_CONTEXT_KEY } from '../createQueryCache/constnts';
+import { QUERY_CACHE_CONTEXT_KEY } from '../createQueryCache/constants';
 import type { QueryCache } from '../createQueryCache/types';
 
 /**

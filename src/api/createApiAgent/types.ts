@@ -97,6 +97,21 @@ export type AgentOptions = {
  */
 export type ApiSSRMode = 'auto' | 'static' | 'dynamic' | 'no-store';
 
+/**
+ * Cache identity accepted by `agent.get`, query hooks, and query-cache helpers.
+ *
+ * Structured array keys are recommended because they provide a stable,
+ * serializable identity for related data (`['users', userId]`). String keys are
+ * supported for URL-style keys and compatibility with existing callers.
+ *
+ * @example
+ * ```ts
+ * const usersKey: QueryKey = ['users'];
+ * const legacyKey: QueryKey = '/api/users';
+ * ```
+ */
+export type QueryKey = unknown[] | string;
+
 export type QueryOptions = AxiosRequestConfig & {
   /**
    * Projects the response data returned by this `agent.get` call.
@@ -135,7 +150,7 @@ export type QueryOptions = AxiosRequestConfig & {
    * When using `useQuery`, you typically pass the same `queryKey` value both at the
    * config level and inside the `fn` that calls `agent.get(...)`.
    */
-  queryKey?: string | unknown[];
+  queryKey?: QueryKey;
   /**
    * Optional expiration duration for the cached response (e.g. `'5m'`, `'1h30m'`, `'30s'`).
    * When a `queryCache` is provided on the agent, the cache entry becomes invalid after this time.
