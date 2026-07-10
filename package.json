@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Production-ready, tree-shakeable utilities for modern JavaScript and TypeScript web applications.",
   "keywords": [
     "api-client",
@@ -47,7 +47,6 @@
     "dev": "tsdown --watch",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "release": "bumpp",
     "push:release": "node scripts/push-release.mjs",
     "prepublishOnly": "npm run build"
   },

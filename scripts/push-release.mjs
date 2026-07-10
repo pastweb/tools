@@ -52,7 +52,8 @@ function updatePackageVersion(version) {
 }
 
 const rl = createInterface({ input, output });
-const rawVersion = await rl.question('Release version (for example 2.4.0): ');
+const currentVersion = JSON.parse(readFileSync('package.json', 'utf8')).version;
+const rawVersion = await rl.question(`Release version (current ${currentVersion}): `);
 rl.close();
 
 const version = rawVersion.trim().replace(/^v/, '');

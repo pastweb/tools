@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { effect, useMatchDevice } from '../../src';
 import { setUserAgent, MatchMedia } from '../utils';
-import { testUA, devicesConfig } from './constants';
-import type { DevicesConfig, MatchDevicesResult, DevicesResult } from '../../src';
+import { devicesConfig } from './constants';
 
 let matchMedia: MatchMedia;
+
+vi.useFakeTimers();
 
 describe('given useMatchDevice hook', () => {
   beforeAll(() => {
@@ -42,23 +43,44 @@ describe('given useMatchDevice hook', () => {
       }
     });
 
-    // it.each(Object.entries(devicesConfig))(`for the device "%s" the mediaQuery listener should be called.`, (device, config) => {
-    //   const { mediaQuery, uaTest } = config;
+    it('given a media query changes after creation, when an effect tracks devices, then the reactive state updates', () => {
+      const mediaQuery = '(max-width: 320px)';
+      const matches = useMatchDevice({
+        phone: { mediaQuery },
+      });
+      const observed: boolean[] = [];
 
-    //   if (mediaQuery && !uaTest) {
-    //     let devicesResult: MatchDevicesResult = {};
-        
-    //     const onMediaQueryChange = jest.fn().mockImplementation((deviceName: string, fn: (result: boolean, deviceName: string) => void) => {
-    //       devicesResult[deviceName] = fn;
-    //     });
-        
-    //     const matches = useMatchDevice(devicesConfig);
-    //     matches.onMatch(onMediaQueryChange);
-        
-    //     matchMedia.useMediaQuery(mediaQuery);
+      effect(() => {
+        observed.push(matches.devices.phone);
+      });
 
-    //     expect(onMediaQueryChange).toHaveBeenCalledTimes(1);
-    //   }
-    // });
+      expect(matches.devices.phone).toBe(false);
+      expect(observed).toEqual([false]);
+
+      matchMedia.useMediaQuery(mediaQuery);
+      vi.runAllTimers();
+
+      expect(matches.devices.phone).toBe(true);
+      expect(observed).toEqual([false, true]);
+    });
+
+    it('given a media query changes after creation, when onMatch listens to the device, then the listener is called', () => {
+      const mediaQuery = '(max-width: 320px)';
+      const matches = useMatchDevice({
+        phone: { mediaQuery },
+      });
+      let changedDevice = '';
+      let changedResult = false;
+
+      matches.onMatch('phone', (result, deviceName) => {
+        changedResult = result;
+        changedDevice = deviceName;
+      });
+
+      matchMedia.useMediaQuery(mediaQuery);
+
+      expect(changedDevice).toBe('phone');
+      expect(changedResult).toBe(true);
+    });
   });
 });

@@ -59,6 +59,7 @@ This project is distributed under the MIT licence.
   - [throttle](#throttle)
 - [Browser functions](#browser-functions)
   - [createMatchDevice](#creatematchdevice)
+    - [useMatchDevice](#usematchdevice)
   - [createMatchScheme](#creatematchscheme)
     - [useColorScheme](#usecolorscheme)
   - [createStorage](#createStorage)
@@ -1303,6 +1304,44 @@ matchDevice.onMatch('mobile', (deviceName) => {
 
 const currentDevices = matchDevice.getDevices();
 console.log('Current matched devices:', currentDevices);
+```
+
+### `useMatchDevice`
+
+Creates a reactive device matching state from [`createMatchDevice`](#creatematchdevice).
+
+`useMatchDevice` keeps the same `{ devices, onMatch }` shape used by framework adapters, but `devices` is powered by the tools reactivity system. Use [`effect`](#effect) to react when media query matches change.
+
+> #### Syntax
+```typescript
+function useMatchDevice(config?: DevicesConfig): DevicesResult;
+```
+
+Parameters
+* `config`: `DevicesConfig` _(optional)_
+  * Device names mapped to user agent tests and/or media queries.
+
+Returns
+* `DevicesResult`
+  * `devices`: a reactive `MatchDevicesResult` object where each configured device name maps to a boolean.
+  * `onMatch(deviceName, fn)`: subscribes to a specific device match change.
+
+**Example:**
+```typescript
+import { effect, useMatchDevice } from '@pastweb/tools';
+
+const matchDevice = useMatchDevice({
+  phone: { mediaQuery: '(max-width: 640px)' },
+  desktop: { mediaQuery: '(min-width: 1024px)' },
+});
+
+effect(() => {
+  document.body.dataset.phone = String(matchDevice.devices.phone);
+});
+
+matchDevice.onMatch('desktop', (matches) => {
+  console.log('desktop changed:', matches);
+});
 ```
 ---
 
