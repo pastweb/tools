@@ -3,6 +3,12 @@ export {
   createQueryCache,
   DEHYDRATED_SCRIPT_ID,
   QUERY_CACHE_CONTEXT_KEY,
+  isQuery,
+  setAsQuery,
+  isQueries,
+  setAsQueries,
+  isInfiniteQuery,
+  setAsInfiniteQuery,
   useInfiniteQuery,
   useMutation,
   useQueries,
@@ -10,6 +16,11 @@ export {
   useQueryCache,
 } from './api';
 export type {
+  UrqlAdapter,
+  UrqlAdapterOptions,
+  GraphQLQueryOptions,
+  GraphQLMutationOptions,
+  GraphQLResponse,
   Agent,
   AgentOptions,
   ValidTokenResponse,
@@ -66,8 +77,19 @@ export type { Entry, EntryOptions } from './createEntry';
 export { createEventEmitter } from './createEventEmitter';
 export type { EventEmitter, EventCallback, RemoveListener } from './createEventEmitter';
 
-export { ELEMENTS_SCOPE, CUSTOM_ELEMENTS_SCOPE, createIdCache, setCurrentIdCache, currentIdCache } from './createIdCache';
-export type { IdCache } from './createIdCache';
+export {
+  ELEMENTS_SCOPE,
+  CUSTOM_ELEMENTS_SCOPE,
+  CUSTOM_ELEMENT_ALPHABET,
+  createIdCache,
+  setCurrentIdCache,
+  currentIdCache,
+} from './createIdCache';
+export type {
+  IdCache,
+  CustomElementNamePosition,
+  GetCustomElementNameOptions,
+} from './createIdCache';
 
 export { createMatchDevice, useMatchDevice, UA_MOBILE_DEFAULT_RE } from './createMatchDevice';
 export type { MatchDevice, MatchDevicesResult, DevicesConfig, DeviceConfig, DevicesResult } from './createMatchDevice';
@@ -239,3 +261,6 @@ export type { UpdateOptions } from './update';
 export { withDefaults } from './withDefaults';
 
 export { isBrowser, isServer, isCapacitor, isNativeScript, isReactNative, isElectron, isNode, isDeno, isBun } from './envs';
+
+export { createWindowManager, DEFAULT_WINDOW_BOUNDS, WINDOW_MANAGER_CONTEXT_KEY } from './createWindowManager';
+export type { WindowBounds, WindowMode, WindowStatus, ManagedWindowState, WindowRegistration, WindowManagerState, WindowManager } from './createWindowManager';

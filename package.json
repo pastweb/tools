@@ -48,12 +48,13 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "push:release": "node scripts/push-release.mjs",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
     "@toon-format/toon": "^2.3.0",
     "@types/node": "^25.6.2",
     "@typescript/native-preview": "7.0.0-dev.20260509.2",
+    "@urql/core": "^6.0.3",
     "@vitest/ui": "^4.1.6",
     "axios": "^1.16.1",
     "axios-mock-adapter": "^2.1.0",
@@ -61,8 +62,9 @@
     "clsx": "^2.1.1",
     "core-js": "^3.49.0",
     "fake-indexeddb": "^6.2.5",
+    "graphql": "^17.0.2",
     "history": "^5.3.0",
-    "i18next": "^26.2.0",
+    "i18next": "^26.4.0",
     "jest-localstorage-mock": "^2.4.26",
     "jsdom": "^29.1.1",
     "rollup-plugin-preserve-directives": "^0.4.0",
@@ -75,6 +77,7 @@
   },
   "peerDependencies": {
     "@toon-format/toon": "*",
+    "@urql/core": "^6.0.3",
     "axios": "*",
     "clsx": "*",
     "history": "*",
@@ -86,6 +89,9 @@
       "optional": true
     },
     "i18next": {
+      "optional": true
+    },
+    "@urql/core": {
       "optional": true
     }
   },
@@ -182,6 +188,10 @@
       "import": "./dist/api/createApiAgent/utils/upload.mjs",
       "require": "./dist/api/createApiAgent/utils/upload.cjs"
     },
+    "./api/createApiAgent/utils/withPaginationQuery": {
+      "import": "./dist/api/createApiAgent/utils/withPaginationQuery.mjs",
+      "require": "./dist/api/createApiAgent/utils/withPaginationQuery.cjs"
+    },
     "./api/createApiAgent/utils/withToonAcceptHeader": {
       "import": "./dist/api/createApiAgent/utils/withToonAcceptHeader.mjs",
       "require": "./dist/api/createApiAgent/utils/withToonAcceptHeader.cjs"
@@ -189,6 +199,18 @@
     "./api/createQueryCache": {
       "import": "./dist/api/createQueryCache/index.mjs",
       "require": "./dist/api/createQueryCache/index.cjs"
+    },
+    "./api/createQueryCache/adapterRegistry": {
+      "import": "./dist/api/createQueryCache/adapterRegistry/index.mjs",
+      "require": "./dist/api/createQueryCache/adapterRegistry/index.cjs"
+    },
+    "./api/createQueryCache/adapterRegistry/adapterRegistry": {
+      "import": "./dist/api/createQueryCache/adapterRegistry/adapterRegistry.mjs",
+      "require": "./dist/api/createQueryCache/adapterRegistry/adapterRegistry.cjs"
+    },
+    "./api/createQueryCache/adapterRegistry/types": {
+      "import": "./dist/api/createQueryCache/adapterRegistry/types.mjs",
+      "require": "./dist/api/createQueryCache/adapterRegistry/types.cjs"
     },
     "./api/createQueryCache/constants": {
       "import": "./dist/api/createQueryCache/constants.mjs",
@@ -290,6 +312,10 @@
       "import": "./dist/api/hooks/index.mjs",
       "require": "./dist/api/hooks/index.cjs"
     },
+    "./api/hooks/result": {
+      "import": "./dist/api/hooks/result.mjs",
+      "require": "./dist/api/hooks/result.cjs"
+    },
     "./api/hooks/types": {
       "import": "./dist/api/hooks/types.mjs",
       "require": "./dist/api/hooks/types.cjs"
@@ -298,6 +324,18 @@
       "import": "./dist/api/hooks/useInfiniteQuery/index.mjs",
       "require": "./dist/api/hooks/useInfiniteQuery/index.cjs"
     },
+    "./api/hooks/useInfiniteQuery/constants": {
+      "import": "./dist/api/hooks/useInfiniteQuery/constants.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/constants.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/isInfiniteQuery": {
+      "import": "./dist/api/hooks/useInfiniteQuery/isInfiniteQuery.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/isInfiniteQuery.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/setAsInfiniteQuery": {
+      "import": "./dist/api/hooks/useInfiniteQuery/setAsInfiniteQuery.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/setAsInfiniteQuery.cjs"
+    },
     "./api/hooks/useInfiniteQuery/types": {
       "import": "./dist/api/hooks/useInfiniteQuery/types.mjs",
       "require": "./dist/api/hooks/useInfiniteQuery/types.cjs"
@@ -305,6 +343,70 @@
     "./api/hooks/useInfiniteQuery/useInfiniteQuery": {
       "import": "./dist/api/hooks/useInfiniteQuery/useInfiniteQuery.mjs",
       "require": "./dist/api/hooks/useInfiniteQuery/useInfiniteQuery.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/index.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/index.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/fetchFirstPage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/fetchFirstPage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/fetchFirstPage.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/fetchNextPage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/fetchNextPage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/fetchNextPage.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/fetchPage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/fetchPage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/fetchPage.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/fetchPreviousPage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/fetchPreviousPage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/fetchPreviousPage.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/getDefaultNextPageParam": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/getDefaultNextPageParam.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/getDefaultNextPageParam.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/getDefaultPreviousPageParam": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/getDefaultPreviousPageParam.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/getDefaultPreviousPageParam.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/normalizePageParam": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/normalizePageParam.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/normalizePageParam.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/resolveNextPageParam": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/resolveNextPageParam.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/resolveNextPageParam.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/resolvePageParams": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/resolvePageParams.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/resolvePageParams.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/resolvePreviousPageParam": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/resolvePreviousPageParam.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/resolvePreviousPageParam.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/runFetchFirstPage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/runFetchFirstPage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/runFetchFirstPage.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/runFetchNextPage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/runFetchNextPage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/runFetchNextPage.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/runFetchPreviousPage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/runFetchPreviousPage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/runFetchPreviousPage.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/setPages": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/setPages.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/setPages.cjs"
+    },
+    "./api/hooks/useInfiniteQuery/utils/updatePage": {
+      "import": "./dist/api/hooks/useInfiniteQuery/utils/updatePage.mjs",
+      "require": "./dist/api/hooks/useInfiniteQuery/utils/updatePage.cjs"
     },
     "./api/hooks/useMutation": {
       "import": "./dist/api/hooks/useMutation/index.mjs",
@@ -322,6 +424,18 @@
       "import": "./dist/api/hooks/useQueries/index.mjs",
       "require": "./dist/api/hooks/useQueries/index.cjs"
     },
+    "./api/hooks/useQueries/constants": {
+      "import": "./dist/api/hooks/useQueries/constants.mjs",
+      "require": "./dist/api/hooks/useQueries/constants.cjs"
+    },
+    "./api/hooks/useQueries/isQueries": {
+      "import": "./dist/api/hooks/useQueries/isQueries.mjs",
+      "require": "./dist/api/hooks/useQueries/isQueries.cjs"
+    },
+    "./api/hooks/useQueries/setAsQueries": {
+      "import": "./dist/api/hooks/useQueries/setAsQueries.mjs",
+      "require": "./dist/api/hooks/useQueries/setAsQueries.cjs"
+    },
     "./api/hooks/useQueries/types": {
       "import": "./dist/api/hooks/useQueries/types.mjs",
       "require": "./dist/api/hooks/useQueries/types.cjs"
@@ -334,6 +448,18 @@
       "import": "./dist/api/hooks/useQuery/index.mjs",
       "require": "./dist/api/hooks/useQuery/index.cjs"
     },
+    "./api/hooks/useQuery/constants": {
+      "import": "./dist/api/hooks/useQuery/constants.mjs",
+      "require": "./dist/api/hooks/useQuery/constants.cjs"
+    },
+    "./api/hooks/useQuery/isQuery": {
+      "import": "./dist/api/hooks/useQuery/isQuery.mjs",
+      "require": "./dist/api/hooks/useQuery/isQuery.cjs"
+    },
+    "./api/hooks/useQuery/setAsQuery": {
+      "import": "./dist/api/hooks/useQuery/setAsQuery.mjs",
+      "require": "./dist/api/hooks/useQuery/setAsQuery.cjs"
+    },
     "./api/hooks/useQuery/types": {
       "import": "./dist/api/hooks/useQuery/types.mjs",
       "require": "./dist/api/hooks/useQuery/types.cjs"
@@ -341,6 +467,30 @@
     "./api/hooks/useQuery/useQuery": {
       "import": "./dist/api/hooks/useQuery/useQuery.mjs",
       "require": "./dist/api/hooks/useQuery/useQuery.cjs"
+    },
+    "./api/hooks/useQuery/utils": {
+      "import": "./dist/api/hooks/useQuery/utils/index.mjs",
+      "require": "./dist/api/hooks/useQuery/utils/index.cjs"
+    },
+    "./api/hooks/useQuery/utils/applyResult": {
+      "import": "./dist/api/hooks/useQuery/utils/applyResult.mjs",
+      "require": "./dist/api/hooks/useQuery/utils/applyResult.cjs"
+    },
+    "./api/hooks/useQuery/utils/disposeQuery": {
+      "import": "./dist/api/hooks/useQuery/utils/disposeQuery.mjs",
+      "require": "./dist/api/hooks/useQuery/utils/disposeQuery.cjs"
+    },
+    "./api/hooks/useQuery/utils/fetchData": {
+      "import": "./dist/api/hooks/useQuery/utils/fetchData.mjs",
+      "require": "./dist/api/hooks/useQuery/utils/fetchData.cjs"
+    },
+    "./api/hooks/useQuery/utils/runFetch": {
+      "import": "./dist/api/hooks/useQuery/utils/runFetch.mjs",
+      "require": "./dist/api/hooks/useQuery/utils/runFetch.cjs"
+    },
+    "./api/hooks/useQuery/utils/updateData": {
+      "import": "./dist/api/hooks/useQuery/utils/updateData.mjs",
+      "require": "./dist/api/hooks/useQuery/utils/updateData.cjs"
     },
     "./api/hooks/useQueryCache": {
       "import": "./dist/api/hooks/useQueryCache.mjs",
@@ -350,6 +500,10 @@
       "import": "./dist/api/hooks/utils/index.mjs",
       "require": "./dist/api/hooks/utils/index.cjs"
     },
+    "./api/hooks/utils/getErrorResponseStatus": {
+      "import": "./dist/api/hooks/utils/getErrorResponseStatus.mjs",
+      "require": "./dist/api/hooks/utils/getErrorResponseStatus.cjs"
+    },
     "./api/hooks/utils/getRetryDelay": {
       "import": "./dist/api/hooks/utils/getRetryDelay.mjs",
       "require": "./dist/api/hooks/utils/getRetryDelay.cjs"
@@ -358,6 +512,10 @@
       "import": "./dist/api/hooks/utils/runWithRetry.mjs",
       "require": "./dist/api/hooks/utils/runWithRetry.cjs"
     },
+    "./api/hooks/utils/setQueryFetchStatus": {
+      "import": "./dist/api/hooks/utils/setQueryFetchStatus.mjs",
+      "require": "./dist/api/hooks/utils/setQueryFetchStatus.cjs"
+    },
     "./api/hooks/utils/shouldRetry": {
       "import": "./dist/api/hooks/utils/shouldRetry.mjs",
       "require": "./dist/api/hooks/utils/shouldRetry.cjs"
@@ -365,6 +523,50 @@
     "./api/hooks/utils/wait": {
       "import": "./dist/api/hooks/utils/wait.mjs",
       "require": "./dist/api/hooks/utils/wait.cjs"
+    },
+    "./api/urql": {
+      "import": "./dist/api/urql/index.mjs",
+      "require": "./dist/api/urql/index.cjs"
+    },
+    "./api/urql/createUrqlAdapter": {
+      "import": "./dist/api/urql/createUrqlAdapter.mjs",
+      "require": "./dist/api/urql/createUrqlAdapter.cjs"
+    },
+    "./api/urql/types": {
+      "import": "./dist/api/urql/types.mjs",
+      "require": "./dist/api/urql/types.cjs"
+    },
+    "./api/urql/utils/createClientState": {
+      "import": "./dist/api/urql/utils/createClientState.mjs",
+      "require": "./dist/api/urql/utils/createClientState.cjs"
+    },
+    "./api/urql/utils/createOperation": {
+      "import": "./dist/api/urql/utils/createOperation.mjs",
+      "require": "./dist/api/urql/utils/createOperation.cjs"
+    },
+    "./api/urql/utils/executeEntry": {
+      "import": "./dist/api/urql/utils/executeEntry.mjs",
+      "require": "./dist/api/urql/utils/executeEntry.cjs"
+    },
+    "./api/urql/utils/extractData": {
+      "import": "./dist/api/urql/utils/extractData.mjs",
+      "require": "./dist/api/urql/utils/extractData.cjs"
+    },
+    "./api/urql/utils/getOperationContext": {
+      "import": "./dist/api/urql/utils/getOperationContext.mjs",
+      "require": "./dist/api/urql/utils/getOperationContext.cjs"
+    },
+    "./api/urql/utils/matchesQueryKey": {
+      "import": "./dist/api/urql/utils/matchesQueryKey.mjs",
+      "require": "./dist/api/urql/utils/matchesQueryKey.cjs"
+    },
+    "./api/urql/utils/mutation": {
+      "import": "./dist/api/urql/utils/mutation.mjs",
+      "require": "./dist/api/urql/utils/mutation.cjs"
+    },
+    "./api/urql/utils/query": {
+      "import": "./dist/api/urql/utils/query.mjs",
+      "require": "./dist/api/urql/utils/query.cjs"
     },
     "./assign": {
       "import": "./dist/assign/index.mjs",
@@ -690,6 +892,10 @@
       "import": "./dist/createViewRouter/utils/getLocation.mjs",
       "require": "./dist/createViewRouter/utils/getLocation.cjs"
     },
+    "./createViewRouter/utils/isActivePath": {
+      "import": "./dist/createViewRouter/utils/isActivePath.mjs",
+      "require": "./dist/createViewRouter/utils/isActivePath.cjs"
+    },
     "./createViewRouter/utils/normalizeOptions": {
       "import": "./dist/createViewRouter/utils/normalizeOptions.mjs",
       "require": "./dist/createViewRouter/utils/normalizeOptions.cjs"
@@ -721,6 +927,82 @@
     "./createViewRouter/utils/routeDive": {
       "import": "./dist/createViewRouter/utils/routeDive.mjs",
       "require": "./dist/createViewRouter/utils/routeDive.cjs"
+    },
+    "./createWindowManager": {
+      "import": "./dist/createWindowManager/index.mjs",
+      "require": "./dist/createWindowManager/index.cjs"
+    },
+    "./createWindowManager/constants": {
+      "import": "./dist/createWindowManager/constants.mjs",
+      "require": "./dist/createWindowManager/constants.cjs"
+    },
+    "./createWindowManager/createWindowManager": {
+      "import": "./dist/createWindowManager/createWindowManager.mjs",
+      "require": "./dist/createWindowManager/createWindowManager.cjs"
+    },
+    "./createWindowManager/types": {
+      "import": "./dist/createWindowManager/types.mjs",
+      "require": "./dist/createWindowManager/types.cjs"
+    },
+    "./createWindowManager/utils": {
+      "import": "./dist/createWindowManager/utils/index.mjs",
+      "require": "./dist/createWindowManager/utils/index.cjs"
+    },
+    "./createWindowManager/utils/activate": {
+      "import": "./dist/createWindowManager/utils/activate.mjs",
+      "require": "./dist/createWindowManager/utils/activate.cjs"
+    },
+    "./createWindowManager/utils/close": {
+      "import": "./dist/createWindowManager/utils/close.mjs",
+      "require": "./dist/createWindowManager/utils/close.cjs"
+    },
+    "./createWindowManager/utils/manageWindow": {
+      "import": "./dist/createWindowManager/utils/manageWindow.mjs",
+      "require": "./dist/createWindowManager/utils/manageWindow.cjs"
+    },
+    "./createWindowManager/utils/maximize": {
+      "import": "./dist/createWindowManager/utils/maximize.mjs",
+      "require": "./dist/createWindowManager/utils/maximize.cjs"
+    },
+    "./createWindowManager/utils/minimize": {
+      "import": "./dist/createWindowManager/utils/minimize.mjs",
+      "require": "./dist/createWindowManager/utils/minimize.cjs"
+    },
+    "./createWindowManager/utils/register": {
+      "import": "./dist/createWindowManager/utils/register.mjs",
+      "require": "./dist/createWindowManager/utils/register.cjs"
+    },
+    "./createWindowManager/utils/restore": {
+      "import": "./dist/createWindowManager/utils/restore.mjs",
+      "require": "./dist/createWindowManager/utils/restore.cjs"
+    },
+    "./createWindowManager/utils/setBounds": {
+      "import": "./dist/createWindowManager/utils/setBounds.mjs",
+      "require": "./dist/createWindowManager/utils/setBounds.cjs"
+    },
+    "./createWindowManager/utils/setCallbacks": {
+      "import": "./dist/createWindowManager/utils/setCallbacks.mjs",
+      "require": "./dist/createWindowManager/utils/setCallbacks.cjs"
+    },
+    "./createWindowManager/utils/setMeta": {
+      "import": "./dist/createWindowManager/utils/setMeta.mjs",
+      "require": "./dist/createWindowManager/utils/setMeta.cjs"
+    },
+    "./createWindowManager/utils/state": {
+      "import": "./dist/createWindowManager/utils/state.mjs",
+      "require": "./dist/createWindowManager/utils/state.cjs"
+    },
+    "./createWindowManager/utils/types": {
+      "import": "./dist/createWindowManager/utils/types.mjs",
+      "require": "./dist/createWindowManager/utils/types.cjs"
+    },
+    "./createWindowManager/utils/unregister": {
+      "import": "./dist/createWindowManager/utils/unregister.mjs",
+      "require": "./dist/createWindowManager/utils/unregister.cjs"
+    },
+    "./createWindowManager/utils/visibility": {
+      "import": "./dist/createWindowManager/utils/visibility.mjs",
+      "require": "./dist/createWindowManager/utils/visibility.cjs"
     },
     "./debounce": {
       "import": "./dist/debounce/index.mjs",
