@@ -1,33 +1,38 @@
 /**
- * Converts a camelCase or PascalCase string into a kebab-case string.
+ * Converts a camelCase, PascalCase, or spaced phrase into a kebab-case string.
  *
- * This function takes an input string, splits it into individual characters,
- * and then checks if each character is an uppercase letter. If it is, and it's
- * not the first character, it adds a hyphen (`-`) before the lowercase version
- * of the character. If the character is lowercase, it is appended to the result
- * without modification.
+ * Uppercase letters become a hyphen plus the lowercase letter (except at the
+ * start). Whitespace becomes a hyphen. Consecutive hyphens collapse to one,
+ * and leading or trailing hyphens are omitted. Existing hyphens and digits
+ * are preserved.
  *
- * @param {string} str - The input string to convert to kebab-case.
- * @returns {string} - The converted kebab-case string.
+ * @param str - The input string to convert to kebab-case.
+ * @returns The kebab-case string.
  *
  * @example
- * // Converts a camelCase string to kebab-case
+ * ```ts
+ * import { kebabize } from '@pastweb/tools';
+ *
  * kebabize('myVariableName');
- * // Returns 'my-variable-name'
+ * // 'my-variable-name'
  *
- * @example
- * // Converts a PascalCase string to kebab-case
- * kebabize('MyVariableName');
- * // Returns 'my-variable-name'
+ * kebabize('Select an option');
+ * // 'select-an-option'
+ * ```
  */
 export function kebabize(str: string): string {
-  return str.split('').map((letter, idx) => {
-    if (letter === '-') return letter;
-    
-    if (!isNaN(parseFloat(letter))) return letter;
+  return str
+    .split('')
+    .map((letter, idx) => {
+      if (/\s/.test(letter)) return '-';
+      if (letter === '-') return letter;
+      if (!isNaN(parseFloat(letter))) return letter;
 
-    return letter.toUpperCase() === letter
-     ? `${idx !== 0 ? '-' : ''}${letter.toLowerCase()}`
-     : letter;
-  }).join('');
+      return letter.toUpperCase() === letter
+        ? `${idx !== 0 ? '-' : ''}${letter.toLowerCase()}`
+        : letter;
+    })
+    .join('')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }

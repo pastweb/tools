@@ -42,5 +42,17 @@ describe('given the kebabize function', () => {
   it('given "", when kebabize, then ""', () => {
     expect(kebabize('')).toBe('');
   });
+
+  it('given a phrase with spaces, when kebabize is called, then spaces become hyphens', () => {
+    expect(kebabize('Select an option')).toBe('select-an-option');
+  });
+
+  it('given consecutive spaces, when kebabize is called, then they collapse to one hyphen', () => {
+    expect(kebabize('Select  an   option')).toBe('select-an-option');
+  });
+
+  it('given leading and trailing spaces, when kebabize is called, then surrounding hyphens are omitted', () => {
+    expect(kebabize('  MyVariableName  ')).toBe('my-variable-name');
+  });
   
 });
