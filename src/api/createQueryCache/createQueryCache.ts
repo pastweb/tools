@@ -1,3 +1,4 @@
+import { createAdapterRegistry } from './adapterRegistry';
 import { isBrowser } from '../../envs';
 import { setCache, invalidateQuery, invalidateQueries, dehydrate, hydrate, runRecallCheckers } from './utils';
 import { resetForSSR as resetCacheForSSR } from './utils';
@@ -49,6 +50,8 @@ export function createQueryCache(options: CacheOptions = {}): QueryCache {
     refetchOnReconnect = false,
   } = options;
 
+  const adapters = createAdapterRegistry();
+
   const cacheMaps: CacheMaps = {
     queryCache: new Map(),
     recallCache: new Map(),
@@ -65,6 +68,7 @@ export function createQueryCache(options: CacheOptions = {}): QueryCache {
   }
 
   const cache: QueryCache = {
+    registerAgent: agent => adapters.registerAgent(agent),
     getDehydrateScriptID: () => deHydratedScriptID,
     get: (key: string) => cacheMaps.queryCache.get(key),
     getAll: () => Array.from(cacheMaps.queryCache),
@@ -79,18 +83,28 @@ export function createQueryCache(options: CacheOptions = {}): QueryCache {
       }
       return deleted;
     },
-    invalidateQuery: (queryKey?: unknown) => invalidateQuery(cacheMaps, queryKey),
-    invalidateQueries: (queryKeys: unknown[]) => invalidateQueries(cacheMaps, queryKeys),
-    dehydrate: () => dehydrate(cacheMaps),
-    hydrate: (data: string) => hydrate(cacheMaps, data),
-    resetForSSR: () => resetCacheForSSR(cacheMaps),
+    invalidateQuery: (queryKey?: unknown) => { invalidateQuery(cacheMaps, queryKey); adapters.invalidate(queryKey); },
+    invalidateQueries: (queryKeys: unknown[]) => { invalidateQueries(cacheMaps, queryKeys); queryKeys.forEach(key => adapters.invalidate(key)); },
+    dehydrate: async () => {
+      const [rest, graphql] = await Promise.all([dehydrate(cacheMaps), adapters.dehydrate()]);
+      return Object.keys(graphql).length ? JSON.stringify({ $pastweb: 2, queries: JSON.parse(rest), adapters: graphql }) : rest;
+    },
+    hydrate: (data: string) => {
+      let parsed: any;
+      try { parsed = JSON.parse(data); } catch { return; }
+      if (parsed?.$pastweb === 2) {
+        hydrate(cacheMaps, JSON.stringify(parsed.queries ?? {}));
+        adapters.hydrate(parsed.adapters ?? {});
+      } else hydrate(cacheMaps, data);
+    },
+    resetForSSR: () => { resetCacheForSSR(cacheMaps); adapters.resetForSSR(); },
   };
 
   if (isBrowser) {
     const snapshot = readPageDehydratedSnapshot(deHydratedScriptID);
 
     if (snapshot) {
-      hydrate(cacheMaps, snapshot);
+      cache.hydrate(snapshot);
     }
   }
 

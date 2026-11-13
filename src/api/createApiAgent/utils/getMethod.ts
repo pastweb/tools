@@ -40,6 +40,8 @@ export async function getMethod<T = any>(
     ssrRevalitate,
     toon,
     select,
+    page,
+    limit,
     ...rest
   } = options;
 

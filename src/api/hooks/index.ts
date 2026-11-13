@@ -1,7 +1,7 @@
-export { useInfiniteQuery } from './useInfiniteQuery';
+export { useInfiniteQuery, isInfiniteQuery, setAsInfiniteQuery } from './useInfiniteQuery';
 export { useMutation } from './useMutation';
-export { useQueries } from './useQueries';
-export { useQuery } from './useQuery';
+export { useQueries, isQueries, setAsQueries } from './useQueries';
+export { useQuery, isQuery, setAsQuery } from './useQuery';
 export { useQueryCache } from './useQueryCache';
 export { getRetryDelay, runWithRetry, shouldRetry } from './utils';
 
@@ -10,7 +10,9 @@ export type {
   InfiniteQueryInfo,
   InfiniteQueryInitialData,
 } from './useInfiniteQuery';
+
 export type { MutationConfig, MutationInfo } from './useMutation';
+
 export type {
   QueriesData,
   QueriesInfo,

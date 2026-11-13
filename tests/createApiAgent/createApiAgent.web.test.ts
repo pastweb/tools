@@ -234,6 +234,43 @@ describe('given createApiAgent factory, when instantiating and configuring an ag
     spy.mockRestore();
   });
 
+  it('given page options, when requesting successive pages, then offset URLs and headers stay distinct in cache', async () => {
+    const agent = createApiAgent({ queryCache: createQueryCache(), pagination: { defaultPageLimit: 10 } });
+    const convert = vi.spyOn(agent, 'pageToOffset');
+    mock.onGet('/users?offset=20&limit=10').reply(200, [3]);
+    mock.onGet('/users?offset=30&limit=10').reply(200, [4]);
+    expect((await agent.get('/users', { page: 3 })).data).toEqual([3]);
+    expect((await agent.get('/users', { page: 4 })).data).toEqual([4]);
+    expect(convert).toHaveBeenCalledWith(3, 10);
+    expect(mock.history.get.map(request => request.headers?.['Content-Range'])).toEqual(['20-10', '30-10']);
+  });
+
+  it('given an existing offset URL, when requesting it, then the URL is preserved and response pagination remains available', async () => {
+    const agent = createApiAgent();
+    const url = '/users?offset=20&limit=10';
+    mock.onGet(url).reply(200, [], { 'Content-Type': 'application/json', 'Content-Range': '20-29/50' });
+    const response = await agent.get(url);
+    expect(mock.history.get[0].url).toBe(url);
+    expect(mock.history.get[0].headers?.['Content-Range']).toBe('20-10');
+    expect(response.pagination).toMatchObject({ current: 3, size: 10, of: 5 });
+  });
+
+  it('given a custom pagination header, when an explicit header is supplied, then it is preserved', async () => {
+    const agent = createApiAgent({ pagination: { header: 'X-Page-Range' } });
+    mock.onGet().reply(200, []);
+    await agent.get('/users', { page: 2, limit: 5 });
+    await agent.get('/users', { page: 2, limit: 5, headers: { 'x-page-range': 'custom' } });
+    expect(mock.history.get[0].headers?.['X-Page-Range']).toBe('5-5');
+    expect(mock.history.get[1].headers?.get?.('X-Page-Range')).toBe('custom');
+  });
+
+  it('given disabled pagination or absent offset, when requesting users, then no range header is added', async () => {
+    mock.onGet().reply(200, []);
+    await createApiAgent({ pagination: false }).get('/users?offset=0&limit=10');
+    await createApiAgent().get('/users?page=1&limit=10');
+    expect(mock.history.get.every(request => !request.headers?.has?.('Content-Range'))).toBe(true);
+  });
+
   it('given pagination options with header, when get returns a response with Content-Range header, then the response includes a parsed pagination object', async () => {
     const agent = createApiAgent({
       headers: {

@@ -26,6 +26,25 @@ export function sliceDehydratedState(snapshot: string, queryKeys: unknown[]): st
     return '{}';
   }
 
+  if (parsed.$pastweb === 2) {
+    const envelope = parsed as { queries: Record<string, unknown>; adapters: Record<string, { operations: Record<string, unknown>; entries: Record<string, { operationKey: number }> }> };
+    const adapters: Record<string, unknown> = {};
+    for (const [id, snapshot] of Object.entries(envelope.adapters ?? {})) {
+      const entries: Record<string, { operationKey: number }> = {};
+      const operations: Record<string, unknown> = {};
+      for (const key of queryKeys) {
+        const serialized = serializeQueryKey(key);
+        const entry = snapshot.entries?.[serialized];
+        if (entry) {
+          entries[serialized] = entry;
+          operations[entry.operationKey] = snapshot.operations[entry.operationKey];
+        }
+      }
+      if (Object.keys(entries).length) adapters[id] = { entries, operations };
+    }
+    return JSON.stringify({ $pastweb: 2, queries: JSON.parse(sliceDehydratedState(JSON.stringify(envelope.queries), queryKeys)), adapters });
+  }
+
   const result: Record<string, unknown> = {};
 
   for (const key of queryKeys) {

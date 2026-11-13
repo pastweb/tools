@@ -1,5 +1,7 @@
 export { createApiAgent } from './createApiAgent';
 
+export type { GraphQLQueryOptions } from '../urql/types';
+
 export type {
   Agent,
   AgentOptions,

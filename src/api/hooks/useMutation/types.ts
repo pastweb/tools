@@ -1,4 +1,4 @@
-import type { AxiosResponse } from 'axios';
+import type { ApiResult } from '../result';
 import type { RetryDelayOption, RetryOption } from '../types';
 
 /**
@@ -6,7 +6,7 @@ import type { RetryDelayOption, RetryOption } from '../types';
  */
 export interface MutationConfig<T> {
   /** The mutation function (typically `agent.post`, `agent.put`, `agent.delete`, ...). */
-  fn: (...args: any[]) => Promise<AxiosResponse<T>>;
+  fn: (...args: any[]) => Promise<ApiResult<T>>;
   /** Value for `data` before the first successful mutation. */
   initialData?: T;
   /** Called before the mutation starts. Can be async. */
@@ -56,6 +56,8 @@ export interface MutationInfo<T> {
   isError: boolean;
   /** Rejection reason of the last mutation (if any). */
   error: any;
+  /** GraphQL extensions, including when a result contains partial data and errors. */
+  extensions: Record<string, unknown> | null;
   /** Whether `data` currently contains the `initialData`. */
   isPlaceholderData: boolean;
   /** Execute the mutation with the provided arguments. */

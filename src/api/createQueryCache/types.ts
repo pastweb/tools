@@ -1,3 +1,4 @@
+import type { CacheAgent } from './adapterRegistry';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { QueryOptions, QueryResponse } from '../createApiAgent';
 
@@ -116,6 +117,8 @@ export interface SaveQueryOptions {
  * URL-based or key-based caching.
  */
 export interface QueryCache {
+  /** Registers an agent and restores any pending adapter snapshot. */
+  registerAgent: (agent: CacheAgent) => void;
   /**
    * Returns the DOM script id used for page-level dehydrated query-cache snapshots.
    */

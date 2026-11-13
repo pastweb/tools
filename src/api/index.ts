@@ -1,4 +1,5 @@
 export { createApiAgent } from './createApiAgent';
+
 export {
   createQueryCache,
   DEHYDRATED_SCRIPT_ID,
@@ -6,7 +7,20 @@ export {
   serializeQueryKey,
   sliceDehydratedState,
 } from './createQueryCache';
-export { useInfiniteQuery, useMutation, useQueries, useQuery, useQueryCache } from './hooks';
+
+export {
+  isQuery,
+  setAsQuery,
+  isQueries,
+  setAsQueries,
+  isInfiniteQuery,
+  setAsInfiniteQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryCache,
+} from './hooks';
 
 export type {
   Agent,
@@ -47,3 +61,5 @@ export type {
   UseQueriesInfo,
   UseQueriesInput,
 } from './hooks';
+
+export type { UrqlAdapter, UrqlAdapterOptions, GraphQLQueryOptions, GraphQLMutationOptions, GraphQLResponse } from './urql/types';

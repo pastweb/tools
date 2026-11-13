@@ -34,6 +34,7 @@ export function useMutation<T>(config: MutationConfig<T>): MutationInfo<T> {
     isMutating: false, // alias of isPending
     isError: false,
     error: null,
+    extensions: null,
     isPlaceholderData: !!initialData,
     mutate,
   });
@@ -48,15 +49,19 @@ export function useMutation<T>(config: MutationConfig<T>): MutationInfo<T> {
     mutation.isError = false;
     mutation.error = null;
 
+    let returnedError = false;
     try {
       const response = await runWithRetry(() => fn(...args), retry, retryDelay);
-      mutation.isError = false;
-      mutation.error = null;
+      mutation.isError = !!response.error;
+      mutation.error = response.error ?? null;
+      mutation.extensions = response.extensions ?? null;
+      returnedError = !!response.error;
 
       if (mutation.data !== response.data) {
-        mutation.data = response.data;
+        mutation.data = response.data ?? null;
         mutation.isPlaceholderData = false;
       }
+      if (response.error) await onError(response.error);
     } catch (err) {
       mutation.isError = true;
       mutation.error = err;
@@ -64,7 +69,7 @@ export function useMutation<T>(config: MutationConfig<T>): MutationInfo<T> {
     } finally {
       mutation.isPending = false;
       mutation.isMutating = false;
-      await onSuccess(...args);
+      if (!returnedError) await onSuccess(...args);
     }
   }
 

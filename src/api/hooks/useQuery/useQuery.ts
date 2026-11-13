@@ -1,11 +1,8 @@
-import { effect, isRef, reactive, ref, type Ref } from '../../../reactivity';
-import { runWithRetry } from '../utils';
-import type { QueryConfig, QueryFetchStatus, QueryInfo, QueryStatus } from './types';
-
-function getErrorResponseStatus(error: unknown): number | null {
-  const status = (error as { response?: { status?: unknown } })?.response?.status;
-  return typeof status === 'number' ? status : null;
-}
+import { effect, isRef, reactive, ref } from '../../../reactivity';
+import { setAsQuery } from './setAsQuery';
+import { disposeQuery, fetchData, updateData } from './utils';
+import type { Ref } from '../../../reactivity';
+import type { QueryConfig, QueryFetchStatus, QueryInfo, QuerySettings, QueryStatus } from './types';
 
 /**
  * Creates a reactive query state machine powered by the library's `effect` + `reactive` primitives.
@@ -40,7 +37,7 @@ function getErrorResponseStatus(error: unknown): number | null {
  * ```
  */
 export function useQuery<T>(config: QueryConfig<T>): QueryInfo<T> {
-  const { fn, initialData, source, immediate = true, retry, retryDelay } = config;
+  const { initialData, source, immediate = true } = config;
   const _immediate = isRef(immediate) ? immediate as Ref<boolean> : typeof immediate === 'boolean' ? ref(immediate as boolean) : ref(true);
   const initialStatus: QueryStatus = initialData === undefined ? 'pending' : 'success';
   const initialFetchStatus: QueryFetchStatus = _immediate.value ? 'fetching' : 'idle';
@@ -56,90 +53,34 @@ export function useQuery<T>(config: QueryConfig<T>): QueryInfo<T> {
     isFetching: initialFetchStatus === 'fetching',
     isError: false,
     error: null,
+    extensions: null,
     isPlaceholderData: !!initialData,
-    fetch: fetchData,
+    fetch: () => fetchData(settings),
+    dispose: () => disposeQuery(settings),
   });
-  let activeFetch: Promise<void> | null = null;
-  let fetchId = 0;
-
-  /**
-   * Callback used to keep the query state in sync when the underlying cache
-   * entry is updated by another consumer (via onData).
-   */
-  function updateData(d: T): void {
-    query.data = d;
-    query.status = 'success';
-    query.isPending = false;
-    query.isLoading = false;
-    query.isError = false;
-    query.error = null;
-    query.isPlaceholderData = false;
-  }
-
-  function setFetchStatus(fetchStatus: QueryFetchStatus): void {
-    query.fetchStatus = fetchStatus;
-    query.isFetching = fetchStatus === 'fetching';
-    query.isLoading = query.status === 'pending' && fetchStatus === 'fetching';
-  }
-
-  /** Internal fetch executor. Updates all reactive flags and wires `onData` for cache-driven updates. */
-  async function fetchData() {
-    if (activeFetch) return activeFetch;
-
-    const currentFetchId = ++fetchId;
-    activeFetch = runFetch(currentFetchId);
-    await activeFetch;
-    activeFetch = null;
-  }
-
-  async function runFetch(currentFetchId: number) {
-    setFetchStatus('fetching');
-    query.isError = false;
-    query.error = null;
-
-    try {
-      const response = await runWithRetry(fn, retry, retryDelay);
-      if (currentFetchId !== fetchId) return;
-
-      query.isError = false;
-      query.error = null;
-      query.status = 'success';
-      query.responseStatus = response.status ?? null;
-      query.isPending = false;
-      
-      if (query.data !== response.data) {
-        query.data = response.data;
-        query.isPlaceholderData = false;
-        query.pagination = response.pagination ?? null;
-        response.onData?.(updateData);
-      }
-    } catch (err) {
-      if (currentFetchId !== fetchId) return;
-
-      query.status = 'error';
-      query.responseStatus = getErrorResponseStatus(err);
-      query.isPending = false;
-      query.isError = true;
-      query.error = err;
-    } finally {
-      if (currentFetchId !== fetchId) return;
-
-      setFetchStatus('idle');
-    }
-  }
+  const settings: QuerySettings<T> = {
+    config: { ...config },
+    query,
+    activeFetch: null,
+    fetchId: 0,
+    disposed: false,
+    onData: data => updateData(settings, data),
+  };
 
   // Effect to run fetch when dependencies change
   const dependencies = Array.isArray(source) ? [...source, _immediate] : source ? [source, _immediate] : _immediate;
   
   effect(
     () => {
-      if (_immediate.value) {
-        fetchData();
+      if (_immediate.value && !settings.disposed) {
+        fetchData(settings);
       }
     },
     dependencies, // Track computed dependencies
     true
   );
+
+  setAsQuery(query);
 
   return query;
 }

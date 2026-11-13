@@ -13,6 +13,7 @@ import {
   successResponseInterceptor,
   errorResponseInterceptor,
 } from './utils';
+import { withPaginationQuery } from './utils/withPaginationQuery';
 import type { AxiosRequestConfig } from 'axios';
 import type {
   Agent,
@@ -22,6 +23,7 @@ import type {
   PageLimit,
   PageNumber,
   QueryOptions,
+  PaginationConfig,
 } from './types';
 
 /**
@@ -80,6 +82,15 @@ export function createApiAgent(options: AgentOptions = {}): Agent {
 
   const agentObject: Agent = {
     agent,
+    get gql() { return settings.options.gql; },
+    query: async (document, options = {}) => {
+      if (!settings.options.gql) throw new Error('GraphQL requires a gql adapter on createApiAgent.');
+      return settings.options.gql.query(document, options, agentObject, settings);
+    },
+    mutation: async (document, options = {}) => {
+      if (!settings.options.gql) throw new Error('GraphQL requires a gql adapter on createApiAgent.');
+      return settings.options.gql.mutation(document, options, settings);
+    },
     agentConfig: settings.agentConfig,
     downloadConfig: settings.downloadConfig,
     uploadConfig: settings.uploadConfig,
@@ -88,7 +99,7 @@ export function createApiAgent(options: AgentOptions = {}): Agent {
     /**
      * Returns the effective page limit. Falls back to the agent's pagination default (100).
      */
-    getPageLimit(limit: PageLimit = (settings.options as any).pagination.pageLimit as number || 100): number {
+    getPageLimit(limit: PageLimit = (settings.options.pagination as PaginationConfig)?.defaultPageLimit ?? 100): number {
       return parseInt(limit as string, 10);
     },
     /**
@@ -108,7 +119,7 @@ export function createApiAgent(options: AgentOptions = {}): Agent {
     },
     download: (url: string, fileName: string, config?: AxiosRequestConfig & { domElement?: HTMLElement; }) => download(settings, agent, url, fileName, config, queryCache),
     delete: (url: string, options?: MutationOptions) => deleteMethod(settings, agent, url, options, queryCache),
-    get: (url: string, options?: QueryOptions) => getMethod(settings, agent, url, options, queryCache),
+    get: (url: string, options?: QueryOptions) => getMethod(settings, agent, withPaginationQuery(agentObject, url, options), options, queryCache),
     patch: (url: string, data?: unknown, options?: MutationOptions) => patchMethod(settings, agent, url, data, options),
     post: (url: string, data?: unknown, options?: MutationOptions) => postMethod(settings, agent, url, data, options),
     put: (url: string, data?: unknown, options?: MutationOptions) => putMethod(settings, agent, url, data, options),
@@ -121,5 +132,6 @@ export function createApiAgent(options: AgentOptions = {}): Agent {
     uploadConfig: { get() { return settings.uploadConfig; } },
   });
 
+  queryCache?.registerAgent(agentObject);
   return agentObject;
 }

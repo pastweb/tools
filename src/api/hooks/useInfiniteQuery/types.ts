@@ -114,3 +114,17 @@ export interface InfiniteQueryInfo<TPage, TPageParam = unknown> {
   /** Fetches and prepends the previous page when available. */
   fetchPreviousPage: () => Promise<void>;
 }
+
+/** Internal state shared by the infinite-query factory and its helpers. */
+export interface InfiniteQuerySettings<TPage, TPageParam> {
+  config: InfiniteQueryConfig<TPage, TPageParam>;
+  query: InfiniteQueryInfo<TPage, TPageParam>;
+  activeFetch: Promise<void> | null;
+  activeNextFetch: Promise<void> | null;
+  activePreviousFetch: Promise<void> | null;
+  fetchId: number;
+  nextPageParam: TPageParam | undefined;
+  previousPageParam: TPageParam | undefined;
+  firstPageResponse: QueryResponse<TPage> | null;
+  lastPageResponse: QueryResponse<TPage> | null;
+}

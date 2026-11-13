@@ -68,7 +68,8 @@ export function hydrate(cacheMaps: CacheMaps, data: string): void {
 
       saveQuery(cacheMaps, queryKey, response, saveOptions);
 
-      const needsRecall = typeof fetchOnExpired === 'string' || fetchOnInvalidate || removeOnExpired;
+      const activeExpiration = typeof fetchOnExpired === 'string' && fetchOnExpired.length > 0;
+      const needsRecall = activeExpiration || fetchOnInvalidate || removeOnExpired;
 
       const fetchData = async () => {
         const freshRes = await agent.get(url, config);
@@ -78,7 +79,7 @@ export function hydrate(cacheMaps: CacheMaps, data: string): void {
 
       if (needsRecall) {
         cacheMaps.recallCache.set(queryKey, { fetchData });
-        if (typeof fetchOnExpired === 'string' || removeOnExpired) scheduleRecall(cacheMaps, queryKey);
+        if (activeExpiration || removeOnExpired) scheduleRecall(cacheMaps, queryKey);
       }
     });
   } catch {

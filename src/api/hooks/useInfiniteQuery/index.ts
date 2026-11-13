@@ -5,3 +5,6 @@ export type {
   InfiniteQueryInfo,
   InfiniteQueryInitialData,
 } from './types';
+
+export { isInfiniteQuery } from './isInfiniteQuery';
+export { setAsInfiniteQuery } from './setAsInfiniteQuery';

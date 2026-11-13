@@ -1,5 +1,6 @@
 import type { Computed, Reactive, Ref } from '../../../reactivity';
-import type { QueryResponse, Pagination } from '../../createApiAgent';
+import type { ApiResult } from '../result';
+import type { Pagination } from '../../createApiAgent';
 import type { RetryDelayOption, RetryOption } from '../types';
 
 export type QueryStatus = 'pending' | 'success' | 'error';
@@ -22,7 +23,7 @@ export interface QueryConfig<T> {
    * fn: () => agent.get('/users', { queryKey: ['users'], expireIn: '5m', fetchOnExpired: '1s' })
    * ```
    */
-  fn: () => Promise<QueryResponse<T>>;
+  fn: () => Promise<ApiResult<T>>;
   /**
    * Reactive source(s) that should trigger a re-fetch when they change.
    * Can be a single ref/computed/reactive getter or an array of them.
@@ -90,8 +91,24 @@ export interface QueryInfo<T> {
   pagination: Pagination<any>['pagination'] | null;
   /** The rejection reason when `isError` is true. */
   error: any;
+  /** GraphQL extensions from the most recent result. */
+  extensions: Record<string, unknown> | null;
   /** True when `data` currently holds the `initialData` value. */
   isPlaceholderData: boolean;
   /** Manually trigger the query (useful with `immediate: false`). */
   fetch: () => Promise<void>;
+  /** Stops live result subscriptions and prevents further automatic fetching. */
+  dispose: () => void;
 };
+
+/** Internal state shared by the useQuery factory and its execution helpers. */
+export interface QuerySettings<T> {
+  config: QueryConfig<T>;
+  query: QueryInfo<T>;
+  activeFetch: Promise<void> | null;
+  fetchId: number;
+  disposed: boolean;
+  unsubscribe?: () => void;
+  /** Keeps the REST cache's weakly held callback alive for the hook lifetime. */
+  onData: (data: T) => void;
+}

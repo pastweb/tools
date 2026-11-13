@@ -1,3 +1,4 @@
+import { setAsQueries } from './setAsQueries';
 import { effect, reactive } from '../../../reactivity';
 import { useQuery } from '../useQuery';
 import type { QueryConfig } from '../useQuery';
@@ -92,5 +93,6 @@ export function useQueries<T extends readonly QueryConfig<any>[]>(config: UseQue
     true
   );
 
+  setAsQueries(state);
   return state;
 }

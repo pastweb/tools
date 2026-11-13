@@ -1,3 +1,5 @@
+import type { AnyVariables, DocumentInput } from '@urql/core';
+import type { UrqlAdapter, GraphQLQueryOptions, GraphQLMutationOptions, GraphQLResponse } from '../urql/types';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import type { QueryCache } from '../createQueryCache';
 
@@ -28,7 +30,8 @@ export interface PaginationConfig {
    */
   defaultPageLimit?: number;
   /**
-   * Name of the response header that contains the content range (e.g. `"Content-Range"`).
+   * Header used for request `offset-limit` and response `start-end/total` values.
+   * @default 'Content-Range'
    */
   header?: string;
 }
@@ -49,6 +52,8 @@ export type SuccessResponseInterceptor = (res: AxiosResponse) => AxiosResponse;
 export type ErrorResponseInterceptor = (err: AxiosError) => void ;
 
 export type AgentOptions = {
+  /** Optional GraphQL adapter created through @pastweb/tools/api/urql. */
+  gql?: UrqlAdapter;
   /**
    * A `QueryCache` instance to use for this agent.
    * Pass `createQueryCache()` (or a shared instance) to enable caching, SSR prefetching
@@ -113,6 +118,10 @@ export type ApiSSRMode = 'auto' | 'static' | 'dynamic' | 'no-store';
 export type QueryKey = unknown[] | string;
 
 export type QueryOptions = AxiosRequestConfig & {
+  /** One-based page number, converted to offset/limit URL parameters before requesting. */
+  page?: PageNumber;
+  /** Page size when page is supplied; defaults to the URL limit or defaultPageLimit. */
+  limit?: PageLimit;
   /**
    * Projects the response data returned by this `agent.get` call.
    *
@@ -241,6 +250,12 @@ export type MutationOptions = AxiosRequestConfig & {
  * auth interceptors, and SSR prefetch collection support (via the `queryCache` you provide).
  */
 export interface Agent {
+  /** GraphQL integration, including the underlying urql client and SSR accessors. */
+  readonly gql?: UrqlAdapter;
+  /** Executes a GraphQL query, or collects its prefetch during SSR. */
+  query<Data = any, Variables extends AnyVariables = AnyVariables>(document: DocumentInput<Data, Variables>, options?: GraphQLQueryOptions<Variables>): Promise<GraphQLResponse<Data, Variables>>;
+  /** Executes a GraphQL mutation explicitly; GraphQL errors are returned in the result. */
+  mutation<Data = any, Variables extends AnyVariables = AnyVariables>(document: DocumentInput<Data, Variables>, options?: GraphQLMutationOptions<Variables>): Promise<GraphQLResponse<Data, Variables>>;
   /** The raw Axios instance (you can use it directly if needed). */
   agent: AxiosInstance;
   /** Current default request config (headers, withCredentials, ...). */

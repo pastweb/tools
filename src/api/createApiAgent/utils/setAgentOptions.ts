@@ -26,11 +26,10 @@ export function setAgentOptions(settings: AgentSettings, options: AgentOptions):
   };
 
   settings.options = {
+    headers,
+    withCredentials,
     pagination:
-      (!pagination && typeof pagination === 'undefined') ||
-      (pagination && typeof pagination === 'boolean')
-        ? defaultPagination
-        : { ...defaultPagination, ...pagination },
+      pagination === false ? false : { ...defaultPagination, ...(pagination === true ? {} : pagination) },
     ...(exclude ? { exclude } : {}),
     ...rest,
   };

@@ -1,7 +1,7 @@
 import { deepMerge } from '../../../deepMerge';
 import { isExcluded } from './isExcluded';
 import type { InternalAxiosRequestConfig } from 'axios';
-import type { AgentSettings } from '../types';
+import type { AgentSettings, PaginationConfig } from '../types';
 
 /**
  * Intercepts and modifies request configurations.
@@ -16,6 +16,19 @@ export async function requestInterceptor(
   const { url } = requestConfig;
 
   if (isExcluded(settings, url)) return requestConfig;
+
+  const { pagination } = settings.options;
+  if (pagination && url) {
+    const query = new URL(url, 'http://localhost').searchParams;
+    const offset = query.get('offset');
+    const limit = query.get('limit');
+    const header = (pagination as PaginationConfig).header ?? 'Content-Range';
+    if (offset !== null && limit !== null && /^\d+$/.test(offset) && /^\d+$/.test(limit)
+      && Number.isSafeInteger(Number(offset)) && Number.isSafeInteger(Number(limit)) && Number(limit) > 0
+      && !requestConfig.headers.has(header)) {
+      requestConfig.headers.set(header, `${offset}-${limit}`);
+    }
+  }
 
   const { onGetValidToken } = settings.options;
 

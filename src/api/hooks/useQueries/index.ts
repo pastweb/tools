@@ -8,3 +8,6 @@ export type {
   UseQueriesInfo,
   UseQueriesInput,
 } from './types';
+
+export { isQueries } from './isQueries';
+export { setAsQueries } from './setAsQueries';
