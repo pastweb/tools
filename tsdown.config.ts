@@ -34,6 +34,5 @@ export default defineConfig({
         style: './dist/**/*.scss',
       },
     },
-    exclude: ['src/**/*.test.{ts,tsx}', 'src/**/*.spec.{ts,tsx}'],
   },
 });

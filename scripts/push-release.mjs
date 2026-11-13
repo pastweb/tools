@@ -72,7 +72,7 @@ if (existingTags) {
 }
 
 updatePackageVersion(version);
-run('npm', ['run', 'build']);
+run('pnpm', ['run', 'build']);
 run('git', ['status']);
 run('git', ['add', '.']);
 
