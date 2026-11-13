@@ -7,4 +7,5 @@ export const DEFAULT_PORTAL_ANCHORS = [
   'menuSheet',
   'viewSheet',
   'toaster',
+  'walktour',
 ];
