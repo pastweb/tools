@@ -1,0 +1,12 @@
+export { activate } from './activate';
+export { close, closeAll } from './close';
+export { hide, hideAll, show, showAll } from './visibility';
+export { manageWindow } from './manageWindow';
+export { maximize } from './maximize';
+export { minimize } from './minimize';
+export { register } from './register';
+export { restore } from './restore';
+export { setBounds } from './setBounds';
+export { setCallbacks } from './setCallbacks';
+export { setMeta } from './setMeta';
+export { unregister } from './unregister';
