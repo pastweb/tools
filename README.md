@@ -42,8 +42,11 @@ This project is distributed under the MIT licence.
 
 ## Summary
 
+- [createWindowManager](#createwindowmanager)
+
 - [Async functions](#async-functions)
   - [createApiAgent](#createapiagent)
+    - [createUrqlAdapter](#createurqladapter)
     - [createQueryCache](#createquerycache)
     - [useMutation](#usemutation)
     - [useInfiniteQuery](#useinfinitequery)
@@ -145,6 +148,8 @@ function createApiAgent(options?: AgentOptions): Agent;
 ```
 Parameters
 * `options`: `AgentOptions` _(optional)_ The options for the API agent.
+  * `gql`: `UrqlAdapter` _(optional)_
+    * Adds GraphQL `query()` and `mutation()` through the optional [`createUrqlAdapter`](#createurqladapter) integration.
   * `queryCache`: `QueryCache` _(optional)_
     * Pass `createQueryCache()` to enable caching for GETs + SSR support (dehydrate/hydrate).
     * This is the recommended way. The agent will use the provided instance for caching.
@@ -256,7 +261,22 @@ await agent.get('/api/users', { toon: true });
 ```
 
 Pagination
-* When `pagination` is enabled, the `successResponseInterceptor` processes responses with a `Content-Range` header (e.g., `0-1/20` where `0-1` is start and end index adn `20` is the items total number).
+* Pass `page` (1-based) and optional `limit` in `QueryOptions` to generate the compatible `offset`/`limit` query using `agent.pageToOffset`. An explicit page replaces an existing URL offset; the limit comes from the option, URL, or `defaultPageLimit`, in that order. Generated URLs keep default cache entries distinct per page.
+* Requests with explicit `offset` and `limit` URL query parameters also send `Content-Range: <offset>-<limit>` by default. The URL is preserved for backward compatibility. This is a custom request convention: the second number is the item count, while response ranges use an inclusive end index.
+* `pagination.header` customizes both the request and response header name. Explicit request headers are preserved; excluded URLs and `pagination: false` skip automatic pagination headers. Both parameters must be non-negative integers, with `limit` greater than zero.
+
+```typescript
+const agent = createApiAgent();
+const offset = 20;
+const limit = 10;
+await agent.get(`/api/users?offset=${offset}&limit=${limit}`);
+// Equivalent: await agent.get('/api/users', { page: 3, limit: 10 });
+// Request URL: /api/users?offset=20&limit=10
+// Request header: Content-Range: 20-10
+// Expected response header, for 50 total items: Content-Range: 20-29/50
+```
+
+* When `pagination` is enabled, the `successResponseInterceptor` processes responses with a `Content-Range` header (e.g., `0-1/20` where `0-1` is start and end index and `20` is the items total number).
 For `application/json` responses contains the pagination additional info:
 ```typescript
 {
@@ -330,6 +350,169 @@ const agent = createApiAgent({ pagination: { defaultPageLimit: 10, header: 'Cont
 const response = await agent.get('/api/users?page=1&limit=10');
 // Response: { data: [...], info: { start: 0, end: 9, total: 50, size: 10, current: 1, of: 5 } }
 ```
+----
+
+### `createUrqlAdapter`
+
+Creates a GraphQL integration backed by urql. **Create one adapter for each API agent.** The agents can share one Pastweb `QueryCache`, while each adapter keeps its own urql client and GraphQL cache.
+
+The default adapter configures urql for browser and SSR use automatically. You do not need to create a client or configure SSR exchanges yourself. Each agent exposes its underlying client as `agent.gql.urql`.
+
+The adapter factory is exported from `@pastweb/tools/api/urql`, not the package root, to keep the urql runtime out of REST-only imports. `@urql/core` is an **optional peer dependency**; install it when using GraphQL:
+
+```bash
+npm install @urql/core
+# or
+pnpm add @urql/core
+# or
+yarn add @urql/core
+```
+
+Syntax
+
+```typescript
+createUrqlAdapter(options?: UrqlAdapterOptions): UrqlAdapter;
+agent.query(document, options?): Promise<GraphQLResponse>;
+agent.mutation(document, options?): Promise<GraphQLResponse>;
+```
+
+Adapter parameters
+
+- `endpoint?: string`: defaults to `/graphql` for the built-in client. With a supplied client or factory, omission uses the client's URL; an explicit endpoint overrides it.
+- `key?: string`: stable identity for matching server/browser snapshots; defaults to the endpoint. Give each adapter a distinct key when multiple agents use the same endpoint.
+- `clientOptions?`: urql client options such as `fetch`, `fetchOptions`, and `requestPolicy`. The built-in client installs `cacheExchange`, `ssrExchange`, and `fetchExchange`, in that order.
+- `createClient?: (ssr) => Client`: advanced factory for custom exchanges. Install the supplied SSR exchange after your cache and before fetch. The factory must return a new client on each call, including SSR resets.
+- `urql?: Client`, `ssr?: SSRExchange`: alternative for an existing client and its matching SSR exchange. A shared existing client cannot be reset safely by Pastweb; use `createClient` for page-router SSR, which resets at the start of each render cycle. Do not supply both `urql` and `createClient`.
+
+Query parameters
+
+- `document`: GraphQL string, document AST, or typed document.
+- `variables?`: explicit query variables. Omit for queries without inputs.
+- `page?`, `limit?`: uses the existing `agent.pageToOffset(page, limit)` calculation and `getPageLimit()` default. Pagination variables are generated only when `page` is supplied, then explicit variables overwrite them. Explicit `variables.limit` does not change the previously calculated offset. Only top-level `offset` and `limit` are generated; other schema conventions use explicit variables.
+- `queryKey?`: optional string or structured alias for Pastweb invalidation. Without it, identity includes the adapter, endpoint, document, and final variables. An explicit alias must distinguish different operations and variables.
+- `context?`: urql per-operation options. Agent headers, credentials, and authentication are bridged to fetch; per-operation fetch options and headers override defaults and token headers. `context.url` can override the endpoint without sharing cached results with other URLs.
+- `expireIn?`: passive expiration checked on the next agent query. Expired or explicitly invalidated operations fetch with `network-only`.
+- `fetchOnInvalidate?: true | string`: refresh immediately or after a delay when `queryCache.invalidateQuery()` matches the query alias. Omission marks the registration stale for its next call.
+- `ssrMode?`, `ssrRevalitate?`: the same static/dynamic tracking options as REST queries. `no-store` results are excluded from the adapter's SSR snapshot.
+
+Mutation parameters
+
+- `document`, `variables?`, `context?`: GraphQL operation inputs and urql context. Mutations do not generate pagination variables.
+- `onSuccess?: (cache, result) => void | Promise<void>`: called for a result without an error. `cache` is undefined when the agent has no Pastweb cache.
+- `onError?: (error, result?) => void | Promise<void>`: called for returned GraphQL errors, including partial results, or thrown execution errors.
+
+Returns
+
+Both methods preserve urql's `data`, `error`, `extensions`, and operation metadata. GraphQL/network errors returned by urql **resolve** in the result; setup failures or thrown callbacks may reject. Query results additionally expose `onResult(callback)`, which returns an unsubscribe function. `useQuery` uses that subscription to receive urql cache updates and exposes `dispose()` to release it when the consuming scope ends. Both hooks expose GraphQL `extensions` and preserve partial data when `isError` is true. Returned GraphQL errors do not trigger promise-rejection retries.
+
+Example: one adapter per API agent
+
+```typescript
+// api.ts
+import { createApiAgent, createQueryCache } from '@pastweb/tools';
+import { createUrqlAdapter } from '@pastweb/tools/api/urql';
+
+export const queryCache = createQueryCache();
+
+export const usersApi = createApiAgent({
+  queryCache,
+  gql: createUrqlAdapter({
+    key: 'users',
+    endpoint: 'https://api.example.com/users/graphql',
+  }),
+});
+
+export const ordersApi = createApiAgent({
+  queryCache,
+  gql: createUrqlAdapter({
+    key: 'orders',
+    endpoint: 'https://api.example.com/orders/graphql',
+  }),
+});
+```
+
+Replace the example endpoints with your APIs. Absolute URLs also work with Node's native fetch during SSR. Both agents register automatically with `queryCache`; no manual adapter registration is needed.
+
+Example: pagination and optional variables
+
+```typescript
+import { useQuery } from '@pastweb/tools';
+import { usersApi } from './api';
+
+const Users = `query Users($offset: Int!, $limit: Int!, $search: String) {
+  users(offset: $offset, limit: $limit, search: $search) { id name }
+}`;
+
+const users = useQuery({
+  fn: () => usersApi.query(Users, {
+    page: 3,
+    limit: 10,
+    variables: { search: 'Nico' },
+    queryKey: ['users', 3, 10, 'Nico'],
+    fetchOnInvalidate: true,
+  }),
+});
+// GraphQL variables: { offset: 20, limit: 10, search: 'Nico' }
+
+// When the consuming component/scope is disposed:
+users.dispose();
+```
+
+`variables` is optional. Pagination alone needs only `{ page: 3, limit: 10 }`. A query with no inputs needs no options:
+
+```typescript
+import { ordersApi } from './api';
+
+const result = await ordersApi.query(`query Orders {
+  orders { id status }
+}`);
+
+console.log(result.data, result.error);
+```
+
+Example: mutation and query invalidation
+
+```typescript
+import { usersApi } from './api';
+
+const result = await usersApi.mutation(`mutation Rename($id: ID!, $name: String!) {
+  renameUser(id: $id, name: $name) { id name }
+}`, {
+  variables: { id: '123', name: 'Nico' },
+  onSuccess: cache => cache?.invalidateQuery(['users']),
+  onError: (error, result) => console.log(error, result?.data),
+});
+```
+
+The mutation runs when called. Invalidating `['users']` refreshes matching queries configured with `fetchOnInvalidate: true`, such as the example above. Returned GraphQL errors remain available in `result.error`, including when partial `result.data` is present.
+
+Cache and SSR
+
+urql owns GraphQL result storage and its normal mutation-driven cache updates. Pastweb's shared `QueryCache` registers each agent's adapter and coordinates invalidation, prefetching, and SSR snapshots. It does not duplicate GraphQL results in the REST response map; `get`, `getAll`, `has`, and `delete` still inspect that REST map. GraphQL invalidation supports structured prefixes such as `['users']` across registered adapters.
+
+During SSR, queries register prefetches without starting requests in collection passes. `queryCache.dehydrate()` awaits them and includes separate urql snapshots alongside REST entries. `hydrate()` delegates each snapshot to its adapter, or retains it until the agent registers. The built-in SSR exchange preserves errors and extensions. REST-only snapshots retain their existing format; caches with adapters use a versioned envelope, supported by `sliceDehydratedState` and page-router's existing snapshot pipeline. Adapter snapshots are SSR transfer state, not a general browser persistence API for urql's cache.
+
+Use a separate cache and adapters for independently concurrent SSR requests. `resetForSSR()` recreates factory-managed clients between sequential cycles. Mutations are never collected as prefetches: calling `agent.mutation()` executes immediately; `useMutation` executes only when its `mutate()` is called. Hooks suppress their success callback for returned GraphQL errors, while retaining the existing REST hook callback behavior.
+
+Advanced: custom exchanges
+
+Use this only when you need to customize the urql client. The default adapter above already handles SSR configuration.
+
+```typescript
+import { Client, cacheExchange, fetchExchange } from '@urql/core';
+import { createUrqlAdapter } from '@pastweb/tools/api/urql';
+
+const gql = createUrqlAdapter({
+  key: 'catalog',
+  createClient: ssr => new Client({
+    url: '/catalog/graphql',
+    exchanges: [cacheExchange, ssr, fetchExchange],
+  }),
+});
+```
+
+Calls made directly through `agent.gql.urql` bypass Pastweb's registration, authentication bridge, and SSR dependency tracking. Use the agent methods for the coordinated lifecycle.
+
 ----
 
 ### `createQueryCache`
@@ -526,6 +709,37 @@ queryCache.invalidateQuery(['user', 42]);
 
 ---
 
+#### `isQuery` and `setAsQuery`
+
+`useQuery()` marks its return value automatically. Use `isQuery` to recognize that marker, or `setAsQuery` when deliberately marking a custom result object.
+
+Syntax
+
+```typescript
+isQuery(target: any): boolean;
+setAsQuery(target: any): void;
+```
+
+Parameters and returns
+
+- `isQuery` accepts any value and returns whether it is an object with its own `useQuery` marker. It does not validate query state or methods.
+- `setAsQuery` mutates the supplied object and returns nothing. The marker is non-enumerable, non-writable, and non-configurable. Marking an object does not create a working query or make it reactive.
+
+Example
+
+```typescript
+import { isQuery, setAsQuery } from '@pastweb/tools';
+
+const customResult = {};
+console.log(isQuery(customResult)); // false
+
+setAsQuery(customResult);
+console.log(isQuery(customResult)); // true
+console.log(Object.keys(customResult)); // []
+```
+
+Markers are distinct for `useQuery`, `useQueries`, and `useInfiniteQuery`. Inherited markers are not recognized; object spread and JSON serialization do not preserve them.
+
 ### `useInfiniteQuery`
 
 Creates a reactive infinite query for paginated or cursor-based lists.
@@ -589,6 +803,37 @@ const feed = useInfiniteQuery({
 
 ---
 
+#### `isInfiniteQuery` and `setAsInfiniteQuery`
+
+`useInfiniteQuery()` marks its return value automatically. Use `isInfiniteQuery` to recognize that marker, or `setAsInfiniteQuery` when deliberately marking a custom result object.
+
+Syntax
+
+```typescript
+isInfiniteQuery(target: any): boolean;
+setAsInfiniteQuery(target: any): void;
+```
+
+Parameters and returns
+
+- `isInfiniteQuery` accepts any value and returns whether it is an object with its own `useInfiniteQuery` marker. It does not validate query state or methods.
+- `setAsInfiniteQuery` mutates the supplied object and returns nothing. The marker is non-enumerable, non-writable, and non-configurable. Marking an object does not create a working query or make it reactive.
+
+Example
+
+```typescript
+import { isInfiniteQuery, setAsInfiniteQuery } from '@pastweb/tools';
+
+const customResult = {};
+console.log(isInfiniteQuery(customResult)); // false
+
+setAsInfiniteQuery(customResult);
+console.log(isInfiniteQuery(customResult)); // true
+console.log(Object.keys(customResult)); // []
+```
+
+Markers are distinct for `useQuery`, `useQueries`, and `useInfiniteQuery`. Inherited markers are not recognized; object spread and JSON serialization do not preserve them.
+
 ### `useQueries`
 
 Creates multiple `useQuery` instances and returns a reactive aggregate object.
@@ -645,6 +890,37 @@ await dashboard.fetch(); // refetches all child queries
 ```
 
 ---
+
+#### `isQueries` and `setAsQueries`
+
+`useQueries()` marks its return value automatically. Use `isQueries` to recognize that marker, or `setAsQueries` when deliberately marking a custom result object.
+
+Syntax
+
+```typescript
+isQueries(target: any): boolean;
+setAsQueries(target: any): void;
+```
+
+Parameters and returns
+
+- `isQueries` accepts any value and returns whether it is an object with its own `useQueries` marker. It does not validate query state or methods.
+- `setAsQueries` mutates the supplied object and returns nothing. The marker is non-enumerable, non-writable, and non-configurable. Marking an object does not create a working query or make it reactive.
+
+Example
+
+```typescript
+import { isQueries, setAsQueries } from '@pastweb/tools';
+
+const customResult = {};
+console.log(isQueries(customResult)); // false
+
+setAsQueries(customResult);
+console.log(isQueries(customResult)); // true
+console.log(Object.keys(customResult)); // []
+```
+
+Markers are distinct for `useQuery`, `useQueries`, and `useInfiniteQuery`. Inherited markers are not recognized; object spread and JSON serialization do not preserve them.
 
 ### `useMutation`
 
@@ -3572,9 +3848,9 @@ interface Route {
 Props
 
 * `path`: `string`
-  * the path string description for the route match.
+  * The path string used to match the route. Top-level paths are joined with the router `base`. Nested `children` drop a leading `/` and are joined with the parent path, so `files` and `/files` under `/docs` both become `/docs/files`.
 * `redirect`: `string` _(optional)_
-  * the URL to be redirected if the route match the `path` rule.
+  * The URL to redirect to when the route matches. Child redirects that start with `/` stay absolute from the router `base`.
 * `view`: `View = any | (() => Promise<{ default: any, [prop: string]: any }>)` _(optional)_
   * the `View` component or a function returning the `View` component module exported as `default`.
 * `views`: `Record<string, View>` _(optional)_
@@ -3604,7 +3880,7 @@ const routes: Route[] = [
     },
     children: [
       {
-        path: '/product/?:id',
+        path: 'product/?:id',
         view: ProductComponent,
       }
     ],
@@ -3904,7 +4180,7 @@ Parameters
 Returns
 * `RouterLink` (reactive object)
   * `pathname: string` — The final resolved path with params/search/hash applied.
-  * `isActive: boolean` — True if the current location matches the link (non-exact).
+  * `isActive: boolean` — True if the current location is this path or a nested path under it (a following `/` is required, so `/dropdown` is not active on `/dropdownmenu`).
   * `isExactActive: boolean` — True if the current location exactly matches the link.
   * `navigate: (to?: string) => void` — Convenience method to navigate to this link (or an override).
 
@@ -4108,49 +4384,100 @@ const result3 = camelize('This is a test');  // 'thisIsATest'
 The `createIdCache` function provides a mechanism for managing unique IDs within different named scopes.
 This is particularly useful for applications where IDs need to be unique within specific contexts, such as in DOM elements, database entries, or other resources identified by a combination of scope and ID.
 
+It also exposes helpers for **custom element tag names**: unique segments are generated through [`hashID`](#hashid) with `CUSTOM_ELEMENT_ALPHABET` under `CUSTOM_ELEMENTS_SCOPE`.
+
 > #### Syntax
 ```typescript
 function createIdCache(): IdCache;
+
+type CustomElementNamePosition = 'prefix' | 'suffix';
+
+type GetCustomElementNameOptions = {
+  position?: CustomElementNamePosition; // default: 'suffix'
+  alphabet?: string; // default: CUSTOM_ELEMENT_ALPHABET
+};
+
+interface IdCache {
+  getId(scopeName: symbol, options?: HashIDOptions): string;
+  getCustomElementName(
+    name: string,
+    options?: GetCustomElementNameOptions,
+  ): string;
+  removeId(scopeName: symbol, id: string): void;
+  has(scopeName: symbol, id: string): boolean;
+}
+
+// Exported constants
+const ELEMENTS_SCOPE: symbol;
+const CUSTOM_ELEMENTS_SCOPE: symbol;
+const CUSTOM_ELEMENT_ALPHABET: string; // 'abcdefghijklmnopqrstuvwxyz'
 ```
 
-Returns
-* `IdCache`:
-  * An object with methods to manage IDs within scopes. The methods available are:
-    * `getId(scopeName: string, prefix?: string): string`
-      * Generates and retrieves a unique ID for a specified scope.
-    * `removeId(scopeName: string, id: string): void`
-      * Removes a specific ID from a given scope.
-    * `has(scopeName: string, id: string): boolean`
-      * Checks if a specific ID exists within a given scope.
+#### Parameters / returns
+
+* `createIdCache()` returns a frozen `IdCache`:
+  * **`getId(scopeName, options?)`**
+    * Generates and stores a unique ID for `scopeName`.
+    * `options` is the same object accepted by [`hashID`](#hashid) (`prefix`, `idLength`, `alphabet`, `retries`, …) and is forwarded as-is.
+  * **`getCustomElementName(name, options?)`**
+    * Builds a unique custom element tag name via `getId` / `hashID` under `CUSTOM_ELEMENTS_SCOPE`.
+    * `name` is trimmed and lowercased.
+    * `options.position`:
+      * `'suffix'` (**default**) — base name first, then unique code (e.g. `my-el_kmpqrsab`).
+      * `'prefix'` — unique code first (leading `_` from `hashID` stripped so the tag starts with `a–z`), then name (e.g. `kmpqrsab-panel`).
+    * `options.alphabet` — character pool for the unique segment (default `CUSTOM_ELEMENT_ALPHABET` = `a–z`).
+    * In `suffix` mode, if `name` has no hyphen, one is inserted (`app` → prefix `app-`).
+  * **`removeId(scopeName, id)`** — removes an ID from a scope (drops empty scopes).
+  * **`has(scopeName, id)`** — whether an ID exists in a scope.
 
 **Example:**
 ```typescript
-import { createIdCache } from '@pastweb/tools';
+import {
+  createIdCache,
+  CUSTOM_ELEMENT_ALPHABET,
+  CUSTOM_ELEMENTS_SCOPE,
+} from '@pastweb/tools';
 
 const idCache = createIdCache();
+const scope = Symbol('forms');
 
-// Generate and retrieve an ID within 'scope1'
-const id1 = idCache.getId('scope1', 'prefix');
-console.log(idCache.has('scope1', id1)); // true
+// Scoped unique IDs (HashIDOptions as second argument)
+const id1 = idCache.getId(scope, { prefix: 'input-', idLength: 10 });
+console.log(idCache.has(scope, id1)); // true
 
-// Remove the ID from 'scope1'
-idCache.removeId('scope1', id1);
-console.log(idCache.has('scope1', id1)); // false
+// Custom element tag names (suffix by default)
+const tag = idCache.getCustomElementName('my-el');
+// e.g. "my-el_kmpqrsab"
+
+const tag2 = idCache.getCustomElementName('panel', { position: 'prefix' });
+// e.g. "kmpqrsab-panel"
+
+const tag3 = idCache.getCustomElementName('host', {
+  position: 'suffix',
+  alphabet: CUSTOM_ELEMENT_ALPHABET,
+});
+
+idCache.removeId(scope, id1);
+console.log(idCache.has(scope, id1)); // false
 ```
 
+#### Constants
+
+| Constant | Description |
+|----------|-------------|
+| `ELEMENTS_SCOPE` | Default scope symbol for general DOM / entry IDs. |
+| `CUSTOM_ELEMENTS_SCOPE` | Scope used by `getCustomElementName` for tag uniqueness. |
+| `CUSTOM_ELEMENT_ALPHABET` | Default alphabet for custom element unique segments (`a–z`). |
+
 Use Cases
-* `Component IDs`:
-  * In UI frameworks where components may need unique identifiers, particularly within specific contexts or parent components.
-* `Data Management`:
-  * Ensuring unique keys in data storage or retrieval processes where keys are scoped to specific datasets or categories.
-* `Session Management`:
-  * Managing session IDs or tokens that are unique within certain user or application sessions.
+* `Component IDs` — unique identifiers within UI contexts or parent components.
+* `Custom element tags` — unique `customElements.define` names with a stable base segment.
+* `Data / session keys` — scoped unique keys for storage or sessions.
 
 Notes
-* `Performance`:
-  * The use of `Set` ensures efficient lookups, insertions, and deletions, making the cache suitable for high-performance applications.
-* `Immutability`:
-  * The returned `IdCache` object is frozen using `Object.freeze`, preventing further modifications to its structure, which helps avoid accidental changes or bugs.
+* **Breaking (`getId`)**: the second argument is `HashIDOptions`, not a bare prefix string. Use `{ prefix: 'el-' }`.
+* Uniqueness for both `getId` and `getCustomElementName` goes through `hashID`.
+* The returned `IdCache` object is frozen with `Object.freeze`.
 
 ---
 
@@ -4212,8 +4539,8 @@ console.log(unique); // e.g. "user-_x7k9p2" (guaranteed not in `used`)
 
 ### `kebabize`
 
-The `kebabize` function converts a `camelCase` or `PascalCase` string into a `kebab-case` string.
-This transformation is useful for converting JavaScript-style identifiers into formats commonly used in URLs, CSS class names, or other contexts where lowercase hyphenated strings are preferred.
+The `kebabize` function converts a `camelCase`, `PascalCase`, or spaced phrase into a `kebab-case` string.
+This transformation is useful for converting JavaScript-style identifiers and human-readable labels into formats commonly used in URLs, CSS class names, HTML IDs, or other contexts where lowercase hyphenated strings are preferred.
 
 > #### Syntax
 ```typescript
@@ -4222,11 +4549,11 @@ function kebabize(str: string): string;
 
 Parameters
 * `str`: `string`
-  * The input string to be converted to `kebab-case`. This string can be in `camelCase`, `PascalCase`, or a mix of lowercase and uppercase letters.
+  * The input string to be converted to `kebab-case`. This string can be in `camelCase`, `PascalCase`, a spaced phrase, or a mix of lowercase and uppercase letters.
 
 Returns
 * `string`:
-  * The converted string in `kebab-case`, where each uppercase letter is replaced by a lowercase letter preceded by a hyphen (`-`). If the input contains numbers or hyphens, they are preserved in the output string without modification.
+  * The converted string in `kebab-case`, where each uppercase letter is replaced by a lowercase letter preceded by a hyphen (`-`), and whitespace becomes a hyphen. Consecutive hyphens collapse to one. Leading and trailing hyphens are omitted. Numbers and existing hyphens are preserved.
 
 **Example:**
 ```typescript
@@ -4243,6 +4570,10 @@ console.log(pascalCaseString); // Output: 'my-variable-name'
 // Converts a string with numbers to kebab-case
 const stringWithNumbers = kebabize('myVariableName2');
 console.log(stringWithNumbers); // Output: 'my-variable-name2'
+
+// Converts a spaced phrase to kebab-case
+const phrase = kebabize('Select an option');
+console.log(phrase); // Output: 'select-an-option'
 ```
 
 Use Cases
@@ -4660,3 +4991,101 @@ exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
 ## License
 
 [MIT](./LICENSE) License (c) 2026 [Domenico Pasto](https://github.com/pastweb)
+
+
+## createWindowManager
+
+Creates an independent, framework-agnostic window manager with reactive, immutable state snapshots. The manager coordinates metadata and lifecycle requests; renderers provide mounting, visibility, stacking styles, focus, dragging, resizing, and modal accessibility.
+
+### Syntax
+
+```ts
+import { createWindowManager, effect } from '@pastweb/tools';
+
+const manager = createWindowManager();
+```
+
+### Parameters
+
+The factory accepts no parameters. Each root manager has an independent registry. Use `manager.createChild()` when a view needs an isolated registry that participates in the parent manager's global commands.
+
+### Returns
+
+A `WindowManager` exposing `state.windows` in back-to-front order (including minimized windows) and `state.activeId`, which is `null` when no window is active. Read `manager.state` inside an `effect` or framework reactive selector to observe updates; previously captured snapshots do not change.
+
+| Method | Parameters | Result |
+| --- | --- | --- |
+| `createChild` | — | Creates a manager with independent state and registrations. Parent `closeAll`, `hideAll`, and `showAll` commands cascade into it and its descendants. |
+| `dispose` | — | Detaches a manager and its descendants from their parent. It does not close or unregister windows. |
+| `register` | `{ id, meta?, mode?, bounds?, ownerId?, requestClose?, requestFocus? }` | Registers and activates unless blocked by a modal. Returns false for empty/duplicate IDs or unknown owners. |
+| `unregister` | `id` | Removes metadata, clears surviving child owner references, and focuses the next visible window if needed. Does not unmount content. |
+| `activate` | `id` | Reveals, brings forward, and requests focus for an unblocked window. |
+| `hide` | `id` | Hides a window while preserving its registration and layout state. |
+| `show` | `id` | Reveals a hidden window without changing its stacking order. |
+| `hideAll` | — | Hides every registered window in this manager and its child managers, then clears each active window. |
+| `showAll` | — | Reveals every registered window in this manager and its child managers without changing their order. |
+| `minimize` | `id` | Marks a visible window minimized while preserving registration and geometry. A minimized modal no longer blocks the workspace. |
+| `maximize` | `id, bounds` | Applies explicit workspace bounds and saves the original normal bounds. Repeated calls preserve those saved bounds. |
+| `restore` | `id` | Restores minimized windows to their previous normal/maximized state; restores maximized windows to normal bounds; activates the window. |
+| `setBounds` | `id, bounds` | Updates geometry only for normal, unblocked windows. |
+| `setMeta` | `id, meta` | Replaces application-owned window metadata. |
+| `manageWindow` | `window` | Applies the standard taskbar action: restores minimized windows, minimizes the active window, or activates another window. |
+| `close` | `id` | Dispatches `requestClose` for an unblocked window; does not remove registration. |
+| `closeAll` | — | Dispatches every registered close callback from front to back across this manager and its child managers; does not remove registration. |
+
+Commands return booleans. Unknown IDs and blocked/inapplicable commands return false. `close` returns false when no callback is registered; true means a request was dispatched, not that closure completed. Callback exceptions propagate after any associated state transition.
+
+`bounds` contains finite `x`, `y`, `width`, and `height` values; dimensions must be positive. Invalid geometry throws `RangeError` before modifying state. Bounds default to `DEFAULT_WINDOW_BOUNDS`: `{ x: 0, y: 0, width: 640, height: 480 }`. Mode defaults to `floating` and metadata defaults to an empty object.
+
+### Example
+
+```ts
+import { createWindowManager, effect } from '@pastweb/tools';
+
+const desktop = createWindowManager();
+const settingsView = desktop.createChild();
+
+// Register once the renderer has mounted the window.
+desktop.register({
+  id: 'editor',
+  meta: { title: 'Editor' },
+  bounds: { x: 40, y: 40, width: 640, height: 480 },
+  requestFocus: () => editorElement.focus(),
+  requestClose: () => editorPortal.close(),
+});
+
+effect(() => {
+  const { windows, activeId } = desktop.state;
+  // Feed the snapshot into your renderer/taskbar.
+  console.log(windows, activeId);
+});
+
+desktop.maximize('editor', { x: 0, y: 0, width: 1200, height: 800 });
+desktop.minimize('editor');
+desktop.restore('editor'); // Maximized again.
+desktop.restore('editor'); // Original normal bounds.
+desktop.hide('editor');
+desktop.show('editor');
+desktop.setMeta('editor', { title: 'Editor — saved' });
+desktop.manageWindow(desktop.state.windows[0]); // Taskbar interaction.
+desktop.close('editor'); // Renderer handles confirmation and exit animation.
+desktop.closeAll();
+desktop.hideAll(); // Also hides windows registered with settingsView.
+
+// Call from the renderer's actual unmount/removal lifecycle:
+desktop.unregister('editor');
+```
+
+### Notes
+
+- The topmost visible modal blocks activation, close requests, and layout commands for other windows in the same manager. A minimized modal no longer blocks the workspace; restoring it makes it the top blocker again. Registering another modal places it above the previous modal; registering a floating window keeps it below the blocking modal.
+- `ownerId` records ownership, not a separate blocking scope. Use separate managers for independent desktop areas. Removing an owner does not close its children.
+- A minimized window stays mounted only if the renderer preserves its content. The manager itself never mounts or removes DOM nodes.
+- `hide` and `show` update each window's reactive `isHidden` state. A renderer can map that value to an `is-hide` class. Visibility commands do not unmount or alter stored bounds.
+- Supply portal entry IDs when integrating with portals. Keep confirmation and animation in the existing close lifecycle, and unregister after actual removal.
+- Framework adapters must enforce focus boundaries, background interaction blocking, and keyboard behavior. The manager performs no DOM operations and is usable in Node/SSR.
+- `meta` is application-owned. It is copied and shallow-frozen when registered or replaced; `setMeta` replaces rather than merges it. Pass a new record when nested metadata changes.
+- `manageWindow` reads the currently registered window by ID, so taskbars can pass a window from an earlier immutable snapshot. Modal-blocked and removed windows return `false` without changing state.
+- A child manager has independent IDs, ordering, modal blocking, state snapshots, and callbacks. This lets separate views reuse window IDs safely. Its parent only cascades `closeAll`, `hideAll`, and `showAll`; commands that target one ID remain local to prevent ambiguity.
+- Framework integrations can use `WINDOW_MANAGER_CONTEXT_KEY` to expose the one application-owned manager through their shared context mechanism.
+- Readonly types and frozen snapshots protect state from external mutation. Bounds are copied on input. Focus callbacks may run again when an already-active window is explicitly activated.
