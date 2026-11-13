@@ -9,6 +9,7 @@ import {
   normalizeRoute,
   pathMatch,
   pathToRegExp,
+  isActivePath,
   normalizeServerRequest,
 } from './utils';
 import { EMPTY_ROUTE } from './constants';
@@ -456,14 +457,13 @@ export function createViewRouter(options: RouterOptions): ViewRouter {
     const search = searchParams ? `${path.split('?')[0]}?${searchParams.toString()}` : '';
     path = `${path}${search}${hash ? `#${hash}` : ''}`;
 
-    const isActiveRE = pathToRegExp(path, { end: false, sensitive });
     const isExactActiveRE = pathToRegExp(path, { end: true, sensitive });
 
     const { pathname } = state.location;
 
     return {
       pathname: path,
-      isActive: isActiveRE.test(pathname),
+      isActive: isActivePath(path, pathname, { sensitive }),
       isExactActive: isExactActiveRE.test(pathname),
       navigate: (to?: string) => navigate(to || path),
     };

@@ -313,6 +313,32 @@ describe('createViewRouter', () => {
     });
   });
 
+  it('given sibling routes that share a string prefix, when getRouterLink is called on the shorter path, then isActive is false on the longer sibling', async () => {
+    const router = createViewRouter({
+      ...options,
+      routes: [
+        { path: '/', view: 'Home' },
+        { path: '/dropdown', view: 'DropDown' },
+        { path: '/dropdownmenu', view: 'DropDownMenu' },
+      ],
+    });
+    await router.ready;
+
+    await router.setRequest({
+      url: 'http://localhost:3000/dropdownmenu',
+      method: 'GET',
+      headers: {},
+    } as any);
+
+    const dropdown = router.getRouterLink({ path: '/dropdown' });
+    const dropdownMenu = router.getRouterLink({ path: '/dropdownmenu' });
+
+    expect(dropdown.isActive).toBe(false);
+    expect(dropdown.isExactActive).toBe(false);
+    expect(dropdownMenu.isActive).toBe(true);
+    expect(dropdownMenu.isExactActive).toBe(true);
+  });
+
   // it('should correctly identify route by name with optional params', async () => {
   //   const pathname = '/user/alice/smith';
 

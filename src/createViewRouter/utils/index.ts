@@ -8,4 +8,5 @@ export { normalizeRoute } from './normalizeRoute';
 export { normalizeOptions } from './normalizeOptions';
 export { pathMatch } from './pathMatch';
 export { pathToRegExp } from './pathToRegExp';
+export { isActivePath } from './isActivePath';
 

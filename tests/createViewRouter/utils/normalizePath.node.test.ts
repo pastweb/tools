@@ -17,16 +17,28 @@ describe('normalizePath', () => {
     expect(route.redirect).toBe('/app/new');
   });
 
-  it('given a route with nested children, when normalizePath runs, then children get fullPath computed correctly', () => {
+  it('given a route with nested children, when normalizePath runs, then children are joined under the parent whether they start with / or not', () => {
     const route = normalizePath('/app', {
       path: '/parent',
       children: [
         { path: 'child' },
-        { path: '/absolute-child' }
-      ]
+        { path: '/absolute-child' },
+      ],
     });
+    expect(route.path).toBe('/app/parent');
     expect(route.children?.[0].path).toBe('/app/parent/child');
-    expect(route.children?.[1].path).toBe('/app/absolute-child');
+    expect(route.children?.[1].path).toBe('/app/parent/absolute-child');
+  });
+
+  it('given a child redirect that starts with /, when normalizePath runs, then the redirect stays absolute from the base', () => {
+    const route = normalizePath('/app', {
+      path: '/docs',
+      children: [
+        { path: '/files', redirect: '/home' },
+      ],
+    });
+    expect(route.children?.[0].path).toBe('/app/docs/files');
+    expect(route.children?.[0].redirect).toBe('/app/home');
   });
 
   it('given extra properties on a route, when normalized, then they are carried over unchanged', () => {
