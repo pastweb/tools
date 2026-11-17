@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.7.0",
+  "version": "2.7.1",
   "description": "Production-ready, tree-shakeable utilities for modern JavaScript and TypeScript web applications.",
   "keywords": [
     "api-client",
@@ -1413,11 +1413,6 @@
       "import": "./dist/*.scss",
       "require": "./dist/*.scss",
       "style": "./dist/*.scss"
-    },
-    "./**/*.scss": {
-      "import": "./dist/**/*.scss",
-      "require": "./dist/**/*.scss",
-      "style": "./dist/**/*.scss"
     }
   }
 }
