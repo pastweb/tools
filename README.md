@@ -21,6 +21,76 @@ pnpm i -S @pastweb/tools
 yarn add -S @pastweb/tools
 ```
 
+## Importing package entries
+
+The package exposes a root entry for the common public API and feature
+subpaths for APIs that are intentionally kept separate. Prefer the root entry
+when the symbol is exported there; use a subpath when the documentation names a
+specific entry point.
+
+### Root runtime imports
+
+Use named imports from `@pastweb/tools` for the general-purpose API. This is the
+recommended form for tree-shakeable JavaScript and TypeScript code.
+
+```typescript
+import { createMicroStore, ref, useQuery } from '@pastweb/tools';
+```
+
+### Feature subpath imports
+
+Use a feature subpath when the helper is not exported from the root, or when you
+want to make the feature boundary explicit.
+
+```typescript
+import { createUrqlAdapter } from '@pastweb/tools/api/urql';
+import { registerAsyncTask, resolveAsyncTasks } from '@pastweb/tools/ssrUtils';
+```
+
+Subpaths are also available for feature-specific contracts and utilities, for
+example `@pastweb/tools/Island`, `@pastweb/tools/api/hooks/useQuery`, and
+`@pastweb/tools/createLangAsyncStore`.
+
+### Type-only imports
+
+Use `import type` for contracts that are needed only by the TypeScript type
+checker. These imports are removed from the emitted JavaScript.
+
+```typescript
+import { createApiAgent } from '@pastweb/tools';
+import type { Agent, QueryKey } from '@pastweb/tools';
+import type { IslandProps } from '@pastweb/tools/Island';
+```
+
+### Ambient platform declarations
+
+The package publishes optional ambient declarations for platform globals such as
+`Deno`, `Bun`, `Capacitor`, and NativeScript. Add the type reference to an
+application-level declaration file when the application needs those names in
+its own TypeScript source:
+
+```typescript
+/// <reference types="@pastweb/tools/globals" />
+
+export {};
+```
+
+The declaration reference affects types only and does not add a runtime import.
+The runtime environment detection helpers remain normal named imports:
+
+```typescript
+import { isBun, isCapacitor, isDeno, isServer } from '@pastweb/tools';
+```
+
+### Stylesheet imports
+
+SCSS entry points are imported through the package subpath and are intended for
+the application's style pipeline rather than JavaScript runtime code:
+
+```scss
+@use '@pastweb/tools/styles/document';
+```
+
 ## Documentation Overview
 
 The documentation is organized into the following major categories. Each section provides complete TypeScript definitions, practical examples, real-world use cases, and notes on edge cases.
@@ -28,7 +98,7 @@ The documentation is organized into the following major categories. Each section
 - **Async functions** — Tools for working with promises, API clients (`createApiAgent`, `useQuery`, `useMutation`), async stores, event emitters, debouncing, and throttling.
 - **Browser functions** — Client-side utilities including device detection, color scheme management, persistent storage, and the complete routing system.
 - **Date and Time** — Helpers for comparing dates and converting duration strings to milliseconds.
-- **Element functions** — DOM and UI utilities (class name composition, shared island contracts, portals, anchor generation, element sizing).
+- **Element functions** — DOM and UI utilities (class name composition, shared island contracts, portals, anchor generation, element sizing, and the framework-agnostic window manager).
 - **Object functions** — General-purpose object utilities (deep merging, property assignment, type checking, immutability helpers, and more).
 - **Reactivity** — A complete reactivity system (`reactive`, `ref`, `computed`, `effect`) together with supporting utilities and the Global Context pattern.
 - **Routing** — The full `createViewRouter` solution, including route definition, matching, navigation, and mediator hooks for framework integration.
@@ -42,7 +112,7 @@ This project is distributed under the MIT licence.
 
 ## Summary
 
-- [createWindowManager](#createwindowmanager)
+- [Importing package entries](#importing-package-entries)
 
 - [Async functions](#async-functions)
   - [createApiAgent](#createapiagent)
@@ -70,6 +140,7 @@ This project is distributed under the MIT licence.
   - [stringToMs](#stringtoms)
 - [Element functions](#element-functions)
   - [cl](#cl)
+  - [createWindowManager](#createwindowmanager)
   - [createEntry](#createentry)
   - [Island shared contracts](#island-shared-contracts)
   - [createPortal](#createportal)
@@ -2505,6 +2576,103 @@ Constants Used
   * An object mapping dimension keys (width, height) to arrays of related CSS attributes that contribute to the size of an element.
 
 ---
+
+### `createWindowManager`
+
+Creates an independent, framework-agnostic window manager with reactive, immutable state snapshots. The manager coordinates metadata and lifecycle requests; renderers provide mounting, visibility, stacking styles, focus, dragging, resizing, and modal accessibility.
+
+### Syntax
+
+```ts
+import { createWindowManager, effect } from '@pastweb/tools';
+
+const manager = createWindowManager();
+```
+
+### Parameters
+
+The factory accepts no parameters. Each root manager has an independent registry. Use `manager.createChild()` when a view needs an isolated registry that participates in the parent manager's global commands.
+
+### Returns
+
+A `WindowManager` exposing `state.windows` in back-to-front order (including minimized windows) and `state.activeId`, which is `null` when no window is active. Read `manager.state` inside an `effect` or framework reactive selector to observe updates; previously captured snapshots do not change.
+
+| Method | Parameters | Result |
+| --- | --- | --- |
+| `createChild` | — | Creates a manager with independent state and registrations. Parent `closeAll`, `hideAll`, and `showAll` commands cascade into it and its descendants. |
+| `dispose` | — | Detaches a manager and its descendants from their parent. It does not close or unregister windows. |
+| `register` | `{ id, meta?, mode?, bounds?, ownerId?, requestClose?, requestFocus? }` | Registers and activates unless blocked by a modal. Returns false for empty/duplicate IDs or unknown owners. |
+| `unregister` | `id` | Removes metadata, clears surviving child owner references, and focuses the next visible window if needed. Does not unmount content. |
+| `activate` | `id` | Reveals, brings forward, and requests focus for an unblocked window. |
+| `hide` | `id` | Hides a window while preserving its registration and layout state. |
+| `show` | `id` | Reveals a hidden window without changing its stacking order. |
+| `hideAll` | — | Hides every registered window in this manager and its child managers, then clears each active window. |
+| `showAll` | — | Reveals every registered window in this manager and its child managers without changing their order. |
+| `minimize` | `id` | Marks a visible window minimized while preserving registration and geometry. A minimized modal no longer blocks the workspace. |
+| `maximize` | `id, bounds` | Applies explicit workspace bounds and saves the original normal bounds. Repeated calls preserve those saved bounds. |
+| `restore` | `id` | Restores minimized windows to their previous normal/maximized state; restores maximized windows to normal bounds; activates the window. |
+| `setBounds` | `id, bounds` | Updates geometry only for normal, unblocked windows. |
+| `setMeta` | `id, meta` | Replaces application-owned window metadata. |
+| `manageWindow` | `window` | Applies the standard taskbar action: restores minimized windows, minimizes the active window, or activates another window. |
+| `close` | `id` | Dispatches `requestClose` for an unblocked window; does not remove registration. |
+| `closeAll` | — | Dispatches every registered close callback from front to back across this manager and its child managers; does not remove registration. |
+
+Commands return booleans. Unknown IDs and blocked/inapplicable commands return false. `close` returns false when no callback is registered; true means a request was dispatched, not that closure completed. Callback exceptions propagate after any associated state transition.
+
+`bounds` contains finite `x`, `y`, `width`, and `height` values; dimensions must be positive. Invalid geometry throws `RangeError` before modifying state. Bounds default to `DEFAULT_WINDOW_BOUNDS`: `{ x: 0, y: 0, width: 640, height: 480 }`. Mode defaults to `floating` and metadata defaults to an empty object.
+
+### Example
+
+```ts
+import { createWindowManager, effect } from '@pastweb/tools';
+
+const desktop = createWindowManager();
+const settingsView = desktop.createChild();
+
+// Register once the renderer has mounted the window.
+desktop.register({
+  id: 'editor',
+  meta: { title: 'Editor' },
+  bounds: { x: 40, y: 40, width: 640, height: 480 },
+  requestFocus: () => editorElement.focus(),
+  requestClose: () => editorPortal.close(),
+});
+
+effect(() => {
+  const { windows, activeId } = desktop.state;
+  // Feed the snapshot into your renderer/taskbar.
+  console.log(windows, activeId);
+});
+
+desktop.maximize('editor', { x: 0, y: 0, width: 1200, height: 800 });
+desktop.minimize('editor');
+desktop.restore('editor'); // Maximized again.
+desktop.restore('editor'); // Original normal bounds.
+desktop.hide('editor');
+desktop.show('editor');
+desktop.setMeta('editor', { title: 'Editor — saved' });
+desktop.manageWindow(desktop.state.windows[0]); // Taskbar interaction.
+desktop.close('editor'); // Renderer handles confirmation and exit animation.
+desktop.closeAll();
+desktop.hideAll(); // Also hides windows registered with settingsView.
+
+// Call from the renderer's actual unmount/removal lifecycle:
+desktop.unregister('editor');
+```
+
+### Notes
+
+- The topmost visible modal blocks activation, close requests, and layout commands for other windows in the same manager. A minimized modal no longer blocks the workspace; restoring it makes it the top blocker again. Registering another modal places it above the previous modal; registering a floating window keeps it below the blocking modal.
+- `ownerId` records ownership, not a separate blocking scope. Use separate managers for independent desktop areas. Removing an owner does not close its children.
+- A minimized window stays mounted only if the renderer preserves its content. The manager itself never mounts or removes DOM nodes.
+- `hide` and `show` update each window's reactive `isHidden` state. A renderer can map that value to an `is-hide` class. Visibility commands do not unmount or alter stored bounds.
+- Supply portal entry IDs when integrating with portals. Keep confirmation and animation in the existing close lifecycle, and unregister after actual removal.
+- Framework adapters must enforce focus boundaries, background interaction blocking, and keyboard behavior. The manager performs no DOM operations and is usable in Node/SSR.
+- `meta` is application-owned. It is copied and shallow-frozen when registered or replaced; `setMeta` replaces rather than merges it. Pass a new record when nested metadata changes.
+- `manageWindow` reads the currently registered window by ID, so taskbars can pass a window from an earlier immutable snapshot. Modal-blocked and removed windows return `false` without changing state.
+- A child manager has independent IDs, ordering, modal blocking, state snapshots, and callbacks. This lets separate views reuse window IDs safely. Its parent only cascades `closeAll`, `hideAll`, and `showAll`; commands that target one ID remain local to prevent ambiguity.
+- Framework integrations can use `WINDOW_MANAGER_CONTEXT_KEY` to expose the one application-owned manager through their shared context mechanism.
+- Readonly types and frozen snapshots protect state from external mutation. Bounds are copied on input. Focus callbacks may run again when an already-active window is explicitly activated.
 
 ## Object functions
 
@@ -4971,99 +5139,3 @@ exampleFunction(() => console.log('Callback called')); // Logs 'Callback called'
 [MIT](./LICENSE) License (c) 2026 [Domenico Pasto](https://github.com/pastweb)
 
 
-## createWindowManager
-
-Creates an independent, framework-agnostic window manager with reactive, immutable state snapshots. The manager coordinates metadata and lifecycle requests; renderers provide mounting, visibility, stacking styles, focus, dragging, resizing, and modal accessibility.
-
-### Syntax
-
-```ts
-import { createWindowManager, effect } from '@pastweb/tools';
-
-const manager = createWindowManager();
-```
-
-### Parameters
-
-The factory accepts no parameters. Each root manager has an independent registry. Use `manager.createChild()` when a view needs an isolated registry that participates in the parent manager's global commands.
-
-### Returns
-
-A `WindowManager` exposing `state.windows` in back-to-front order (including minimized windows) and `state.activeId`, which is `null` when no window is active. Read `manager.state` inside an `effect` or framework reactive selector to observe updates; previously captured snapshots do not change.
-
-| Method | Parameters | Result |
-| --- | --- | --- |
-| `createChild` | — | Creates a manager with independent state and registrations. Parent `closeAll`, `hideAll`, and `showAll` commands cascade into it and its descendants. |
-| `dispose` | — | Detaches a manager and its descendants from their parent. It does not close or unregister windows. |
-| `register` | `{ id, meta?, mode?, bounds?, ownerId?, requestClose?, requestFocus? }` | Registers and activates unless blocked by a modal. Returns false for empty/duplicate IDs or unknown owners. |
-| `unregister` | `id` | Removes metadata, clears surviving child owner references, and focuses the next visible window if needed. Does not unmount content. |
-| `activate` | `id` | Reveals, brings forward, and requests focus for an unblocked window. |
-| `hide` | `id` | Hides a window while preserving its registration and layout state. |
-| `show` | `id` | Reveals a hidden window without changing its stacking order. |
-| `hideAll` | — | Hides every registered window in this manager and its child managers, then clears each active window. |
-| `showAll` | — | Reveals every registered window in this manager and its child managers without changing their order. |
-| `minimize` | `id` | Marks a visible window minimized while preserving registration and geometry. A minimized modal no longer blocks the workspace. |
-| `maximize` | `id, bounds` | Applies explicit workspace bounds and saves the original normal bounds. Repeated calls preserve those saved bounds. |
-| `restore` | `id` | Restores minimized windows to their previous normal/maximized state; restores maximized windows to normal bounds; activates the window. |
-| `setBounds` | `id, bounds` | Updates geometry only for normal, unblocked windows. |
-| `setMeta` | `id, meta` | Replaces application-owned window metadata. |
-| `manageWindow` | `window` | Applies the standard taskbar action: restores minimized windows, minimizes the active window, or activates another window. |
-| `close` | `id` | Dispatches `requestClose` for an unblocked window; does not remove registration. |
-| `closeAll` | — | Dispatches every registered close callback from front to back across this manager and its child managers; does not remove registration. |
-
-Commands return booleans. Unknown IDs and blocked/inapplicable commands return false. `close` returns false when no callback is registered; true means a request was dispatched, not that closure completed. Callback exceptions propagate after any associated state transition.
-
-`bounds` contains finite `x`, `y`, `width`, and `height` values; dimensions must be positive. Invalid geometry throws `RangeError` before modifying state. Bounds default to `DEFAULT_WINDOW_BOUNDS`: `{ x: 0, y: 0, width: 640, height: 480 }`. Mode defaults to `floating` and metadata defaults to an empty object.
-
-### Example
-
-```ts
-import { createWindowManager, effect } from '@pastweb/tools';
-
-const desktop = createWindowManager();
-const settingsView = desktop.createChild();
-
-// Register once the renderer has mounted the window.
-desktop.register({
-  id: 'editor',
-  meta: { title: 'Editor' },
-  bounds: { x: 40, y: 40, width: 640, height: 480 },
-  requestFocus: () => editorElement.focus(),
-  requestClose: () => editorPortal.close(),
-});
-
-effect(() => {
-  const { windows, activeId } = desktop.state;
-  // Feed the snapshot into your renderer/taskbar.
-  console.log(windows, activeId);
-});
-
-desktop.maximize('editor', { x: 0, y: 0, width: 1200, height: 800 });
-desktop.minimize('editor');
-desktop.restore('editor'); // Maximized again.
-desktop.restore('editor'); // Original normal bounds.
-desktop.hide('editor');
-desktop.show('editor');
-desktop.setMeta('editor', { title: 'Editor — saved' });
-desktop.manageWindow(desktop.state.windows[0]); // Taskbar interaction.
-desktop.close('editor'); // Renderer handles confirmation and exit animation.
-desktop.closeAll();
-desktop.hideAll(); // Also hides windows registered with settingsView.
-
-// Call from the renderer's actual unmount/removal lifecycle:
-desktop.unregister('editor');
-```
-
-### Notes
-
-- The topmost visible modal blocks activation, close requests, and layout commands for other windows in the same manager. A minimized modal no longer blocks the workspace; restoring it makes it the top blocker again. Registering another modal places it above the previous modal; registering a floating window keeps it below the blocking modal.
-- `ownerId` records ownership, not a separate blocking scope. Use separate managers for independent desktop areas. Removing an owner does not close its children.
-- A minimized window stays mounted only if the renderer preserves its content. The manager itself never mounts or removes DOM nodes.
-- `hide` and `show` update each window's reactive `isHidden` state. A renderer can map that value to an `is-hide` class. Visibility commands do not unmount or alter stored bounds.
-- Supply portal entry IDs when integrating with portals. Keep confirmation and animation in the existing close lifecycle, and unregister after actual removal.
-- Framework adapters must enforce focus boundaries, background interaction blocking, and keyboard behavior. The manager performs no DOM operations and is usable in Node/SSR.
-- `meta` is application-owned. It is copied and shallow-frozen when registered or replaced; `setMeta` replaces rather than merges it. Pass a new record when nested metadata changes.
-- `manageWindow` reads the currently registered window by ID, so taskbars can pass a window from an earlier immutable snapshot. Modal-blocked and removed windows return `false` without changing state.
-- A child manager has independent IDs, ordering, modal blocking, state snapshots, and callbacks. This lets separate views reuse window IDs safely. Its parent only cascades `closeAll`, `hideAll`, and `showAll`; commands that target one ID remain local to prevent ambiguity.
-- Framework integrations can use `WINDOW_MANAGER_CONTEXT_KEY` to expose the one application-owned manager through their shared context mechanism.
-- Readonly types and frozen snapshots protect state from external mutation. Bounds are copied on input. Focus callbacks may run again when an already-active window is explicitly activated.

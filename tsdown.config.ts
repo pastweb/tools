@@ -28,6 +28,10 @@ export default defineConfig({
         'require': './dist/*.scss',
         'style': './dist/*.scss'
       },
+      // Global types export
+      "./globals": {
+        "types": "./globals.d.ts",
+      },
     },
   },
 });

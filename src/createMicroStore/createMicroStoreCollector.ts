@@ -97,7 +97,7 @@ export function createMicroStoreCollector(options: MicroStoreCollectorOptions): 
 
   asyncStore = createAsyncStore<AsyncStore<AsyncStoreOptions>>({
     name: `MicroStore:${name}`,
-    timeout,
+    ...(timeout === undefined ? {} : { timeout }),
     onInit: init,
   });
 
