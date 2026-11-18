@@ -5,6 +5,7 @@ import type { LangOptions, LazyTranslations } from '../types';
 export function translationImport(translations: LangOptions['translations']): BackendModule {
   return {
     type: 'backend',
+    callbackApi: true,
     init(services, backendOptions, i18nextOptions) {
     },
     read(language, namespace, callback) {

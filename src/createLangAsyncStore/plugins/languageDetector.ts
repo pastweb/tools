@@ -30,6 +30,7 @@ export function languageDetector(
   return {
     type: 'languageDetector',
     async: true, // If this is set to true, your detect function receives a callback function that you should call with your language, useful to retrieve your language stored in AsyncStorage for example
+    callbackApi: true,
     init(services, detectorOptions, i18nextOptions) { // optional since v22.3.0
       /* use services and options */
     },
