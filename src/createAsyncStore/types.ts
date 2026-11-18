@@ -9,7 +9,7 @@ export interface AsyncStore<Options extends AsyncStoreOptions> {
   readonly isStoreReady: boolean;
   readonly isReady: Promise<boolean>;
   readonly setStoreReady: () => void;
-  init: () => void; 
+  init: () => void | Promise<void>;
 };
 
 export type Wait = Promise<any> | (() => Promise<any>) | AsyncStore<any>;

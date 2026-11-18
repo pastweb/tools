@@ -12,6 +12,12 @@
 
 ### Added
 
+- **Micro-store collector lifecycle and inspection**: `createMicroStoreCollector`
+  now owns asynchronous initialization, exposes idempotent `init()` / `isReady`
+  state, provides serializable snapshots and inspection metadata, and emits
+  action events for development tooling. Explicit stores are collected together
+  with registered stores, and circular state is handled safely in snapshots.
+
 - **Default portal anchors**: added `walktour` to `DEFAULT_PORTAL_ANCHORS`, so `generateAnchors()` creates a dedicated anchor for guided tours.
 
 - **`createWindowManager`**: added a DOM-free reactive manager for portal-backed desktop windows. It tracks immutable window snapshots, activation order, geometry, visibility, minimize/maximize/restore state, modal blocking, ownership, close requests, and application metadata through `meta` / `setMeta`. `createChild()` creates isolated view managers whose `closeAll`, `hideAll`, and `showAll` commands cascade from their parent; `dispose()` detaches a child tree. `hide`, `show`, `hideAll`, `showAll`, and `closeAll` provide application-wide commands, while `manageWindow(window)` centralizes standard taskbar behavior. Minimized or hidden modals release their workspace until restored or shown. `WINDOW_MANAGER_CONTEXT_KEY` gives framework integrations a shared context key for the application-owned manager. The factory owns its closure state directly and delegates transitions to focused helpers; it does not expose or require classes.
@@ -31,6 +37,10 @@
 - **`GetCustomElementNameOptions`** / **`CustomElementNamePosition`** types exported from `createIdCache` and the package root.
 
 ### Breaking
+
+- **Micro-store initialization API**: removed `createAsyncMicroStore` and its
+  related types. Use `createMicroStoreCollector({ stores, onInit })`; the
+  collector now provides the asynchronous readiness lifecycle directly.
 
 - **`createIdCache` / `IdCache.getId`**: the second parameter is now `HashIDOptions` (same options object as `hashID`), not a prefix string.
   - Before: `getId(scope, 'prefix')`

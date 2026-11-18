@@ -9,19 +9,27 @@ import { isObject } from '../isObject';
  * @returns A readonly proxy that throws on mutation attempts
  */
 export function createReadonlyState<T>(name: string, target: T): Readonly<T> {
-  return new Proxy(target as object, {
-    get(obj, prop) {
-      const value = Reflect.get(obj, prop);
-      if (isObject(value)) {
-        return createReadonlyState(name, value);
-      }
-      return value;
-    },
-    set() {
-      throw new Error(`[createMicroStore] Cannot mutate state "${name}" directly. Use actions instead.`);
-    },
-    deleteProperty() {
-      throw new Error(`[createMicroStore] Cannot delete properties from state "${name}". Use actions instead.`);
-    },
-  }) as Readonly<T>;
+  const cache = new WeakMap<object, object>();
+
+  function create(value: unknown): unknown {
+    if (!isObject(value)) return value;
+    if (cache.has(value as object)) return cache.get(value as object);
+
+    const proxy = new Proxy(value as object, {
+      get(obj, prop) {
+        return create(Reflect.get(obj, prop));
+      },
+      set() {
+        throw new Error(`[createMicroStore] Cannot mutate state "${name}" directly. Use actions instead.`);
+      },
+      deleteProperty() {
+        throw new Error(`[createMicroStore] Cannot delete properties from state "${name}". Use actions instead.`);
+      },
+    });
+
+    cache.set(value as object, proxy);
+    return proxy;
+  }
+
+  return create(target) as Readonly<T>;
 }

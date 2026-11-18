@@ -9,4 +9,11 @@ export type {
   MicroStoreActionsContext,
   MicroStoreCollectorOptions,
   CollectedStore,
+  MicroStoreCollector,
+  MicroStoreCollectorInfo,
+  MicroStoreEvent,
+  MicroStoreHandle,
+  MicroStoreInfo,
+  MicroStoreListener,
+  MicroStoreSnapshot,
 } from './types';

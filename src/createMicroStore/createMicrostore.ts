@@ -1,12 +1,16 @@
 import { reactive, type Reactive } from '../reactivity';
 import { createReadonlyState } from './createReadonlyState';
 import { STORE_REGISTRY } from './constants';
+import { serializeSnapshot } from './serializeSnapshot';
 import type {
   MicroStoreConfig,
   UseMicroStore,
   Selector,
   MicroStore,
   MicroStoreActionsContext,
+  MicroStoreEvent,
+  MicroStoreInfo,
+  MicroStoreListener,
 } from './types';
 
 /**
@@ -79,6 +83,7 @@ export function createMicroStore<
 ): UseMicroStore<S, A> {
   let reactiveState: Reactive<S>;
   let actions: A;
+  const listeners = new Set<MicroStoreListener>();
 
   // Temporary select used only during setup
   const setupSelect = <T>(selector: Selector<T, S>): T => {
@@ -96,7 +101,48 @@ export function createMicroStore<
   }
 
   // Initialize deeply reactive state (mutable internally)
-  reactiveState = reactive({ ...initialState }, true);
+  reactiveState = reactive(initialState, true);
+
+  function getSnapshot(): unknown {
+    return serializeSnapshot(initialState);
+  }
+
+  function inspect(): MicroStoreInfo {
+    return {
+      name,
+      actions: Object.keys(actions),
+      state: getSnapshot(),
+    };
+  }
+
+  function subscribe(listener: MicroStoreListener): () => void {
+    listeners.add(listener);
+
+    return () => {
+      listeners.delete(listener);
+    };
+  }
+
+  function notify(action: string, args: unknown[], startedAt: number, error?: unknown): void {
+    const event: MicroStoreEvent = {
+      type: 'action',
+      store: name,
+      action,
+      args,
+      state: getSnapshot(),
+      timestamp: Date.now(),
+      duration: Date.now() - startedAt,
+      ...(error === undefined ? {} : { error }),
+    };
+
+    for (const listener of listeners) {
+      try {
+        listener(event);
+      } catch (listenerError) {
+        console.error(`[createMicroStore] Listener failed for store "${name}"`, listenerError);
+      }
+    }
+  }
 
   const actionsContext: MicroStoreActionsContext<S> = {
     get state() {
@@ -107,7 +153,32 @@ export function createMicroStore<
   actions = Object.fromEntries(
     Object.entries(initialActions).map(([key, action]) => [
       key,
-      (...args: any[]) => action.call(actionsContext, ...args),
+      (...args: any[]) => {
+        const startedAt = Date.now();
+
+        try {
+          const result = action.call(actionsContext, ...args);
+
+          if (result && typeof result.then === 'function') {
+            return Promise.resolve(result).then(
+              value => {
+                notify(key, args, startedAt);
+                return value;
+              },
+              error => {
+                notify(key, args, startedAt, error);
+                throw error;
+              },
+            );
+          }
+
+          notify(key, args, startedAt);
+          return result;
+        } catch (error) {
+          notify(key, args, startedAt, error);
+          throw error;
+        }
+      },
     ])
   ) as A;
 
@@ -127,6 +198,25 @@ export function createMicroStore<
       ...actions,
     } as MicroStore<S, A>;
   }
+
+  Object.defineProperties(useMicroStore, {
+    storeName: {
+      value: name,
+      enumerable: false,
+    },
+    getSnapshot: {
+      value: getSnapshot,
+      enumerable: false,
+    },
+    inspect: {
+      value: inspect,
+      enumerable: false,
+    },
+    subscribe: {
+      value: subscribe,
+      enumerable: false,
+    },
+  });
 
   // Register store in global registry for devtools/collector
   if (STORE_REGISTRY.has(name)) {

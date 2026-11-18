@@ -1,7 +1,7 @@
 {
   "name": "@pastweb/tools",
   "type": "module",
-  "version": "2.7.1",
+  "version": "2.8.0",
   "description": "Production-ready, tree-shakeable utilities for modern JavaScript and TypeScript web applications.",
   "keywords": [
     "api-client",
@@ -616,18 +616,6 @@
       "import": "./dist/colorFilter/Solver.mjs",
       "require": "./dist/colorFilter/Solver.cjs"
     },
-    "./createAsyncMicroStore": {
-      "import": "./dist/createAsyncMicroStore/index.mjs",
-      "require": "./dist/createAsyncMicroStore/index.cjs"
-    },
-    "./createAsyncMicroStore/createAsyncMicroStore": {
-      "import": "./dist/createAsyncMicroStore/createAsyncMicroStore.mjs",
-      "require": "./dist/createAsyncMicroStore/createAsyncMicroStore.cjs"
-    },
-    "./createAsyncMicroStore/types": {
-      "import": "./dist/createAsyncMicroStore/types.mjs",
-      "require": "./dist/createAsyncMicroStore/types.cjs"
-    },
     "./createAsyncStore": {
       "import": "./dist/createAsyncStore/index.mjs",
       "require": "./dist/createAsyncStore/index.cjs"
@@ -791,6 +779,10 @@
     "./createMicroStore/createReadonlyState": {
       "import": "./dist/createMicroStore/createReadonlyState.mjs",
       "require": "./dist/createMicroStore/createReadonlyState.cjs"
+    },
+    "./createMicroStore/serializeSnapshot": {
+      "import": "./dist/createMicroStore/serializeSnapshot.mjs",
+      "require": "./dist/createMicroStore/serializeSnapshot.cjs"
     },
     "./createMicroStore/types": {
       "import": "./dist/createMicroStore/types.mjs",

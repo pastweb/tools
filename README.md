@@ -52,7 +52,6 @@ This project is distributed under the MIT licence.
     - [useInfiniteQuery](#useinfinitequery)
     - [useQueries](#usequeries)
     - [useQuery](#usequery)
-  - [createAsyncMicroStore](#createasyncmicrostore)
   - [createAsyncStore](#createasyncstore)
     - [normalizeAsyncQueue](#normalizeasyncqueue)
   - [createEventEmitter](#createeventemitter)
@@ -1020,7 +1019,7 @@ console.log(updateUser.isPlaceholderData); // false
 Creates an asynchronous store with the given options.
 Useful to be extended for async initialisation of application state manager like [redux](https://redux.js.org/) or [pinia](https://pinia.vuejs.org/) if needs to get initialisation data from async resources as [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 
-For built-in micro-store patterns, see [`createMicroStore`](#createmicrostore) and [`createAsyncMicroStore`](#createasyncmicrostore).
+For built-in micro-store patterns, see [`createMicroStore`](#createmicrostore) and [`createMicroStoreCollector`](#createmicrostorecollector).
 
 > #### Syntax
 ```typescript
@@ -1247,48 +1246,6 @@ Use `createDependencyFingerprint(tracker.snapshot())` to key persisted `apiCache
 **Partial hydration:** combine `sliceDehydratedState(snapshot, islandQueryKeys)` with framework `Island` components — hydrate the slice before island `hydrateRoot`.
 
 ---
-### `createAsyncMicroStore`
-
-Create an async wrapper around [creteMicroStoreCollector](#createmicrostorecollector) with an `onInit` async function to pass into the options, in case your store/s need to be initialized with data from `async` resources as example `indexedDB`.
-
-> #### Syntax
-```typescript
-function createAsyncMicroStore(options: MicroCollectorStoreOptions): MicroAsyncStore
-```
-
-Returns
-* `MicroAsyncStore`
-  * An object containing stores hooks to interact with the micro stores.
-
-**Example:**
-```typescript
-import { createAsyncMicroStore } from '@pastweb/tools';
-import { useCounterStore, useUserStore, useThemeStore } from '.../somewhere';
-
-const useAsyncStores = createAsyncMicroStore({
-  name: 'appStores',
-  stores: [useCounterStore, useUserStore, useThemeStore],
-  timeout: 15000,
-  onInit: async (collectedStores) => {
-    console.log('Initializing stores...', Object.keys(collectedStores));
-    // Example: load user data after stores are collected
-    await fetchInitialData(collectedStores.user);
-  },
-});
-
-// Usage in app bootstrap
-await useAsyncStores.init();
-
-// Now safe to use stores
-const counter = useAsyncStores.store.counter();
-const user = useAsyncStores.store.user();
-
-// Or wait for readiness
-await useAsyncStores.isReady;
-```
-
----
-
 ### `createEventEmitter`
 
 Creates an event emitter that allows subscribing to events, emitting events, and removing event listeners.
@@ -3584,6 +3541,8 @@ Parameters
 Returns
 * `UseMicroStore<S, A>`
   * A hook function that returns the store state and actions.
+  * The hook also exposes `storeName`, `getSnapshot`, `inspect`, and `subscribe`
+    for framework-neutral inspection and development tooling.
 
 Methods
 * `useMicroStore(): MicroStore<S, A>`
@@ -3653,44 +3612,63 @@ Notes
 * Use **method shorthand** or `function` syntax when accessing `this.state`. Arrow functions (`increment: () => { ... }`) do not receive the actions context as `this`; use `select` instead.
 * The action name `"state"` is reserved and cannot be used in the `actions` object.
 * Selectors can return any value (primitives, objects, arrays, nested properties). Changes via actions are automatically reflected in all selector views.
+* Action listeners receive serializable snapshots and are isolated from action
+  failures; listener exceptions do not break the store action.
 
 ---
 
 ### `createMicroStoreCollector`
 
-Create a collector object, this function is used to force the import/creation of the micro store/s hooks function in the same module there the `createMicroStoreCollector` is called in order to collect them in a single object for future devtoos.
-It is possible create multiple `MicroStoreCollector` in order to obtain different logic groups.
+Creates a collector for a group of micro-store hooks. The collector also owns
+the asynchronous initialization lifecycle, state snapshots, and action-event
+subscriptions used by development tools.
 
 > #### Syntax
 ```typescript
-export function createMicroStoreCollector(options: MicroStoreCollectorOptions): CollectedStore
+export function createMicroStoreCollector(options: MicroStoreCollectorOptions): MicroStoreCollector
 ```
 Parameters
 * `options`: `MicroStoreCollectorOptions`
   * `name`: `string` _(optional)_
-    - The collector name.
-  * `stores`: `UseMicroStore<S, A> | UseMicroStore<S, A>[]` _(required)_
-    - The micro store/s hook to be collected.
+    - The collector name. Defaults to `microStores`.
+  * `stores`: `UseMicroStore<S, A> | UseMicroStore<S, A>[]` _(optional)_
+    - The micro-store hooks to collect. Registered hooks are included as well.
+  * `timeout`: `number` _(optional)_
+    - Readiness timeout passed to `createAsyncStore`.
+  * `onInit`: `(stores: CollectedStore) => void | Promise<void>` _(optional)_
+    - Runs once when the collector is initialized.
 
 Returns
-* `CollectedStore` : `Record<string, UseMicroStore<S, A>>`
-  * An object with the `MicroStore` name as `key` and the hook function as `value`.
+* `MicroStoreCollector`
+  * The collected hooks are available directly by name and through `.store`.
+  * `.init()` starts idempotent initialization and `.isReady` resolves when it completes.
+  * `.getSnapshot()` returns serializable state for every collected store.
+  * `.inspect()` returns store metadata and state for development tooling.
+  * `.subscribe(listener)` receives action events and returns an unsubscribe function.
 
 
 **Example:**
 ```typescript
 import { createMicroStoreCollector } from '@pastweb/tools';
-import { useAddressStore, useUserStore, useCartStore } from '.../somewhere'; 
+import { useCounterStore, useUserStore, useCartStore } from '.../somewhere';
 
 const customerStores = createMicroStoreCollector({
   name: 'customer',
   stores: [useCounterStore, useUserStore, useCartStore],
+  onInit: async stores => {
+    // Load persisted state or other asynchronous resources here.
+    console.log('Initializing:', Object.keys(stores));
+  },
 });
 
-// Usage in DevTools
-Object.entries(customerStores).forEach(([name, useStore]) => {
-  console.log(`${name} state:`, useStore().state);
+await customerStores.isReady;
+console.log(customerStores.inspect());
+
+const removeListener = customerStores.subscribe(event => {
+  console.log('Store action:', event.store, event.action);
 });
+
+removeListener();
 ```
 ---
 

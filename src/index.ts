@@ -65,9 +65,6 @@ export { camelize } from './camelize';
 export { cl, Mode } from './cl';
 export type { ClassValue, CSSModuleClasses } from './cl';
 
-export { createAsyncMicroStore } from './createAsyncMicroStore';
-export type { MicroAsyncStore, MicroCollectorStoreOptions } from './createAsyncMicroStore';
-
 export { createAsyncStore, isAsyncStore, normalizeAsyncQueue } from './createAsyncStore';
 export type { AsyncStore, AsyncStoreOptions, Wait } from './createAsyncStore';
 
@@ -98,7 +95,22 @@ export { createMatchScheme, createMatchSchemeAsyncStore, useColorScheme } from '
 export type { SchemeOptions, MatchScheme, ColorSchemeInfo, ColorSchemeAsyncStore } from './createMatchScheme';
 
 export { createMicroStore, createMicroStoreCollector } from './createMicroStore';
-export type { MicroStore, UseMicroStore, Selector, MicroStoreConfig, MicroStoreActionsContext, MicroStoreCollectorOptions, CollectedStore } from './createMicroStore';
+export type {
+  MicroStore,
+  UseMicroStore,
+  Selector,
+  MicroStoreConfig,
+  MicroStoreActionsContext,
+  MicroStoreCollectorOptions,
+  CollectedStore,
+  MicroStoreCollector,
+  MicroStoreCollectorInfo,
+  MicroStoreEvent,
+  MicroStoreHandle,
+  MicroStoreInfo,
+  MicroStoreListener,
+  MicroStoreSnapshot,
+} from './createMicroStore';
 
 export { createStorage } from './createStorage';
 export type {

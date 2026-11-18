@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createMicroStore, createMicroStoreCollector } from '../../src/createMicroStore';
+import { isAsyncStore } from '../../src/createAsyncStore';
 import { STORE_REGISTRY } from '../../src/createMicroStore/constants';
 
-// Mock the registry to keep tests isolated
-vi.mock('./constants', () => ({
+vi.mock('../../src/createMicroStore/constants', () => ({
   STORE_REGISTRY: new Map(),
 }));
 
@@ -17,7 +17,7 @@ describe('given the createMicroStoreCollector', () => {
     STORE_REGISTRY.clear();
   });
 
-  it('given two registered stores (counter, user), when createMicroStoreCollector with them, then collector has keys for both, registry had 2, and collector exposes fn hooks', () => {
+  it('given registered and explicit stores, when creating a collector, then hooks are available directly and through store', () => {
     const counterStore = createMicroStore('counter', () => ({
       state: { count: 0 },
       actions: { increment: () => {} },
@@ -28,51 +28,74 @@ describe('given the createMicroStoreCollector', () => {
       actions: { setName: () => {} },
     }));
 
-    expect(STORE_REGISTRY.size).toBe(2);
-    expect(STORE_REGISTRY.has('counter')).toBe(true);
-    expect(STORE_REGISTRY.has('user')).toBe(true);
-
     const collector = createMicroStoreCollector({ stores: [counterStore, userStore] });
 
     expect(Object.keys(collector)).toEqual(['counter', 'user']);
-    expect(typeof collector.counter).toBe('function');
-    expect(typeof collector.user).toBe('function');
+    expect(collector.counter).toBe(counterStore);
+    expect(collector.store.user).toBe(userStore);
+    expect(isAsyncStore(collector)).toBe(true);
   });
 
-  it('given a temp registered store, when createMicroStoreCollector called, then registry size goes to 0 after', () => {
-    const tempStore = createMicroStore('temp', () => ({
-      state: { value: 123 },
+  it('given an initializer, when init is called repeatedly, then it runs once and resolves readiness', async () => {
+    const onInit = vi.fn(async () => undefined);
+    const collector = createMicroStoreCollector({
+      name: 'app',
+      stores: [],
+      onInit,
+    });
+
+    await Promise.all([collector.init(), collector.init(), collector.init()]);
+
+    expect(onInit).toHaveBeenCalledTimes(1);
+    expect(collector.isStoreReady).toBe(true);
+    await expect(collector.isReady).resolves.toBe(true);
+  });
+
+  it('given a store action, when the action runs, then the collector emits an inspectable event', () => {
+    const useCounter = createMicroStore('counter', select => ({
+      state: { count: 0 },
+      actions: {
+        increment() {
+          select(state => state).count++;
+        },
+      },
+    }));
+    const collector = createMicroStoreCollector({ stores: useCounter });
+    const listener = vi.fn();
+
+    const unsubscribe = collector.subscribe(listener);
+    collector.counter().increment();
+
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'action',
+      store: 'counter',
+      action: 'increment',
+      state: { count: 1 },
+    }));
+
+    unsubscribe();
+    collector.counter().increment();
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('given circular state, when inspecting the collector, then snapshot serialization remains safe', () => {
+    const circular: { name: string; self?: unknown } = { name: 'circular' };
+    circular.self = circular;
+
+    const useStore = createMicroStore('circular', () => ({
+      state: circular,
       actions: {},
     }));
+    const collector = createMicroStoreCollector({ stores: useStore });
 
-    expect(STORE_REGISTRY.size).toBe(1);
-
-    createMicroStoreCollector({ stores: tempStore });
-
-    expect(STORE_REGISTRY.size).toBe(0);
+    expect(collector.getSnapshot()).toEqual({
+      circular: { name: 'circular', self: '[Circular]' },
+    });
   });
 
-  it('given todos store, when collector = create... then todos = collector.todos(), then todos has state and addTodo', () => {
-    const todosStore = createMicroStore('todos', () => ({
-      state: { items: [] },
-      actions: { addTodo: (text: string) => {} },
-    }));
-
-    const collector = createMicroStoreCollector({ stores: todosStore });
-    const todos = collector.todos();
-
-    expect(todos).toHaveProperty('state');
-    expect(todos).toHaveProperty('addTodo');
-    expect(Array.isArray(todos.state.items)).toBe(true);
-  });
-
-  it('given auth store (single not array), when createMicroStoreCollector({stores: authStore}), then collector has auth key', () => {
-    const authStore = createMicroStore('auth', () => ({
-      state: { isLoggedIn: false },
-      actions: {},
-    }));
-
-    const collector = createMicroStoreCollector({ stores: [authStore] });
-    expect(collector).toHaveProperty('auth');
+  it('given an invalid explicit store, when creating a collector, then it throws a useful error', () => {
+    expect(() => createMicroStoreCollector({ stores: vi.fn() as never })).toThrow(
+      'Every supplied store must be created with createMicroStore'
+    );
   });
 });
